@@ -1,14 +1,66 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Player</title>
-  <base href="/football-archive/">
-</head>
-<body>
-
 <div id="player"></div>
 
-<script src="js/player.js"></script>
+<script>
+const id = new URLSearchParams(location.search).get('id');
 
-</body>
-</html>
+Promise.all([
+  fetch('data/players.json').then(r => r.json()),
+  fetch('data/appearances.json').then(r => r.json()),
+  fetch('data/matches.json').then(r => r.json())
+]).then(([players, apps, matches]) => {
+  const p = players.find(x => x.id === id);
+  const el = document.getElementById('player');
+
+  if (!p) {
+    el.textContent = 'Player not found.';
+    return;
+  }
+
+  el.innerHTML = `
+    <h2>${p.name}</h2>
+    <img src="images/players/${p.photo}" onerror="this.src='images/players/default.jpg'">
+    <p>${p.bio}</p>
+  `;
+
+  const pa = apps.filter(a => a.player_id === id);
+
+  el.innerHTML += "<h3>Matches</h3>";
+  pa.forEach(a => {
+    const m = matches.find(x => x.id === a.match_id);
+    if (m) {
+      el.innerHTML += `
+        <div>
+          <a href="match.html?id=${m.id}">
+            ${m.date} ${m.home_team} ${m.home_score}-${m.away_score} ${m.away_team}
+          </a>
+        </div>
+      `;
+    }
+  });
+
+  // ✅ Compute season stats
+  const seasonStats = {};
+  pa.forEach(a => {
+    const match = matches.find(m => m.id === a.match_id);
+    if (!match) return;
+    const seasonId = match.season_id;
+    if (!seasonStats[seasonId]) {
+      seasonStats[seasonId] = { apps: 0, goals: 0, seasonName: match.season_name || seasonId };
+    }
+    seasonStats[seasonId].apps++;
+    seasonStats[seasonId].goals += Number(a.goals);
+  });
+
+  el.innerHTML += "<h3>Season Stats</h3>";
+  for (const [seasonId, stats] of Object.entries(seasonStats)) {
+    el.innerHTML += `
+      <div>
+        <a href="player-season.html?player=${id}&season=${seasonId}">
+          ${stats.seasonName}
+        </a>
+        — Apps: ${stats.apps}, Goals: ${stats.goals}
+      </div>
+    `;
+  }
+});
+</script>
