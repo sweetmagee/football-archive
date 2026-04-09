@@ -1,0 +1,11 @@
+{
+  "id": "m1",
+  "date": "2024-01-01",
+  "home_team": "t1",
+  "away_team": "t2",
+  "home_score": 2,
+  "away_score": 1,
+  "season_id": "s1",
+  "competition": "FA Cup",
+  "round": "Quarter Final"
+}
