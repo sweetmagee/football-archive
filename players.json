@@ -1,0 +1,26 @@
+[
+  {
+    "id": "p1",
+    "name": "John Smith",
+    "dob": "1995-06-10",
+    "position": "Midfielder",
+    "nationality": "England",
+    "team": "t1",
+    "apps": "120",
+    "goals": "25",
+    "photo": "p1.jpg",
+    "bio": "Creative midfielder"
+  },
+  {
+    "id": "p2",
+    "name": "Jeff Trice",
+    "dob": "",
+    "position": "Goalkeeper",
+    "nationality": "Irish",
+    "team": "t1",
+    "apps": "233",
+    "goals": "22",
+    "photo": "",
+    "bio": "Jeff trice"
+  }
+]
