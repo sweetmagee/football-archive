@@ -6,8 +6,8 @@
     "position": "Midfielder",
     "nationality": "England",
     "team": "t1",
-    "apps": "120",
-    "goals": "25",
+    "apps": 120,
+    "goals": 25,
     "photo": "p1.jpg",
     "bio": "Creative midfielder"
   },
@@ -18,8 +18,8 @@
     "position": "Goalkeeper",
     "nationality": "Irish",
     "team": "t1",
-    "apps": "233",
-    "goals": "22",
+    "apps": 233,
+    "goals": 22,
     "photo": "",
     "bio": "Jeff trice"
   }
