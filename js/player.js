@@ -44,3 +44,7 @@ el.innerHTML += `
     — Apps: ${stats.apps}, Goals: ${stats.goals}
   </div>
 `;
+
+<img src="images/players/${p.photo}" 
+     onerror="this.src='images/players/default.jpg'">
+
