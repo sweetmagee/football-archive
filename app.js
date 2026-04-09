@@ -1,7 +1,7 @@
 
 let players=[];
 
-fetch("/football-archive/data/players.json").then(r=>r.json()).then(data=>{
+fetch("data/players.json").then(r=>r.json()).then(data=>{
   players=data;
   render(players);
 });
