@@ -1,0 +1,8 @@
+
+
+Promise.all([
+  fetch('data/players.json').then(r=>r.json()),
+  fetch('data/appearances.json').then(r=>r.json()),
+  fetch('data/matches.json').then(r=>r.json()),
+  fetch('data/seasons.json').then(r=>r.json())
+]).then(([players, apps, matches, seasons]) => {
