@@ -1,1 +1,38 @@
-<html><body><h1>Margate Football Club History</h1></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Margate Football Club 1896 to 1939</title>
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- ✅ IMPORTANT for GitHub Pages -->
+  <base href="/football-archive/">
+</head>
+<body>
+
+<h1>Football Archive</h1>
+
+<!-- 🔍 Search -->
+<input id="search" placeholder="Search players">
+
+<!-- 🎯 Filters -->
+<select id="positionFilter">
+  <option value="">All Positions</option>
+</select>
+
+<!-- 📊 Player Table -->
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Position</th>
+      <th>Apps</th>
+      <th>Goals</th>
+    </tr>
+  </thead>
+  <tbody id="playerTable"></tbody>
+</table>
+
+<script src="js/app.js"></script>
+
+</body>
+</html>
