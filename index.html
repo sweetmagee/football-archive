@@ -1,38 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Margate Football Club 1896 to 1939</title>
-  <link rel="stylesheet" href="css/styles.css">
-
-  <!-- ✅ IMPORTANT for GitHub Pages -->
+  <meta charset="UTF-8">
+  <title>Football Archive</title>
   <base href="/football-archive/">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-<h1>Football Archive</h1>
+  <div class="header-bar">
+    <h1>Football Archive</h1>
+    <div class="nav-links">
+      <a href="index.html">Players</a>
+      <a href="seasons.html">Seasons</a>
+    </div>
+  </div>
 
-<!-- 🔍 Search -->
-<input id="search" placeholder="Search players">
+  <div class="page-wrap">
+    <div class="content-box">
+      <h2>Players</h2>
 
-<!-- 🎯 Filters -->
-<select id="positionFilter">
-  <option value="">All Positions</option>
-</select>
+      <input id="search" placeholder="Search players">
 
-<!-- 📊 Player Table -->
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Position</th>
-      <th>Apps</th>
-      <th>Goals</th>
-    </tr>
-  </thead>
-  <tbody id="playerTable"></tbody>
-</table>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Apps</th>
+            <th>Goals</th>
+          </tr>
+        </thead>
+        <tbody id="playerTable"></tbody>
+      </table>
+    </div>
+  </div>
 
-<script src="js/app.js"></script>
-
+  <script src="app.js"></script>
 </body>
 </html>
