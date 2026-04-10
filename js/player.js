@@ -32,7 +32,8 @@ Promise.all([
           <p><strong>Date of birth:</strong> ${p.dob || ''}</p>
           <p><strong>Nationality:</strong> ${p.nationality || ''}</p>
           <p><strong>Team:</strong> ${teamName}</p>
-          <p><strong>Apps:</strong> ${p.apps ?? 0} | <strong>Goals:</strong> ${p.goals ?? 0}</p>
+          <p><strong>Career Apps:</strong> ${p.apps ?? 0}</p>
+          <p><strong>Career Goals:</strong> ${p.goals ?? 0}</p>
           <p>${p.bio || ''}</p>
         </div>
       </div>
@@ -55,51 +56,110 @@ Promise.all([
     seasonStats[match.season_id].goals += Number(a.goals || 0);
   });
 
-  el.innerHTML += `<div class="content-box section-block"><h3>Season Stats</h3><div id="seasonStats" class="list-block"></div></div>`;
+  el.innerHTML += `
+    <div class="content-box section-block">
+      <h3>Season Stats</h3>
+      <table class="archive-table">
+        <thead>
+          <tr>
+            <th>Season</th>
+            <th>Apps</th>
+            <th>Goals</th>
+          </tr>
+        </thead>
+        <tbody id="seasonStatsTable"></tbody>
+      </table>
+    </div>
+  `;
 
-  const seasonStatsEl = document.getElementById('seasonStats');
+  const seasonStatsTable = document.getElementById('seasonStatsTable');
 
   if (Object.keys(seasonStats).length === 0) {
-    seasonStatsEl.innerHTML = `<div>No season stats available.</div>`;
+    seasonStatsTable.innerHTML = `
+      <tr>
+        <td colspan="3">No season stats available.</td>
+      </tr>
+    `;
   } else {
-    Object.entries(seasonStats).forEach(([seasonId, stats]) => {
-      const season = seasons.find(s => String(s.id) == String(seasonId));
-      const seasonName = season ? season.name : `Season ${seasonId}`;
+    Object.entries(seasonStats)
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .forEach(([seasonId, stats]) => {
+        const season = seasons.find(s => String(s.id) == String(seasonId));
+        const seasonName = season ? season.name : `Season ${seasonId}`;
 
-      seasonStatsEl.innerHTML += `
-        <div>
-          <a href="player-season.html?player=${id}&season=${seasonId}">
-            ${seasonName}
-          </a>
-          — Apps: ${stats.apps}, Goals: ${stats.goals}
-        </div>
-      `;
-    });
+        seasonStatsTable.innerHTML += `
+          <tr>
+            <td>
+              <a href="player-season.html?player=${id}&season=${seasonId}">
+                ${seasonName}
+              </a>
+            </td>
+            <td>${stats.apps}</td>
+            <td>${stats.goals}</td>
+          </tr>
+        `;
+      });
   }
 
-  el.innerHTML += `<div class="content-box section-block"><h3>Matches</h3><div id="matchList" class="list-block"></div></div>`;
+  el.innerHTML += `
+    <div class="content-box section-block">
+      <h3>Match History</h3>
+      <table class="archive-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Match</th>
+            <th>Goals</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody id="matchHistoryTable"></tbody>
+      </table>
+    </div>
+  `;
 
-  const matchListEl = document.getElementById('matchList');
+  const matchHistoryTable = document.getElementById('matchHistoryTable');
 
   if (pa.length === 0) {
-    matchListEl.innerHTML = `<div>No matches available.</div>`;
+    matchHistoryTable.innerHTML = `
+      <tr>
+        <td colspan="4">No matches available.</td>
+      </tr>
+    `;
   } else {
-    pa.forEach(a => {
-      const m = matches.find(x => String(x.id).trim() === String(a.match_id).trim());
-      if (!m) return;
+    const rows = pa
+      .map(a => {
+        const m = matches.find(x => String(x.id).trim() === String(a.match_id).trim());
+        if (!m) return null;
 
-      const homeTeam = teams.find(t => String(t.id).trim() === String(m.home_team).trim());
-      const awayTeam = teams.find(t => String(t.id).trim() === String(m.away_team).trim());
+        const homeTeam = teams.find(t => String(t.id).trim() === String(m.home_team).trim());
+        const awayTeam = teams.find(t => String(t.id).trim() === String(m.away_team).trim());
 
-      const homeName = homeTeam ? homeTeam.name : m.home_team;
-      const awayName = awayTeam ? awayTeam.name : m.away_team;
+        const homeName = homeTeam ? homeTeam.name : m.home_team;
+        const awayName = awayTeam ? awayTeam.name : m.away_team;
 
-      matchListEl.innerHTML += `
-        <div>
-          <a href="match.html?id=${m.id}">
-            ${m.date} ${homeName} ${m.home_score}-${m.away_score} ${awayName}
-          </a>
-        </div>
+        return {
+          date: m.date || '',
+          id: m.id,
+          scoreline: `${homeName} ${m.home_score}-${m.away_score} ${awayName}`,
+          goals: Number(a.goals || 0),
+          role: Number(a.is_starting) === 1 ? 'Starter' : 'Substitute'
+        };
+      })
+      .filter(Boolean);
+
+    rows.forEach(row => {
+      matchHistoryTable.innerHTML += `
+        <tr>
+          <td>${row.date}</td>
+          <td>
+            <a href="match.html?id=${row.id}">
+              ${row.scoreline}
+            </a>
+          </td>
+          <td>${row.goals}</td>
+          <td>${row.role}</td>
+        </tr>
       `;
     });
   }
