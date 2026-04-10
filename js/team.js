@@ -28,11 +28,10 @@ Promise.all([
     .filter(p => String(p.team).trim() === String(id).trim())
     .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
 
-  const teamMatches = matches
-    .filter(m =>
-      String(m.home_team).trim() === String(id).trim() ||
-      String(m.away_team).trim() === String(id).trim()
-    );
+  const teamMatches = matches.filter(m =>
+    String(m.home_team).trim() === String(id).trim() ||
+    String(m.away_team).trim() === String(id).trim()
+  );
 
   function getRecord(matchList) {
     let P = 0, W = 0, D = 0, L = 0, GF = 0, GA = 0;
@@ -73,6 +72,58 @@ Promise.all([
       <p><strong>Points:</strong> ${overall.PTS}</p>
     </div>
   `;
+
+  el.innerHTML += `
+    <div class="content-box section-block">
+      <h3>Season-by-Season Summary</h3>
+      <table class="archive-table">
+        <thead>
+          <tr>
+            <th>Season</th>
+            <th>P</th>
+            <th>W</th>
+            <th>D</th>
+            <th>L</th>
+            <th>GF</th>
+            <th>GA</th>
+            <th>GD</th>
+            <th>Pts</th>
+          </tr>
+        </thead>
+        <tbody id="seasonSummaryTable"></tbody>
+      </table>
+    </div>
+  `;
+
+  const summaryTable = document.getElementById('seasonSummaryTable');
+
+  const groupedBySeason = {};
+
+  teamMatches.forEach(m => {
+    const sid = String(m.season_id || '').trim() || 'unknown';
+    if (!groupedBySeason[sid]) groupedBySeason[sid] = [];
+    groupedBySeason[sid].push(m);
+  });
+
+  Object.entries(groupedBySeason)
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .forEach(([seasonId, matchList]) => {
+      const record = getRecord(matchList);
+
+      summaryTable.innerHTML += `
+        <tr>
+          <td><a href="season.html?id=${seasonId}">${seasonName(seasonId)}</a></td>
+          <td>${record.P}</td>
+          <td>${record.W}</td>
+          <td>${record.D}</td>
+          <td>${record.L}</td>
+          <td>${record.GF}</td>
+          <td>${record.GA}</td>
+          <td>${record.GD}</td>
+          <td>${record.PTS}</td>
+        </tr>
+      `;
+    });
 
   el.innerHTML += `
     <div class="content-box section-block">
@@ -120,15 +171,7 @@ Promise.all([
   if (teamMatches.length === 0) {
     matchesWrap.innerHTML = `<div>No matches found for this team.</div>`;
   } else {
-    const grouped = {};
-
-    teamMatches.forEach(m => {
-      const sid = String(m.season_id || '').trim() || 'unknown';
-      if (!grouped[sid]) grouped[sid] = [];
-      grouped[sid].push(m);
-    });
-
-    Object.entries(grouped)
+    Object.entries(groupedBySeason)
       .sort((a, b) => Number(a[0]) - Number(b[0]))
       .forEach(([seasonId, seasonMatches]) => {
         seasonMatches.sort((a, b) => {
