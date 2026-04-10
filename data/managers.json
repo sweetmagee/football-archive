@@ -1,0 +1,14 @@
+[
+  {
+    "team_id": "t1",
+    "name": "Arthur Green",
+    "start_season": "1",
+    "end_season": "2"
+  },
+  {
+    "team_id": "t1",
+    "name": "George White",
+    "start_season": "3",
+    "end_season": "5"
+  }
+]
