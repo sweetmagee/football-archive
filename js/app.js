@@ -49,7 +49,7 @@ function render(list) {
           <a href="player.html?id=${p.id}">${p.name}</a>
         </td>
         <td>${p.position || ""}</td>
-        <td>${getTeamName(p.team || "")}</td>
+        <td><a href="team.html?id=${p.team}">${getTeamName(p.team || "")}</a></td>
         <td>${p.apps ?? ""}</td>
         <td>${p.goals ?? ""}</td>
       </tr>
