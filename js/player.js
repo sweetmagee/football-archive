@@ -49,22 +49,19 @@ Promise.all([
 
   el.innerHTML += `<h3>Season Stats</h3>`;
 
-  if (Object.keys(seasonStats).length === 0) {
-    el.innerHTML += `<div>No season stats available.</div>`;
-  } else {
-    Object.entries(seasonStats).forEach(([seasonId, stats]) => {
-      const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
-      const seasonName = season ? season.name : seasonId;
+Object.entries(seasonStats).forEach(([seasonId, stats]) => {
+  const season = seasons.find(s => String(s.id) == String(seasonId));
+  const seasonName = season ? season.name : `Season ${seasonId}`;
 
-      el.innerHTML += `
-        <div>
-          <a href="player-season.html?player=${id}&season=${seasonId}">
-            ${seasonName}
-          </a>
-          — Apps: ${stats.apps}, Goals: ${stats.goals}
-        </div>
-      `;
-    });
+  el.innerHTML += `
+    <div>
+      <a href="player-season.html?player=${id}&season=${seasonId}">
+        ${seasonName}
+      </a>
+      — Apps: ${stats.apps}, Goals: ${stats.goals}
+    </div>
+  `;
+});
   }
 
   el.innerHTML += `<h3>Matches</h3>`;
