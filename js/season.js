@@ -6,13 +6,17 @@ Promise.all([
   fetch("data/teams.json").then(r => r.json()),
   fetch("data/seasons.json").then(r => r.json()),
   fetch("data/appearances.json").then(r => r.json()),
-  fetch("data/players.json").then(r => r.json())
-]).then(([matches, teams, seasons, appearances, players]) => {
+  fetch("data/players.json").then(r => r.json()),
+  fetch("data/captains.json").then(r => r.json()).catch(() => []),
+  fetch("data/managers.json").then(r => r.json()).catch(() => [])
+]).then(([matches, teams, seasons, appearances, players, captains, managers]) => {
   const season = seasons.find(s => String(s.id) == String(seasonId));
   const titleEl = document.getElementById("seasonTitle");
   const tableBody = document.getElementById("tableBody");
   const matchesEl = document.getElementById("matches");
   const scorersEl = document.getElementById("scorers");
+  const seasonCaptainsTable = document.getElementById("seasonCaptainsTable");
+  const seasonManagersTable = document.getElementById("seasonManagersTable");
 
   if (!season) {
     titleEl.textContent = "Season not found";
@@ -204,6 +208,58 @@ Promise.all([
     });
   }
 
+  function inSeasonRange(item) {
+    return Number(item.start_season || 0) <= Number(seasonId) &&
+           Number(item.end_season || 0) >= Number(seasonId);
+  }
+
+  function renderOfficials() {
+    const seasonTeams = new Set();
+    seasonMatches.forEach(m => {
+      seasonTeams.add(String(m.home_team).trim());
+      seasonTeams.add(String(m.away_team).trim());
+    });
+
+    const seasonCaptains = captains.filter(c =>
+      seasonTeams.has(String(c.team_id).trim()) && inSeasonRange(c)
+    );
+
+    const seasonManagers = managers.filter(m =>
+      seasonTeams.has(String(m.team_id).trim()) && inSeasonRange(m)
+    );
+
+    if (seasonCaptains.length === 0) {
+      seasonCaptainsTable.innerHTML = `<tr><td colspan="2">No captains recorded for this season.</td></tr>`;
+    } else {
+      seasonCaptains
+        .sort((a, b) => teamName(a.team_id).localeCompare(teamName(b.team_id)))
+        .forEach(c => {
+          seasonCaptainsTable.innerHTML += `
+            <tr>
+              <td><a href="team.html?id=${c.team_id}">${teamName(c.team_id)}</a></td>
+              <td><a href="player.html?id=${c.player_id}">${playerName(c.player_id)}</a></td>
+            </tr>
+          `;
+        });
+    }
+
+    if (seasonManagers.length === 0) {
+      seasonManagersTable.innerHTML = `<tr><td colspan="2">No managers recorded for this season.</td></tr>`;
+    } else {
+      seasonManagers
+        .sort((a, b) => teamName(a.team_id).localeCompare(teamName(b.team_id)))
+        .forEach(m => {
+          seasonManagersTable.innerHTML += `
+            <tr>
+              <td><a href="team.html?id=${m.team_id}">${teamName(m.team_id)}</a></td>
+              <td><a href="player.html?id=${m.player_id}">${playerName(m.player_id)}</a></td>
+            </tr>
+          `;
+        });
+    }
+  }
+
+  renderOfficials();
   renderTable(buildTable(leagueMatches));
   renderMatches(seasonMatches);
   renderTopScorers(seasonMatches);
