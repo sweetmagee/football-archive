@@ -147,32 +147,42 @@ Promise.all([
   const honoursTable = document.getElementById('honoursTable');
 
   if (teamCaptains.length === 0) {
-    captainsTable.innerHTML = `<tr><td colspan="3">No captains recorded.</td></tr>`;
-  } else {
-    teamCaptains.forEach(c => {
-      captainsTable.innerHTML += `
-        <tr>
-          <td>${c.name}</td>
-          <td>${seasonName(c.start_season)}</td>
-          <td>${seasonName(c.end_season)}</td>
-        </tr>
-      `;
-    });
-  }
+  captainsTable.innerHTML = `<tr><td colspan="3">No captains recorded.</td></tr>`;
+} else {
+  teamCaptains.forEach(c => {
+    const player = players.find(p => String(p.id).trim() === String(c.player_id).trim());
+    const playerDisplay = player
+      ? `<a href="player.html?id=${player.id}">${player.name}</a>`
+      : c.player_id;
 
-  if (teamManagers.length === 0) {
-    managersTable.innerHTML = `<tr><td colspan="3">No managers recorded.</td></tr>`;
-  } else {
-    teamManagers.forEach(m => {
-      managersTable.innerHTML += `
-        <tr>
-          <td>${m.name}</td>
-          <td>${seasonName(m.start_season)}</td>
-          <td>${seasonName(m.end_season)}</td>
-        </tr>
-      `;
-    });
-  }
+    captainsTable.innerHTML += `
+      <tr>
+        <td>${playerDisplay}</td>
+        <td>${seasonName(c.start_season)}</td>
+        <td>${seasonName(c.end_season)}</td>
+      </tr>
+    `;
+  });
+}
+
+if (teamManagers.length === 0) {
+  managersTable.innerHTML = `<tr><td colspan="3">No managers recorded.</td></tr>`;
+} else {
+  teamManagers.forEach(m => {
+    const player = players.find(p => String(p.id).trim() === String(m.player_id).trim());
+    const playerDisplay = player
+      ? `<a href="player.html?id=${player.id}">${player.name}</a>`
+      : m.player_id;
+
+    managersTable.innerHTML += `
+      <tr>
+        <td>${playerDisplay}</td>
+        <td>${seasonName(m.start_season)}</td>
+        <td>${seasonName(m.end_season)}</td>
+      </tr>
+    `;
+  });
+}
 
   if (teamHonours.length === 0) {
     honoursTable.innerHTML = `<tr><td colspan="3">No honours recorded.</td></tr>`;
