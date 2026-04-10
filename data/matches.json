@@ -6,7 +6,7 @@
     "away_team": "t2",
     "home_score": "5",
     "away_score": "1",
-    "season_id": "1",
+    "season_id": "s1",
     "competition": "Friendly",
     "round": "1"
   },
@@ -17,7 +17,7 @@
     "away_team": "t1",
     "home_score": "0",
     "away_score": "6",
-    "season_id": "2",
+    "season_id": "s2",
     "competition": "League",
     "round": ""
   }
