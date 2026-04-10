@@ -5,8 +5,11 @@ Promise.all([
   fetch('data/players.json').then(r => r.json()),
   fetch('data/matches.json').then(r => r.json()),
   fetch('data/seasons.json').then(r => r.json()),
-  fetch('data/appearances.json').then(r => r.json())
-]).then(([teams, players, matches, seasons, appearances]) => {
+  fetch('data/appearances.json').then(r => r.json()),
+  fetch('data/captains.json').then(r => r.json()).catch(() => []),
+  fetch('data/managers.json').then(r => r.json()).catch(() => []),
+  fetch('data/honours.json').then(r => r.json()).catch(() => [])
+]).then(([teams, players, matches, seasons, appearances, captains, managers, honours]) => {
   const team = teams.find(t => String(t.id).trim() === String(id).trim());
   const el = document.getElementById('teamPage');
 
@@ -38,6 +41,18 @@ Promise.all([
     String(m.home_team).trim() === String(id).trim() ||
     String(m.away_team).trim() === String(id).trim()
   );
+
+  const teamCaptains = captains
+    .filter(c => String(c.team_id).trim() === String(id).trim())
+    .sort((a, b) => Number(a.start_season || 0) - Number(b.start_season || 0));
+
+  const teamManagers = managers
+    .filter(m => String(m.team_id).trim() === String(id).trim())
+    .sort((a, b) => Number(a.start_season || 0) - Number(b.start_season || 0));
+
+  const teamHonours = honours
+    .filter(h => String(h.team_id).trim() === String(id).trim())
+    .sort((a, b) => Number(a.season || 0) - Number(b.season || 0));
 
   function getRecord(matchList) {
     let P = 0, W = 0, D = 0, L = 0, GF = 0, GA = 0;
@@ -79,6 +94,101 @@ Promise.all([
     </div>
   `;
 
+  // Club history section
+  el.innerHTML += `
+    <div class="content-box section-block">
+      <h3>Club History</h3>
+      <div class="season-grid">
+        <div class="season-main">
+          <h4>Captains</h4>
+          <table class="archive-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>From</th>
+                <th>To</th>
+              </tr>
+            </thead>
+            <tbody id="captainsTable"></tbody>
+          </table>
+
+          <h4>Managers</h4>
+          <table class="archive-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>From</th>
+                <th>To</th>
+              </tr>
+            </thead>
+            <tbody id="managersTable"></tbody>
+          </table>
+        </div>
+
+        <div class="season-side">
+          <h4>Honours</h4>
+          <table class="archive-table">
+            <thead>
+              <tr>
+                <th>Competition</th>
+                <th>Season</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody id="honoursTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const captainsTable = document.getElementById('captainsTable');
+  const managersTable = document.getElementById('managersTable');
+  const honoursTable = document.getElementById('honoursTable');
+
+  if (teamCaptains.length === 0) {
+    captainsTable.innerHTML = `<tr><td colspan="3">No captains recorded.</td></tr>`;
+  } else {
+    teamCaptains.forEach(c => {
+      captainsTable.innerHTML += `
+        <tr>
+          <td>${c.name}</td>
+          <td>${seasonName(c.start_season)}</td>
+          <td>${seasonName(c.end_season)}</td>
+        </tr>
+      `;
+    });
+  }
+
+  if (teamManagers.length === 0) {
+    managersTable.innerHTML = `<tr><td colspan="3">No managers recorded.</td></tr>`;
+  } else {
+    teamManagers.forEach(m => {
+      managersTable.innerHTML += `
+        <tr>
+          <td>${m.name}</td>
+          <td>${seasonName(m.start_season)}</td>
+          <td>${seasonName(m.end_season)}</td>
+        </tr>
+      `;
+    });
+  }
+
+  if (teamHonours.length === 0) {
+    honoursTable.innerHTML = `<tr><td colspan="3">No honours recorded.</td></tr>`;
+  } else {
+    teamHonours.forEach(h => {
+      honoursTable.innerHTML += `
+        <tr>
+          <td>${h.competition}</td>
+          <td>${seasonName(h.season)}</td>
+          <td>${h.result}</td>
+        </tr>
+      `;
+    });
+  }
+
+  // Season summary
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Season-by-Season Summary</h3>
@@ -235,38 +345,6 @@ Promise.all([
       topScorersTable.innerHTML += `
         <tr>
           <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
-          <td>${row.goals}</td>
-        </tr>
-      `;
-    });
-  }
-
-  el.innerHTML += `
-    <div class="content-box section-block">
-      <h3>Player Leaderboard</h3>
-      <table class="archive-table">
-        <thead>
-          <tr>
-            <th>Player</th>
-            <th>Apps</th>
-            <th>Goals</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboardTable"></tbody>
-      </table>
-    </div>
-  `;
-
-  const leaderboardTable = document.getElementById('leaderboardTable');
-
-  if (leaderboardRows.length === 0) {
-    leaderboardTable.innerHTML = `<tr><td colspan="3">No appearance data available.</td></tr>`;
-  } else {
-    leaderboardRows.forEach(row => {
-      leaderboardTable.innerHTML += `
-        <tr>
-          <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
-          <td>${row.apps}</td>
           <td>${row.goals}</td>
         </tr>
       `;
