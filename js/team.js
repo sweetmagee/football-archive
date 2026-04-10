@@ -4,8 +4,9 @@ Promise.all([
   fetch('data/teams.json').then(r => r.json()),
   fetch('data/players.json').then(r => r.json()),
   fetch('data/matches.json').then(r => r.json()),
-  fetch('data/seasons.json').then(r => r.json())
-]).then(([teams, players, matches, seasons]) => {
+  fetch('data/seasons.json').then(r => r.json()),
+  fetch('data/appearances.json').then(r => r.json())
+]).then(([teams, players, matches, seasons, appearances]) => {
   const team = teams.find(t => String(t.id).trim() === String(id).trim());
   const el = document.getElementById('teamPage');
 
@@ -124,6 +125,72 @@ Promise.all([
         </tr>
       `;
     });
+
+  // Leaderboards
+  const leaderboard = {};
+
+  appearances.forEach(a => {
+    if (String(a.team).trim() !== String(id).trim()) return;
+
+    const playerId = String(a.player_id).trim();
+    if (!leaderboard[playerId]) {
+      leaderboard[playerId] = {
+        apps: 0,
+        goals: 0
+      };
+    }
+
+    leaderboard[playerId].apps += 1;
+    leaderboard[playerId].goals += Number(a.goals || 0);
+  });
+
+  const leaderboardRows = Object.entries(leaderboard)
+    .map(([playerId, stats]) => {
+      const player = players.find(p => String(p.id).trim() === String(playerId).trim());
+      return {
+        playerId,
+        name: player ? player.name : playerId,
+        apps: stats.apps,
+        goals: stats.goals
+      };
+    })
+    .sort((a, b) =>
+      b.apps - a.apps ||
+      b.goals - a.goals ||
+      a.name.localeCompare(b.name)
+    );
+
+  el.innerHTML += `
+    <div class="content-box section-block">
+      <h3>Player Leaderboard</h3>
+      <table class="archive-table">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Apps</th>
+            <th>Goals</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardTable"></tbody>
+      </table>
+    </div>
+  `;
+
+  const leaderboardTable = document.getElementById('leaderboardTable');
+
+  if (leaderboardRows.length === 0) {
+    leaderboardTable.innerHTML = `<tr><td colspan="3">No appearance data available.</td></tr>`;
+  } else {
+    leaderboardRows.forEach(row => {
+      leaderboardTable.innerHTML += `
+        <tr>
+          <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
+          <td>${row.apps}</td>
+          <td>${row.goals}</td>
+        </tr>
+      `;
+    });
+  }
 
   el.innerHTML += `
     <div class="content-box section-block">
