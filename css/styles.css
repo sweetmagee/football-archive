@@ -287,3 +287,7 @@ tbody tr:hover {
 .season-main table {
   margin-bottom: 0;
 }
+.season-side table,
+.season-main table {
+  margin-bottom: 16px;
+}
