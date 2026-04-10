@@ -1,20 +1,20 @@
 [
   {
-    "id": "s1",
-    "name": "2023/24",
-    "start_year": 2023,
-    "end_year": 2024
+    "id": "1",
+    "name": "2021/22",
+    "start_year": 2021,
+    "end_year": 2022
   },
   {
-    "id": "s2",
+    "id": "2",
     "name": "2022/23",
     "start_year": 2022,
     "end_year": 2023
   },
   {
-    "id": "s3",
-    "name": "2021/22",
-    "start_year": 2021,
-    "end_year": 2022
+    "id": "3",
+    "name": "2023/24",
+    "start_year": 2023,
+    "end_year": 2024
   }
 ]
