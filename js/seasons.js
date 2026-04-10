@@ -8,7 +8,7 @@ fetch('data/seasons.json')
       return;
     }
 
-    const sorted = [...seasons].sort((a, b) => Number(b.start_year || 0) - Number(a.start_year || 0));
+    const sorted = [...seasons].sort((a, b) => Number(a.start_year || 0) - Number(b.start_year || 0));
 
     sorted.forEach(s => {
       el.innerHTML += `
