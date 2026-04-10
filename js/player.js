@@ -7,6 +7,7 @@ Promise.all([
   fetch('data/seasons.json').then(r => r.json()),
   fetch('data/teams.json').then(r => r.json())
 ]).then(([players, apps, matches, seasons, teams]) => {
+
   const p = players.find(x => String(x.id).trim() === String(id).trim());
   const el = document.getElementById('player');
 
@@ -15,23 +16,26 @@ Promise.all([
     return;
   }
 
-  const teamObj = teams.find(t => String(t.id).trim() === String(p.team).trim());
-  const teamName = teamObj ? teamObj.name : p.team;
+  function teamName(teamId) {
+    const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
+    return team ? team.name : teamId;
+  }
 
-  const photo = p.photo && p.photo.trim() !== '' ? p.photo.trim() : 'default.jpg';
+  const photo = p.photo && p.photo.trim() !== '' ? p.photo.trim() : 'default.png';
 
+  // 🔷 Player header
   el.innerHTML = `
     <div class="content-box">
       <div class="player-card">
         <div>
-          <img src="images/players/${photo}" onerror="this.src='images/players/default.jpg'" alt="${p.name}">
+          <img id="playerPhoto" src="images/players/${photo}" alt="${p.name}">
         </div>
         <div class="player-meta">
           <h2>${p.name}</h2>
           <p><strong>Position:</strong> ${p.position || ''}</p>
           <p><strong>Date of birth:</strong> ${p.dob || ''}</p>
           <p><strong>Nationality:</strong> ${p.nationality || ''}</p>
-          <p><strong>Team:</strong> ${teamName}</p>
+          <p><strong>Team:</strong> ${teamName(p.team || '')}</p>
           <p><strong>Career Apps:</strong> ${p.apps ?? 0}</p>
           <p><strong>Career Goals:</strong> ${p.goals ?? 0}</p>
           <p>${p.bio || ''}</p>
@@ -40,12 +44,29 @@ Promise.all([
     </div>
   `;
 
-  const pa = apps.filter(a => String(a.player_id).trim() === String(id).trim());
+  // ✅ FIXED IMAGE FALLBACK (no flashing)
+  const img = document.getElementById('playerPhoto');
+  img.onerror = function () {
+    if (!this.src.includes('default.png')) {
+      this.src = 'images/players/default.png';
+    } else {
+      this.onerror = null;
+    }
+  };
 
+  // 🔷 Player appearances
+  const pa = apps.filter(a =>
+    String(a.player_id).trim() === String(id).trim()
+  );
+
+  // 🔷 Build season stats
   const seasonStats = {};
 
   pa.forEach(a => {
-    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+    const match = matches.find(m =>
+      String(m.id).trim() === String(a.match_id).trim()
+    );
+
     if (!match || !match.season_id) return;
 
     if (!seasonStats[match.season_id]) {
@@ -56,6 +77,7 @@ Promise.all([
     seasonStats[match.season_id].goals += Number(a.goals || 0);
   });
 
+  // 🔷 Season stats table
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Season Stats</h3>
@@ -76,15 +98,17 @@ Promise.all([
 
   if (Object.keys(seasonStats).length === 0) {
     seasonStatsTable.innerHTML = `
-      <tr>
-        <td colspan="3">No season stats available.</td>
-      </tr>
+      <tr><td colspan="3">No season stats available.</td></tr>
     `;
   } else {
     Object.entries(seasonStats)
       .sort((a, b) => Number(a[0]) - Number(b[0]))
       .forEach(([seasonId, stats]) => {
-        const season = seasons.find(s => String(s.id) == String(seasonId));
+
+        const season = seasons.find(s =>
+          String(s.id).trim() === String(seasonId).trim()
+        );
+
         const seasonName = season ? season.name : `Season ${seasonId}`;
 
         seasonStatsTable.innerHTML += `
@@ -101,6 +125,7 @@ Promise.all([
       });
   }
 
+  // 🔷 Match history table
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Match History</h3>
@@ -122,28 +147,24 @@ Promise.all([
 
   if (pa.length === 0) {
     matchHistoryTable.innerHTML = `
-      <tr>
-        <td colspan="4">No matches available.</td>
-      </tr>
+      <tr><td colspan="4">No matches available.</td></tr>
     `;
   } else {
+
     const rows = pa
       .map(a => {
-        const m = matches.find(x => String(x.id).trim() === String(a.match_id).trim());
+        const m = matches.find(x =>
+          String(x.id).trim() === String(a.match_id).trim()
+        );
+
         if (!m) return null;
-
-        const homeTeam = teams.find(t => String(t.id).trim() === String(m.home_team).trim());
-        const awayTeam = teams.find(t => String(t.id).trim() === String(m.away_team).trim());
-
-        const homeName = homeTeam ? homeTeam.name : m.home_team;
-        const awayName = awayTeam ? awayTeam.name : m.away_team;
 
         return {
           date: m.date || '',
           id: m.id,
-          scoreline: `${homeName} ${m.home_score}-${m.away_score} ${awayName}`,
+          match: `${teamName(m.home_team)} ${m.home_score}-${m.away_score} ${teamName(m.away_team)}`,
           goals: Number(a.goals || 0),
-          role: Number(a.is_starting) === 1 ? 'Starter' : 'Substitute'
+          role: Number(a.is_starting) === 1 ? 'Starter' : 'Sub'
         };
       })
       .filter(Boolean);
@@ -154,7 +175,7 @@ Promise.all([
           <td>${row.date}</td>
           <td>
             <a href="match.html?id=${row.id}">
-              ${row.scoreline}
+              ${row.match}
             </a>
           </td>
           <td>${row.goals}</td>
@@ -163,6 +184,7 @@ Promise.all([
       `;
     });
   }
+
 }).catch(err => {
   document.getElementById('player').innerHTML =
     `<div class="content-box"><p>Error loading player page: ${err.message}</p></div>`;
