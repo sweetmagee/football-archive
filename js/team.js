@@ -162,6 +162,85 @@ Promise.all([
       a.name.localeCompare(b.name)
     );
 
+  // Team legends
+  const topAppearanceRows = [...leaderboardRows]
+    .sort((a, b) =>
+      b.apps - a.apps ||
+      b.goals - a.goals ||
+      a.name.localeCompare(b.name)
+    )
+    .slice(0, 15);
+
+  const topScorerRows = [...leaderboardRows]
+    .sort((a, b) =>
+      b.goals - a.goals ||
+      b.apps - a.apps ||
+      a.name.localeCompare(b.name)
+    )
+    .slice(0, 15);
+
+  el.innerHTML += `
+    <div class="content-box section-block">
+      <h3>Team Legends</h3>
+      <div class="season-grid">
+        <div class="season-main">
+          <h4>All-Time Top Appearances</h4>
+          <table class="archive-table">
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Apps</th>
+              </tr>
+            </thead>
+            <tbody id="topAppearancesTable"></tbody>
+          </table>
+        </div>
+
+        <div class="season-side">
+          <h4>All-Time Top Scorers</h4>
+          <table class="archive-table">
+            <thead>
+              <tr>
+                <th>Player</th>
+                <th>Goals</th>
+              </tr>
+            </thead>
+            <tbody id="topScorersTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const topAppearancesTable = document.getElementById('topAppearancesTable');
+  const topScorersTable = document.getElementById('topScorersTable');
+
+  if (topAppearanceRows.length === 0) {
+    topAppearancesTable.innerHTML = `<tr><td colspan="2">No appearance data available.</td></tr>`;
+  } else {
+    topAppearanceRows.forEach(row => {
+      topAppearancesTable.innerHTML += `
+        <tr>
+          <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
+          <td>${row.apps}</td>
+        </tr>
+      `;
+    });
+  }
+
+  if (topScorerRows.length === 0) {
+    topScorersTable.innerHTML = `<tr><td colspan="2">No goals data available.</td></tr>`;
+  } else {
+    topScorerRows.forEach(row => {
+      topScorersTable.innerHTML += `
+        <tr>
+          <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
+          <td>${row.goals}</td>
+        </tr>
+      `;
+    });
+  }
+
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Player Leaderboard</h3>
