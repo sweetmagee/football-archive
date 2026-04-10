@@ -283,3 +283,7 @@ tbody tr:hover {
     width: 180px;
   }
 }
+.season-side table,
+.season-main table {
+  margin-bottom: 0;
+}
