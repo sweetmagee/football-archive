@@ -25,6 +25,11 @@ Promise.all([
     return t ? t.name : teamId;
   }
 
+  function playerName(playerId) {
+    const p = players.find(x => String(x.id).trim() === String(playerId).trim());
+    return p ? p.name : playerId;
+  }
+
   const squad = players
     .filter(p => String(p.team).trim() === String(id).trim())
     .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
@@ -126,7 +131,7 @@ Promise.all([
       `;
     });
 
-  // Leaderboards
+  // Overall player leaderboard
   const leaderboard = {};
 
   appearances.forEach(a => {
@@ -145,15 +150,12 @@ Promise.all([
   });
 
   const leaderboardRows = Object.entries(leaderboard)
-    .map(([playerId, stats]) => {
-      const player = players.find(p => String(p.id).trim() === String(playerId).trim());
-      return {
-        playerId,
-        name: player ? player.name : playerId,
-        apps: stats.apps,
-        goals: stats.goals
-      };
-    })
+    .map(([playerId, stats]) => ({
+      playerId,
+      name: playerName(playerId),
+      apps: stats.apps,
+      goals: stats.goals
+    }))
     .sort((a, b) =>
       b.apps - a.apps ||
       b.goals - a.goals ||
@@ -191,6 +193,80 @@ Promise.all([
       `;
     });
   }
+
+  // Top scorers by season
+  el.innerHTML += `
+    <div class="content-box section-block">
+      <h3>Top Scorers by Season</h3>
+      <div id="topScorersBySeason"></div>
+    </div>
+  `;
+
+  const topScorersWrap = document.getElementById('topScorersBySeason');
+
+  Object.entries(groupedBySeason)
+    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .forEach(([seasonId, seasonMatchList]) => {
+      const seasonMatchIds = new Set(
+        seasonMatchList.map(m => String(m.id).trim())
+      );
+
+      const seasonScorers = {};
+
+      appearances.forEach(a => {
+        if (String(a.team).trim() !== String(id).trim()) return;
+        if (!seasonMatchIds.has(String(a.match_id).trim())) return;
+
+        const playerId = String(a.player_id).trim();
+        const goals = Number(a.goals || 0);
+
+        if (!seasonScorers[playerId]) {
+          seasonScorers[playerId] = 0;
+        }
+
+        seasonScorers[playerId] += goals;
+      });
+
+      const rows = Object.entries(seasonScorers)
+        .map(([playerId, goals]) => ({
+          playerId,
+          name: playerName(playerId),
+          goals
+        }))
+        .filter(row => row.goals > 0)
+        .sort((a, b) =>
+          b.goals - a.goals ||
+          a.name.localeCompare(b.name)
+        );
+
+      topScorersWrap.innerHTML += `
+        <h4>${seasonName(seasonId)}</h4>
+        <table class="archive-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Goals</th>
+            </tr>
+          </thead>
+          <tbody id="scorers-${seasonId}"></tbody>
+        </table>
+      `;
+
+      const scorerTable = document.getElementById(`scorers-${seasonId}`);
+
+      if (rows.length === 0) {
+        scorerTable.innerHTML = `<tr><td colspan="2">No goals recorded.</td></tr>`;
+      } else {
+        rows.forEach(row => {
+          scorerTable.innerHTML += `
+            <tr>
+              <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
+              <td>${row.goals}</td>
+            </tr>
+          `;
+        });
+      }
+    });
 
   el.innerHTML += `
     <div class="content-box section-block">
