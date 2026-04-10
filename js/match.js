@@ -10,7 +10,7 @@ Promise.all([
   const el = document.getElementById('match');
 
   if (!match) {
-    el.innerHTML = '<p>Match not found.</p>';
+    el.innerHTML = '<div class="content-box"><p>Match not found.</p></div>';
     return;
   }
 
@@ -21,10 +21,12 @@ Promise.all([
   const awayName = awayTeam ? awayTeam.name : match.away_team;
 
   el.innerHTML = `
-    <h2>${homeName} ${match.home_score}-${match.away_score} ${awayName}</h2>
-    <p><strong>Date:</strong> ${match.date || ''}</p>
-    <p><strong>Competition:</strong> ${match.competition || ''}</p>
-    <p><strong>Round:</strong> ${match.round || ''}</p>
+    <div class="content-box">
+      <h2>${homeName} ${match.home_score}-${match.away_score} ${awayName}</h2>
+      <p class="stat-line"><strong>Date:</strong> ${match.date || ''}</p>
+      <p class="stat-line"><strong>Competition:</strong> ${match.competition || ''}</p>
+      <p class="stat-line"><strong>Round:</strong> ${match.round || ''}</p>
+    </div>
   `;
 
   const matchApps = apps.filter(a => String(a.match_id).trim() === String(id).trim());
@@ -38,7 +40,7 @@ Promise.all([
   }
 
   function renderTeamSection(title, teamApps) {
-    let html = `<h3>${title}</h3>`;
+    let html = `<div class="content-box section-block"><h3>${title}</h3>`;
 
     const starters = teamApps.filter(a => Number(a.is_starting) === 1);
     const subs = teamApps.filter(a => Number(a.is_starting) !== 1);
@@ -54,7 +56,6 @@ Promise.all([
         html += `
           <div>
             <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-            ${a.minute_out ? `(${a.minute_out}')` : ''}
           </div>
         `;
       });
@@ -116,6 +117,7 @@ Promise.all([
       });
     }
 
+    html += `</div>`;
     return html;
   }
 
@@ -160,15 +162,19 @@ Promise.all([
 
   allEvents.sort((a, b) => a.minute - b.minute);
 
-  el.innerHTML += `<h3>Match Timeline</h3>`;
+  el.innerHTML += `<div class="content-box section-block"><h3>Match Timeline</h3><div id="timeline"></div></div>`;
+
+  const timelineEl = document.getElementById('timeline');
+
   if (allEvents.length === 0) {
-    el.innerHTML += `<div>No timeline events recorded</div>`;
+    timelineEl.innerHTML = `<div>No timeline events recorded</div>`;
   } else {
     allEvents.forEach(ev => {
-      el.innerHTML += `<div>${ev.minute}' ${ev.text}</div>`;
+      timelineEl.innerHTML += `<div class="timeline-event">${ev.minute}' ${ev.text}</div>`;
     });
   }
 }).catch(err => {
-  document.getElementById('match').innerHTML = `<p>Error loading match page: ${err.message}</p>`;
+  document.getElementById('match').innerHTML =
+    `<div class="content-box"><p>Error loading match page: ${err.message}</p></div>`;
   console.error(err);
 });
