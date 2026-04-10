@@ -113,7 +113,7 @@ Promise.all([
 
       tr.innerHTML = `
         <td>${index + 1}</td>
-        <td class="team-col">${teamName(row.teamId)}</td>
+        <td class="team-col"><a href="team.html?id=${row.teamId}">${teamName(row.teamId)}</a></td>
         <td>${row.P}</td>
         <td>${row.W}</td>
         <td>${row.D}</td>
