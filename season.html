@@ -20,45 +20,72 @@
 
     <h1 id="seasonTitle">Season</h1>
 
+    <div class="content-box">
+      <h2>Captains & Managers</h2>
+      <div id="seasonOfficials" class="season-grid">
+        <div class="season-main">
+          <h3>Captains</h3>
+          <table class="archive-table">
+            <thead>
+              <tr>
+                <th>Team</th>
+                <th>Captain</th>
+              </tr>
+            </thead>
+            <tbody id="seasonCaptainsTable"></tbody>
+          </table>
+        </div>
+
+        <div class="season-side">
+          <h3>Managers</h3>
+          <table class="archive-table">
+            <thead>
+              <tr>
+                <th>Team</th>
+                <th>Manager</th>
+              </tr>
+            </thead>
+            <tbody id="seasonManagersTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div class="season-grid">
 
-      <!-- LEFT SIDE -->
-     <div class="season-main">
+      <div class="season-main">
 
-  <div class="content-box">
-    <h2>Matches</h2>
-    <div id="matches" class="match-list"></div>
-  </div>
+        <div class="content-box">
+          <h2>Matches</h2>
+          <div id="matches" class="match-list"></div>
+        </div>
 
-  <div class="content-box">
-    <h2>League Table</h2>
-    <table class="archive-table">
-      <thead>
-        <tr>
-          <th>Pos</th>
-          <th>Team</th>
-          <th>P</th>
-          <th>W</th>
-          <th>D</th>
-          <th>L</th>
-          <th>GF</th>
-          <th>GA</th>
-          <th>GD</th>
-          <th>Pts</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
+        <div class="content-box">
+          <h2>League Table</h2>
+          <table class="archive-table">
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Team</th>
+                <th>P</th>
+                <th>W</th>
+                <th>D</th>
+                <th>L</th>
+                <th>GF</th>
+                <th>GA</th>
+                <th>GD</th>
+                <th>Pts</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
 
-</div>
+      </div>
 
-      <!-- RIGHT SIDE -->
       <div class="season-side">
-
         <h2>Top Scorers</h2>
         <div id="scorers" class="scorer-list"></div>
-
       </div>
 
     </div>
