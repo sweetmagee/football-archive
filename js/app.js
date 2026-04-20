@@ -1,5 +1,4 @@
 let players = [];
-let teams = [];
 let appearances = [];
 
 Promise.all([
@@ -7,35 +6,21 @@ Promise.all([
     if (!r.ok) throw new Error(`HTTP ${r.status} loading players.json`);
     return r.json();
   }),
-  fetch("data/teams.json").then(r => {
-    if (!r.ok) throw new Error(`HTTP ${r.status} loading teams.json`);
-    return r.json();
-  }),
   fetch("data/appearances.json").then(r => {
     if (!r.ok) throw new Error(`HTTP ${r.status} loading appearances.json`);
     return r.json();
   })
-]).then(([playerData, teamData, appearanceData]) => {
+]).then(([playerData, appearanceData]) => {
   players = playerData;
-  teams = teamData;
   appearances = appearanceData;
   render(players);
 }).catch(err => {
   console.error(err);
   const table = document.getElementById("playerTable");
   if (table) {
-    table.innerHTML = `<tr><td colspan="5">Error loading data: ${err.message}</td></tr>`;
+    table.innerHTML = `<tr><td colspan="4">Error loading data: ${err.message}</td></tr>`;
   }
 });
-
-function getTeamName(teamId) {
-  const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
-  return team ? team.name : teamId;
-}
-
-function teamBadgeHtml(teamId, sizeClass = "team-badge-small") {
-  return `<img class="${sizeClass}" src="images/teams/${teamId}.png" alt="" onerror="this.style.display='none'">`;
-}
 
 function getPlayerStats(playerId) {
   const pa = appearances.filter(a => String(a.player_id).trim() === String(playerId).trim());
@@ -68,7 +53,7 @@ function render(list) {
   el.innerHTML = "";
 
   if (!list || list.length === 0) {
-    el.innerHTML = `<tr><td colspan="5">No players found.</td></tr>`;
+    el.innerHTML = `<tr><td colspan="4">No players found.</td></tr>`;
     return;
   }
 
@@ -88,16 +73,8 @@ function render(list) {
   sorted.forEach(p => {
     el.innerHTML += `
       <tr>
-        <td>
-          <a href="player.html?id=${p.id}">${p.name}</a>
-        </td>
+        <td><a href="player.html?id=${p.id}">${p.name}</a></td>
         <td>${p.position || ""}</td>
-        <td>
-          <span class="team-inline">
-            ${teamBadgeHtml(p.team || "")}
-            <a href="team.html?id=${p.team}">${getTeamName(p.team || "")}</a>
-          </span>
-        </td>
         <td>${p.appsDisplay}</td>
         <td>${p.goalsCalc}</td>
       </tr>
@@ -110,8 +87,7 @@ document.getElementById("search").addEventListener("input", e => {
 
   const filtered = players.filter(p =>
     String(p.name || "").toLowerCase().includes(q) ||
-    String(p.position || "").toLowerCase().includes(q) ||
-    String(getTeamName(p.team || "")).toLowerCase().includes(q)
+    String(p.position || "").toLowerCase().includes(q)
   );
 
   render(filtered);
