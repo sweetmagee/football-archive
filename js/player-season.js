@@ -32,7 +32,10 @@ Promise.all([
     seasonMatches.some(m => String(m.id).trim() === String(a.match_id).trim())
   );
 
-  const totalApps = playerApps.length;
+  const starts = playerApps.filter(a => Number(a.is_starting) === 1).length;
+  const subs = playerApps.filter(a => Number(a.is_starting) !== 1).length;
+  const appsDisplay = subs > 0 ? `${starts}+${subs}` : `${starts}`;
+
   const totalGoals = playerApps.reduce((sum, a) => sum + Number(a.goals || 0), 0);
   const totalMinutes = playerApps.reduce((sum, a) => {
     const minIn = Number(a.minute_in || 0);
@@ -43,7 +46,7 @@ Promise.all([
   const totalReds = playerApps.reduce((sum, a) => sum + Number(a.red || 0), 0);
 
   statsEl.innerHTML = `
-    <p><strong>Appearances:</strong> ${totalApps}</p>
+    <p><strong>Appearances:</strong> ${appsDisplay}</p>
     <p><strong>Goals:</strong> ${totalGoals}</p>
     <p><strong>Minutes:</strong> ${totalMinutes}</p>
     <p><strong>Yellow cards:</strong> ${totalYellows}</p>
@@ -64,12 +67,18 @@ Promise.all([
     const m = matches.find(x => String(x.id).trim() === String(a.match_id).trim());
     if (!m) return;
 
+    const appearanceType = Number(a.is_starting) === 1 ? "Start" : "Sub";
+    const minuteInfo = Number(a.is_starting) === 1
+      ? (Number(a.minute_out || 0) > 0 && Number(a.minute_out || 0) < 90 ? ` (off ${a.minute_out}')` : "")
+      : (Number(a.minute_in || 0) > 0 ? ` (on ${a.minute_in}')` : "");
+
     matchesEl.innerHTML += `
       <div>
         <a href="match.html?id=${m.id}">
           ${m.date} ${teamName(m.home_team)} ${m.home_score}-${m.away_score} ${teamName(m.away_team)}
         </a>
-        — Goals: ${Number(a.goals || 0)}
+        — ${appearanceType}${minuteInfo}
+        ${Number(a.goals || 0) > 0 ? ` — Goals: ${a.goals}` : ""}
       </div>
     `;
   });
