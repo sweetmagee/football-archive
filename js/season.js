@@ -26,10 +26,24 @@ Promise.all([
   titleEl.textContent = season.name;
 
   const seasonMatches = matches.filter(m => String(m.season_id) == String(seasonId));
-
   const leagueMatches = seasonMatches.filter(m =>
     !m.competition || String(m.competition).toLowerCase() === "league"
   );
+
+  function slugifyCompetition(name) {
+    return String(name || "")
+      .toLowerCase()
+      .trim()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function competitionBadgeHtml(competition, size = "22") {
+    if (!competition || String(competition).trim() === "") return "";
+    const slug = slugifyCompetition(competition);
+    return `<img src="images/competitions/${slug}.png" alt="${competition}" title="${competition}" style="width:${size}px;height:${size}px;object-fit:contain;" onerror="this.style.display='none'">`;
+  }
 
   function teamName(teamId) {
     const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
@@ -103,11 +117,7 @@ Promise.all([
     tableBody.innerHTML = "";
 
     if (rows.length === 0) {
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="10">No league matches found for this season.</td>
-        </tr>
-      `;
+      tableBody.innerHTML = `<tr><td colspan="10">No league matches found for this season.</td></tr>`;
       return;
     }
 
@@ -155,7 +165,12 @@ Promise.all([
             ${teamName(m.home_team)} ${m.home_score}-${m.away_score} ${teamName(m.away_team)}
           </a>
         </div>
-        <div class="match-meta">${m.competition || ""}${m.round ? ` - ${m.round}` : ""}</div>
+        <div class="match-meta">
+          <span class="competition-inline">
+            ${competitionBadgeHtml(m.competition)}
+            <span>${m.competition || ""}${m.round ? ` - ${m.round}` : ""}</span>
+          </span>
+        </div>
       `;
       matchesEl.appendChild(div);
     });
@@ -174,10 +189,7 @@ Promise.all([
 
       if (!validMatchIds.has(matchId) || goals <= 0) return;
 
-      if (!scorerMap[playerId]) {
-        scorerMap[playerId] = 0;
-      }
-
+      if (!scorerMap[playerId]) scorerMap[playerId] = 0;
       scorerMap[playerId] += goals;
     });
 
