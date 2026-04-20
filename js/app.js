@@ -75,7 +75,7 @@ function render(list) {
       <tr>
         <td><a href="player.html?id=${p.id}">${p.name}</a></td>
         <td>${p.position || ""}</td>
-        <td>${p.appsDisplay}</td>
+        <td>${p.starts + p.subs}</td>
         <td>${p.goalsCalc}</td>
       </tr>
     `;
