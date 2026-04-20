@@ -1,5 +1,6 @@
 let players = [];
 let teams = [];
+let appearances = [];
 
 Promise.all([
   fetch("data/players.json").then(r => {
@@ -9,10 +10,15 @@ Promise.all([
   fetch("data/teams.json").then(r => {
     if (!r.ok) throw new Error(`HTTP ${r.status} loading teams.json`);
     return r.json();
+  }),
+  fetch("data/appearances.json").then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status} loading appearances.json`);
+    return r.json();
   })
-]).then(([playerData, teamData]) => {
+]).then(([playerData, teamData, appearanceData]) => {
   players = playerData;
   teams = teamData;
+  appearances = appearanceData;
   render(players);
 }).catch(err => {
   console.error(err);
@@ -25,6 +31,25 @@ Promise.all([
 function getTeamName(teamId) {
   const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
   return team ? team.name : teamId;
+}
+
+function teamBadgeHtml(teamId, sizeClass = "team-badge-small") {
+  return `<img class="${sizeClass}" src="images/teams/${teamId}.png" alt="" onerror="this.style.display='none'">`;
+}
+
+function getPlayerStats(playerId) {
+  const pa = appearances.filter(a => String(a.player_id).trim() === String(playerId).trim());
+
+  const starts = pa.filter(a => Number(a.is_starting) === 1).length;
+  const subs = pa.filter(a => Number(a.is_starting) !== 1).length;
+  const goals = pa.reduce((sum, a) => sum + Number(a.goals || 0), 0);
+
+  return {
+    starts,
+    subs,
+    goals,
+    appsDisplay: subs > 0 ? `${starts}+${subs}` : `${starts}`
+  };
 }
 
 function render(list) {
@@ -43,15 +68,22 @@ function render(list) {
   );
 
   sorted.forEach(p => {
+    const stats = getPlayerStats(p.id);
+
     el.innerHTML += `
       <tr>
         <td>
           <a href="player.html?id=${p.id}">${p.name}</a>
         </td>
         <td>${p.position || ""}</td>
-        <td><a href="team.html?id=${p.team}">${getTeamName(p.team || "")}</a></td>
-        <td>${p.apps ?? ""}</td>
-        <td>${p.goals ?? ""}</td>
+        <td>
+          <span class="team-inline">
+            ${teamBadgeHtml(p.team || "")}
+            <a href="team.html?id=${p.team}">${getTeamName(p.team || "")}</a>
+          </span>
+        </td>
+        <td>${stats.appsDisplay}</td>
+        <td>${stats.goals}</td>
       </tr>
     `;
   });
