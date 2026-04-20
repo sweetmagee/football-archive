@@ -291,3 +291,35 @@ tbody tr:hover {
 .season-main table {
   margin-bottom: 16px;
 }
+.competition-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.competition-badge {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  border: 1px solid #d5d5d5;
+  background: #fff;
+  padding: 4px;
+}
+
+.competition-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.competition-inline img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.match-meta img,
+.match-scoreline img {
+  vertical-align: middle;
+}
