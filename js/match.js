@@ -183,90 +183,103 @@ Promise.all([
   const homeApps = matchApps.filter(a => String(a.team).trim() === String(match.home_team).trim());
   const awayApps = matchApps.filter(a => String(a.team).trim() === String(match.away_team).trim());
 
-  function renderTeamSection(title, teamApps) {
-    let html = `<div class="content-box section-block"><h3>${title}</h3>`;
+function renderTeamSection(title, teamApps) {
+  let html = `<div class="content-box section-block match-lineup-column"><h3>${title}</h3>`;
 
-    const starters = teamApps.filter(a => Number(a.is_starting) === 1);
-    const subs = teamApps.filter(a => Number(a.is_starting) !== 1);
-    const scorers = teamApps.filter(a => Number(a.goals || 0) > 0);
-    const yellows = teamApps.filter(a => Number(a.yellow || 0) > 0);
-    const reds = teamApps.filter(a => Number(a.red || 0) > 0);
+  const starters = teamApps.filter(a => Number(a.is_starting) === 1);
+  const subs = teamApps.filter(a => Number(a.is_starting) !== 1);
+  const scorers = teamApps.filter(a => Number(a.goals || 0) > 0);
+  const yellows = teamApps.filter(a => Number(a.yellow || 0) > 0);
+  const reds = teamApps.filter(a => Number(a.red || 0) > 0);
 
-    html += `<h4>Starting XI</h4>`;
-    if (starters.length === 0) {
-      html += `<div>None listed</div>`;
-    } else {
-      starters.forEach(a => {
-        html += `
-          <div>
-            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-          </div>
-        `;
-      });
-    }
-
-    html += `<h4>Substitutes</h4>`;
-    if (subs.length === 0) {
-      html += `<div>None listed</div>`;
-    } else {
-      subs.forEach(a => {
-        html += `
-          <div>
-            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-            ${a.minute_in ? `(${a.minute_in}')` : ''}
-          </div>
-        `;
-      });
-    }
-
-    html += `<h4>Goals</h4>`;
-    if (scorers.length === 0) {
-      html += `<div>No goals recorded</div>`;
-    } else {
-      scorers.forEach(a => {
-        html += `
-          <div>
-            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-            — ${a.goals}
-          </div>
-        `;
-      });
-    }
-
-    html += `<h4>Yellow Cards</h4>`;
-    if (yellows.length === 0) {
-      html += `<div>None</div>`;
-    } else {
-      yellows.forEach(a => {
-        html += `
-          <div>
-            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-            — ${a.yellow}
-          </div>
-        `;
-      });
-    }
-
-    html += `<h4>Red Cards</h4>`;
-    if (reds.length === 0) {
-      html += `<div>None</div>`;
-    } else {
-      reds.forEach(a => {
-        html += `
-          <div>
-            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-            — ${a.red}
-          </div>
-        `;
-      });
-    }
-
-    html += `</div>`;
-    return html;
+  html += `<h4>Starting XI</h4>`;
+  if (starters.length === 0) {
+    html += `<div>None listed</div>`;
+  } else {
+    starters.forEach(a => {
+      html += `
+        <div>
+          <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+        </div>
+      `;
+    });
   }
 
-  el.innerHTML += renderTeamSection(homeName, homeApps);
-  el.innerHTML += renderTeamSection(awayName, awayApps);
+  html += `<h4>Substitutes</h4>`;
+  if (subs.length === 0) {
+    html += `<div>None listed</div>`;
+  } else {
+    subs.forEach(a => {
+      html += `
+        <div>
+          <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+          ${a.minute_in ? `(${a.minute_in}')` : ''}
+        </div>
+      `;
+    });
+  }
+
+  html += `<h4>Goals</h4>`;
+  if (scorers.length === 0) {
+    html += `<div>No goals recorded</div>`;
+  } else {
+    scorers.forEach(a => {
+      html += `
+        <div>
+          <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+          — ${a.goals}
+        </div>
+      `;
+    });
+  }
+
+  html += `<h4>Yellow Cards</h4>`;
+  if (yellows.length === 0) {
+    html += `<div>None</div>`;
+  } else {
+    yellows.forEach(a => {
+      html += `
+        <div>
+          <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+          — ${a.yellow}
+        </div>
+      `;
+    });
+  }
+
+  html += `<h4>Red Cards</h4>`;
+  if (reds.length === 0) {
+    html += `<div>None</div>`;
+  } else {
+    reds.forEach(a => {
+      html += `
+        <div>
+          <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+          — ${a.red}
+        </div>
+      `;
+    });
+  }
+
+  html += `</div>`;
+  return html;
+}
+ const homeHasInfo = homeApps.length > 0;
+const awayHasInfo = awayApps.length > 0;
+
+let lineupHtml = `<div class="match-lineups-grid">`;
+
+if (homeHasInfo) {
+  lineupHtml += renderTeamSection(homeName, homeApps);
+}
+
+if (awayHasInfo) {
+  lineupHtml += renderTeamSection(awayName, awayApps);
+}
+
+lineupHtml += `</div>`;
+
+el.innerHTML += lineupHtml;
 
   const allEvents = [];
 
