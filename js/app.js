@@ -63,9 +63,17 @@ function render(list) {
     return;
   }
 
-  const sorted = [...list].sort((a, b) =>
+  const sorted = [...list].sort((a, b) => {
+  const sa = getPlayerStats(a.id);
+  const sb = getPlayerStats(b.id);
+
+  return (
+    sb.starts - sa.starts ||
+    sb.subs - sa.subs ||
+    sb.goals - sa.goals ||
     String(a.name || "").localeCompare(String(b.name || ""))
   );
+});
 
   sorted.forEach(p => {
     const stats = getPlayerStats(p.id);
