@@ -37,6 +37,26 @@ Promise.all([
     return `<img class="${sizeClass}" src="images/teams/${teamId}.png" alt="" onerror="this.style.display='none'">`;
   }
 
+  function getPlayerStats(playerId, teamId = null) {
+    let pa = appearances.filter(a => String(a.player_id).trim() === String(playerId).trim());
+
+    if (teamId !== null) {
+      pa = pa.filter(a => String(a.team).trim() === String(teamId).trim());
+    }
+
+    const starts = pa.filter(a => Number(a.is_starting) === 1).length;
+    const subs = pa.filter(a => Number(a.is_starting) !== 1).length;
+    const goals = pa.reduce((sum, a) => sum + Number(a.goals || 0), 0);
+
+    return {
+      starts,
+      subs,
+      goals,
+      appsDisplay: subs > 0 ? `${starts}+${subs}` : `${starts}`,
+      totalApps: starts + subs
+    };
+  }
+
   const squad = players
     .filter(p => String(p.team).trim() === String(id).trim())
     .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
@@ -108,7 +128,6 @@ Promise.all([
     </div>
   `;
 
-  // Club history
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Club History</h3>
@@ -212,7 +231,6 @@ Promise.all([
     });
   }
 
-  // Season-by-season summary
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Season-by-Season Summary</h3>
@@ -264,38 +282,23 @@ Promise.all([
       `;
     });
 
-  // Overall player leaderboard data
-  const leaderboard = {};
-
-  appearances.forEach(a => {
-    if (String(a.team).trim() !== String(id).trim()) return;
-
-    const playerId = String(a.player_id).trim();
-    if (!leaderboard[playerId]) {
-      leaderboard[playerId] = {
-        apps: 0,
-        goals: 0
+  const leaderboardRows = squad
+    .map(p => {
+      const stats = getPlayerStats(p.id, id);
+      return {
+        playerId: p.id,
+        name: p.name,
+        apps: stats.totalApps,
+        appsDisplay: stats.appsDisplay,
+        goals: stats.goals
       };
-    }
-
-    leaderboard[playerId].apps += 1;
-    leaderboard[playerId].goals += Number(a.goals || 0);
-  });
-
-  const leaderboardRows = Object.entries(leaderboard)
-    .map(([playerId, stats]) => ({
-      playerId,
-      name: playerName(playerId),
-      apps: stats.apps,
-      goals: stats.goals
-    }))
+    })
     .sort((a, b) =>
       b.apps - a.apps ||
       b.goals - a.goals ||
       a.name.localeCompare(b.name)
     );
 
-  // Team legends
   const topAppearanceRows = [...leaderboardRows]
     .sort((a, b) =>
       b.apps - a.apps ||
@@ -355,7 +358,7 @@ Promise.all([
       topAppearancesTable.innerHTML += `
         <tr>
           <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
-          <td>${row.apps}</td>
+          <td>${row.appsDisplay}</td>
         </tr>
       `;
     });
@@ -374,7 +377,6 @@ Promise.all([
     });
   }
 
-  // Player leaderboard
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Player Leaderboard</h3>
@@ -400,14 +402,13 @@ Promise.all([
       leaderboardTable.innerHTML += `
         <tr>
           <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
-          <td>${row.apps}</td>
+          <td>${row.appsDisplay}</td>
           <td>${row.goals}</td>
         </tr>
       `;
     });
   }
 
-  // Top scorers by season
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Top Scorers by Season</h3>
@@ -420,10 +421,7 @@ Promise.all([
   Object.entries(groupedBySeason)
     .sort((a, b) => Number(a[0]) - Number(b[0]))
     .forEach(([seasonId, seasonMatchList]) => {
-      const seasonMatchIds = new Set(
-        seasonMatchList.map(m => String(m.id).trim())
-      );
-
+      const seasonMatchIds = new Set(seasonMatchList.map(m => String(m.id).trim()));
       const seasonScorers = {};
 
       appearances.forEach(a => {
@@ -481,7 +479,6 @@ Promise.all([
       }
     });
 
-  // Squad
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Squad</h3>
@@ -505,18 +502,19 @@ Promise.all([
     squadTable.innerHTML = `<tr><td colspan="4">No players found for this team.</td></tr>`;
   } else {
     squad.forEach(p => {
+      const stats = getPlayerStats(p.id, id);
+
       squadTable.innerHTML += `
         <tr>
           <td><a href="player.html?id=${p.id}">${p.name}</a></td>
           <td>${p.position || ''}</td>
-          <td>${p.apps ?? ''}</td>
-          <td>${p.goals ?? ''}</td>
+          <td>${stats.appsDisplay}</td>
+          <td>${stats.goals}</td>
         </tr>
       `;
     });
   }
 
-  // Matches
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Matches</h3>
