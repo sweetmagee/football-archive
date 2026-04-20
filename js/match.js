@@ -135,8 +135,8 @@ Promise.all([
       <p class="stat-line"><strong>Date:</strong> ${match.date || ''}</p>
       <p class="stat-line"><strong>Kick-off:</strong> ${match.kickoff_time || 'Not recorded'}</p>
       ${match.round && String(match.round).trim() !== ''
-  ? `<p class="stat-line"><strong>Round:</strong> ${match.round}</p>`
-  : ''}
+        ? `<p class="stat-line"><strong>Round:</strong> ${match.round}</p>`
+        : ''}
       <p class="stat-line"><strong>Venue:</strong> ${match.venue || 'Not recorded'}</p>
       <p class="stat-line"><strong>Attendance:</strong> ${match.attendance || 'Not recorded'}</p>
       <p class="stat-line"><strong>Referee:</strong> ${match.referee || 'Not recorded'}</p>
@@ -184,14 +184,40 @@ Promise.all([
   const homeApps = matchApps.filter(a => String(a.team).trim() === String(match.home_team).trim());
   const awayApps = matchApps.filter(a => String(a.team).trim() === String(match.away_team).trim());
 
+  function playerIcons(a) {
+    const goals = '⚽'.repeat(Number(a.goals || 0));
+    const yellows = '🟨'.repeat(Number(a.yellow || 0));
+    const reds = '🟥'.repeat(Number(a.red || 0));
+
+    return (goals || yellows || reds)
+      ? `<span class="player-icons">${goals}${yellows}${reds}</span>`
+      : '';
+  }
+
+  function subMarker(a) {
+    const isStarter = Number(a.is_starting) === 1;
+    const minuteIn = Number(a.minute_in || 0);
+    const minuteOut = Number(a.minute_out || 0);
+
+    if (isStarter) {
+      if (minuteOut > 0 && minuteOut < 90) {
+        return `<span class="sub-minute">↓ ${minuteOut}'</span>`;
+      }
+      return '';
+    }
+
+    if (minuteIn > 0) {
+      return `<span class="sub-minute">↑ ${minuteIn}'</span>`;
+    }
+
+    return '';
+  }
+
   function renderTeamSection(title, teamApps) {
     let html = `<div class="content-box section-block match-lineup-column"><h3>${title}</h3>`;
 
     const starters = teamApps.filter(a => Number(a.is_starting) === 1);
     const subs = teamApps.filter(a => Number(a.is_starting) !== 1);
-    const scorers = teamApps.filter(a => Number(a.goals || 0) > 0);
-    const yellows = teamApps.filter(a => Number(a.yellow || 0) > 0);
-    const reds = teamApps.filter(a => Number(a.red || 0) > 0);
 
     html += `<h4>Starting XI</h4>`;
     if (starters.length === 0) {
@@ -199,8 +225,12 @@ Promise.all([
     } else {
       starters.forEach(a => {
         html += `
-          <div>
-            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+          <div class="lineup-player">
+            <span>
+              <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+              ${subMarker(a)}
+            </span>
+            ${playerIcons(a)}
           </div>
         `;
       });
@@ -212,64 +242,16 @@ Promise.all([
     } else {
       subs.forEach(a => {
         html += `
-          <div>
-            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-            ${a.minute_in ? `(${a.minute_in}')` : ''}
+          <div class="lineup-player">
+            <span>
+              <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+              ${subMarker(a)}
+            </span>
+            ${playerIcons(a)}
           </div>
         `;
       });
     }
-
-    html += `<h4>Goals</h4>`;
-if (scorers.length === 0) {
-  html += `<div>No goals recorded</div>`;
-} else {
-  scorers.forEach(a => {
-    const goals = Number(a.goals || 0);
-    const icons = '⚽'.repeat(goals);
-
-    html += `
-      <div>
-        <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-        <span class="goal-icons">${icons}</span>
-      </div>
-    `;
-  });
-}
-
-   html += `<h4>Yellow Cards</h4>`;
-if (yellows.length === 0) {
-  html += `<div>None</div>`;
-} else {
-  yellows.forEach(a => {
-    const count = Number(a.yellow || 0);
-    const icons = '🟨'.repeat(count);
-
-    html += `
-      <div>
-        <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-        <span class="card-icons">${icons}</span>
-      </div>
-    `;
-  });
-}
-
-html += `<h4>Red Cards</h4>`;
-if (reds.length === 0) {
-  html += `<div>None</div>`;
-} else {
-  reds.forEach(a => {
-    const count = Number(a.red || 0);
-    const icons = '🟥'.repeat(count);
-
-    html += `
-      <div>
-        <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-        <span class="card-icons">${icons}</span>
-      </div>
-    `;
-  });
-}
 
     html += `</div>`;
     return html;
@@ -290,7 +272,6 @@ if (reds.length === 0) {
     }
 
     lineupHtml += `</div>`;
-
     el.innerHTML += lineupHtml;
   } else {
     el.innerHTML += `
@@ -319,6 +300,13 @@ if (reds.length === 0) {
       allEvents.push({
         minute: Number(a.minute_in),
         text: `⬆ ${name}`
+      });
+    }
+
+    if (Number(a.is_starting) === 1 && Number(a.minute_out || 0) > 0 && Number(a.minute_out || 0) < 90) {
+      allEvents.push({
+        minute: Number(a.minute_out),
+        text: `⬇ ${name}`
       });
     }
 
