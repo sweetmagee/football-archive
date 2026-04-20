@@ -4,8 +4,10 @@ Promise.all([
   fetch('data/matches.json').then(r => r.json()),
   fetch('data/appearances.json').then(r => r.json()),
   fetch('data/players.json').then(r => r.json()),
-  fetch('data/teams.json').then(r => r.json())
-]).then(([matches, apps, players, teams]) => {
+  fetch('data/teams.json').then(r => r.json()),
+  fetch('data/captains.json').then(r => r.json()).catch(() => []),
+  fetch('data/managers.json').then(r => r.json()).catch(() => [])
+]).then(([matches, apps, players, teams, captains, managers]) => {
   const match = matches.find(m => String(m.id).trim() === String(id).trim());
   const el = document.getElementById('match');
 
@@ -20,12 +22,85 @@ Promise.all([
   const homeName = homeTeam ? homeTeam.name : match.home_team;
   const awayName = awayTeam ? awayTeam.name : match.away_team;
 
+  function playerName(playerId) {
+    const p = players.find(x => String(x.id).trim() === String(playerId).trim());
+    return p ? p.name : playerId;
+  }
+
+  function inSeasonRange(item, seasonId) {
+    return Number(item.start_season || 0) <= Number(seasonId) &&
+           Number(item.end_season || 0) >= Number(seasonId);
+  }
+
+  function getCaptain(teamId, seasonId) {
+    return captains.find(c =>
+      String(c.team_id).trim() === String(teamId).trim() &&
+      inSeasonRange(c, seasonId)
+    );
+  }
+
+  function getManager(teamId, seasonId) {
+    return managers.find(m =>
+      String(m.team_id).trim() === String(teamId).trim() &&
+      inSeasonRange(m, seasonId)
+    );
+  }
+
+  const homeCaptain = getCaptain(match.home_team, match.season_id);
+  const awayCaptain = getCaptain(match.away_team, match.season_id);
+  const homeManager = getManager(match.home_team, match.season_id);
+  const awayManager = getManager(match.away_team, match.season_id);
+
+  const homeCaptainHtml = homeCaptain
+    ? `<a href="player.html?id=${homeCaptain.player_id}">${playerName(homeCaptain.player_id)}</a>`
+    : 'Not recorded';
+
+  const awayCaptainHtml = awayCaptain
+    ? `<a href="player.html?id=${awayCaptain.player_id}">${playerName(awayCaptain.player_id)}</a>`
+    : 'Not recorded';
+
+  const homeManagerHtml = homeManager
+    ? `<a href="player.html?id=${homeManager.player_id}">${playerName(homeManager.player_id)}</a>`
+    : 'Not recorded';
+
+  const awayManagerHtml = awayManager
+    ? `<a href="player.html?id=${awayManager.player_id}">${playerName(awayManager.player_id)}</a>`
+    : 'Not recorded';
+
   el.innerHTML = `
     <div class="content-box">
       <h2>${homeName} ${match.home_score}-${match.away_score} ${awayName}</h2>
       <p class="stat-line"><strong>Date:</strong> ${match.date || ''}</p>
       <p class="stat-line"><strong>Competition:</strong> ${match.competition || ''}</p>
       <p class="stat-line"><strong>Round:</strong> ${match.round || ''}</p>
+      <p class="stat-line"><strong>Venue:</strong> ${match.venue || 'Not recorded'}</p>
+      <p class="stat-line"><strong>Attendance:</strong> ${match.attendance || 'Not recorded'}</p>
+      <p class="stat-line"><strong>Referee:</strong> ${match.referee || 'Not recorded'}</p>
+    </div>
+
+    <div class="content-box section-block">
+      <h3>Captains & Managers</h3>
+      <table class="archive-table">
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th>Captain</th>
+            <th>Manager</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="team.html?id=${match.home_team}">${homeName}</a></td>
+            <td>${homeCaptainHtml}</td>
+            <td>${homeManagerHtml}</td>
+          </tr>
+          <tr>
+            <td><a href="team.html?id=${match.away_team}">${awayName}</a></td>
+            <td>${awayCaptainHtml}</td>
+            <td>${awayManagerHtml}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   `;
 
@@ -33,11 +108,6 @@ Promise.all([
 
   const homeApps = matchApps.filter(a => String(a.team).trim() === String(match.home_team).trim());
   const awayApps = matchApps.filter(a => String(a.team).trim() === String(match.away_team).trim());
-
-  function playerName(playerId) {
-    const p = players.find(x => String(x.id).trim() === String(playerId).trim());
-    return p ? p.name : playerId;
-  }
 
   function renderTeamSection(title, teamApps) {
     let html = `<div class="content-box section-block"><h3>${title}</h3>`;
