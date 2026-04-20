@@ -457,7 +457,7 @@ tbody tr:hover {
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  padding: 3px 0;
+  padding: 2px 0;
 }
 .player-icons {
   white-space: nowrap;
@@ -468,4 +468,10 @@ tbody tr:hover {
   color: #666;
   font-size: 0.9rem;
   margin-left: 6px;
+}
+.lineup-heading {
+  margin: 0 0 4px 0;
+}
+.lineup-gap {
+  height: 10px;
 }
