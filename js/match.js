@@ -96,17 +96,23 @@ Promise.all([
       <div class="competition-header">
         ${competitionBadgeHtml(match.competition)}
         <div>
-          <h2>
-  <span class="team-inline">
-    <img class="team-badge-medium" src="images/teams/${match.home_team}.png" alt="" onerror="this.style.display='none'">
-    <span>${homeName}</span>
-  </span>
-  ${match.home_score}-${match.away_score}
-  <span class="team-inline">
-    <img class="team-badge-medium" src="images/teams/${match.away_team}.png" alt="" onerror="this.style.display='none'">
-    <span>${awayName}</span>
-  </span>
-</h2>
+         <div class="match-score-header">
+  <div class="match-team-line">
+    <span class="team-inline">
+      <img class="team-badge-medium" src="images/teams/${match.home_team}.png" alt="" onerror="this.style.display='none'">
+      <span>${homeName}</span>
+    </span>
+    <span class="team-line-score">${match.home_score}</span>
+  </div>
+
+  <div class="match-team-line">
+    <span class="team-inline">
+      <img class="team-badge-medium" src="images/teams/${match.away_team}.png" alt="" onerror="this.style.display='none'">
+      <span>${awayName}</span>
+    </span>
+    <span class="team-line-score">${match.away_score}</span>
+  </div>
+</div>
           <p class="stat-line"><strong>Competition:</strong> ${match.competition || ''}</p>
         </div>
       </div>
