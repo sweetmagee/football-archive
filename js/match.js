@@ -237,33 +237,39 @@ if (scorers.length === 0) {
   });
 }
 
-    html += `<h4>Yellow Cards</h4>`;
-    if (yellows.length === 0) {
-      html += `<div>None</div>`;
-    } else {
-      yellows.forEach(a => {
-        html += `
-          <div>
-            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-            — ${a.yellow}
-          </div>
-        `;
-      });
-    }
+   html += `<h4>Yellow Cards</h4>`;
+if (yellows.length === 0) {
+  html += `<div>None</div>`;
+} else {
+  yellows.forEach(a => {
+    const count = Number(a.yellow || 0);
+    const icons = '🟨'.repeat(count);
 
-    html += `<h4>Red Cards</h4>`;
-    if (reds.length === 0) {
-      html += `<div>None</div>`;
-    } else {
-      reds.forEach(a => {
-        html += `
-          <div>
-            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-            — ${a.red}
-          </div>
-        `;
-      });
-    }
+    html += `
+      <div>
+        <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+        <span class="card-icons">${icons}</span>
+      </div>
+    `;
+  });
+}
+
+html += `<h4>Red Cards</h4>`;
+if (reds.length === 0) {
+  html += `<div>None</div>`;
+} else {
+  reds.forEach(a => {
+    const count = Number(a.red || 0);
+    const icons = '🟥'.repeat(count);
+
+    html += `
+      <div>
+        <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+        <span class="card-icons">${icons}</span>
+      </div>
+    `;
+  });
+}
 
     html += `</div>`;
     return html;
