@@ -18,6 +18,7 @@ Promise.all([
   appearances = appearanceData;
   render(players);
   attachSortHandlers();
+  updateSortHeaders();
 }).catch(err => {
   console.error(err);
   const table = document.getElementById("playerTable");
@@ -79,7 +80,8 @@ function compare(a, b) {
   if (sortColumn === "goals") {
     result =
       b.goalsCalc - a.goalsCalc ||
-      b.apps - a.apps ||
+      b.starts - a.starts ||
+      b.subs - a.subs ||
       a.name.localeCompare(b.name);
   }
 
@@ -119,6 +121,8 @@ function setSort(col) {
     sortAsc = true;
   }
 
+  updateSortHeaders();
+
   const q = document.getElementById("search").value.toLowerCase().trim();
 
   const filtered = players.filter(p =>
@@ -127,6 +131,26 @@ function setSort(col) {
   );
 
   render(filtered);
+}
+
+function updateSortHeaders() {
+  const headers = [
+    { id: "sort-name", key: "name", label: "Name" },
+    { id: "sort-position", key: "position", label: "Position" },
+    { id: "sort-apps", key: "apps", label: "Apps" },
+    { id: "sort-goals", key: "goals", label: "Goals" }
+  ];
+
+  headers.forEach(h => {
+    const el = document.getElementById(h.id);
+    if (!el) return;
+
+    if (sortColumn === h.key) {
+      el.innerHTML = `${h.label} ${sortAsc ? "▲" : "▼"}`;
+    } else {
+      el.innerHTML = `${h.label} <span class="sort-muted">▲▼</span>`;
+    }
+  });
 }
 
 function attachSortHandlers() {
