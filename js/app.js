@@ -27,6 +27,10 @@ function getTeamName(teamId) {
   return team ? team.name : teamId;
 }
 
+function teamBadgeHtml(teamId, sizeClass = "team-badge-small") {
+  return `<img class="${sizeClass}" src="images/teams/${teamId}.png" alt="" onerror="this.style.display='none'">`;
+}
+
 function render(list) {
   const el = document.getElementById("playerTable");
   if (!el) return;
@@ -49,7 +53,12 @@ function render(list) {
           <a href="player.html?id=${p.id}">${p.name}</a>
         </td>
         <td>${p.position || ""}</td>
-        <td><a href="team.html?id=${p.team}">${getTeamName(p.team || "")}</a></td>
+        <td>
+          <span class="team-inline">
+            ${teamBadgeHtml(p.team || "")}
+            <a href="team.html?id=${p.team}">${getTeamName(p.team || "")}</a>
+          </span>
+        </td>
         <td>${p.apps ?? ""}</td>
         <td>${p.goals ?? ""}</td>
       </tr>
