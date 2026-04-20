@@ -52,6 +52,15 @@ function getPlayerStats(playerId) {
   };
 }
 
+function sortByStartsThenSubsThenGoalsThenName(a, b) {
+  return (
+    b.starts - a.starts ||
+    b.subs - a.subs ||
+    b.goals - a.goals ||
+    a.name.localeCompare(b.name)
+  );
+}
+
 function render(list) {
   const el = document.getElementById("playerTable");
   if (!el) return;
@@ -63,21 +72,20 @@ function render(list) {
     return;
   }
 
-  const sorted = [...list].sort((a, b) => {
-  const sa = getPlayerStats(a.id);
-  const sb = getPlayerStats(b.id);
-
-  return (
-    sb.starts - sa.starts ||
-    sb.subs - sa.subs ||
-    sb.goals - sa.goals ||
-    String(a.name || "").localeCompare(String(b.name || ""))
-  );
-});
+  const sorted = [...list]
+    .map(p => {
+      const stats = getPlayerStats(p.id);
+      return {
+        ...p,
+        starts: stats.starts,
+        subs: stats.subs,
+        goalsCalc: stats.goals,
+        appsDisplay: stats.appsDisplay
+      };
+    })
+    .sort(sortByStartsThenSubsThenGoalsThenName);
 
   sorted.forEach(p => {
-    const stats = getPlayerStats(p.id);
-
     el.innerHTML += `
       <tr>
         <td>
@@ -90,8 +98,8 @@ function render(list) {
             <a href="team.html?id=${p.team}">${getTeamName(p.team || "")}</a>
           </span>
         </td>
-        <td>${stats.appsDisplay}</td>
-        <td>${stats.goals}</td>
+        <td>${p.appsDisplay}</td>
+        <td>${p.goalsCalc}</td>
       </tr>
     `;
   });

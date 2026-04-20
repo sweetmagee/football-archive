@@ -57,6 +57,24 @@ Promise.all([
     };
   }
 
+  function sortByStartsThenSubsThenGoalsThenName(a, b) {
+    return (
+      b.starts - a.starts ||
+      b.subs - a.subs ||
+      b.goals - a.goals ||
+      a.name.localeCompare(b.name)
+    );
+  }
+
+  function sortByGoalsThenStartsThenSubsThenName(a, b) {
+    return (
+      b.goals - a.goals ||
+      b.starts - a.starts ||
+      b.subs - a.subs ||
+      a.name.localeCompare(b.name)
+    );
+  }
+
   const squad = players
     .filter(p => String(p.team).trim() === String(id).trim())
     .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
@@ -288,31 +306,21 @@ Promise.all([
       return {
         playerId: p.id,
         name: p.name,
+        starts: stats.starts,
+        subs: stats.subs,
         apps: stats.totalApps,
         appsDisplay: stats.appsDisplay,
         goals: stats.goals
       };
     })
-    .sort((a, b) =>
-      b.apps - a.apps ||
-      b.goals - a.goals ||
-      a.name.localeCompare(b.name)
-    );
+    .sort(sortByStartsThenSubsThenGoalsThenName);
 
   const topAppearanceRows = [...leaderboardRows]
-    .sort((a, b) =>
-      b.apps - a.apps ||
-      b.goals - a.goals ||
-      a.name.localeCompare(b.name)
-    )
+    .sort(sortByStartsThenSubsThenGoalsThenName)
     .slice(0, 15);
 
   const topScorerRows = [...leaderboardRows]
-    .sort((a, b) =>
-      b.goals - a.goals ||
-      b.apps - a.apps ||
-      a.name.localeCompare(b.name)
-    )
+    .sort(sortByGoalsThenStartsThenSubsThenName)
     .slice(0, 15);
 
   el.innerHTML += `
@@ -439,21 +447,18 @@ Promise.all([
       });
 
       const rows = Object.entries(seasonScorers)
-  .map(([playerId, goals]) => {
-    const stats = getPlayerStats(playerId, id);
-    return {
-      playerId,
-      name: playerName(playerId),
-      goals,
-      apps: stats.totalApps
-    };
-  })
-  .filter(row => row.goals > 0)
-  .sort((a, b) =>
-    b.goals - a.goals ||
-    b.apps - a.apps ||
-    a.name.localeCompare(b.name)
-  );
+        .map(([playerId, goals]) => {
+          const stats = getPlayerStats(playerId, id);
+          return {
+            playerId,
+            name: playerName(playerId),
+            goals,
+            starts: stats.starts,
+            subs: stats.subs
+          };
+        })
+        .filter(row => row.goals > 0)
+        .sort(sortByGoalsThenStartsThenSubsThenName);
 
       topScorersWrap.innerHTML += `
         <h4>${seasonName(seasonId)}</h4>
