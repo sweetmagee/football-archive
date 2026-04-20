@@ -1,4 +1,3 @@
-
 let players = [];
 let teams = [];
 let appearances = [];
