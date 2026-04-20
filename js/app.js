@@ -1,6 +1,9 @@
 let players = [];
 let appearances = [];
 
+let sortColumn = "name";
+let sortAsc = true;
+
 Promise.all([
   fetch("data/players.json").then(r => {
     if (!r.ok) throw new Error(`HTTP ${r.status} loading players.json`);
@@ -14,6 +17,7 @@ Promise.all([
   players = playerData;
   appearances = appearanceData;
   render(players);
+  attachSortHandlers();
 }).catch(err => {
   console.error(err);
   const table = document.getElementById("playerTable");
@@ -32,18 +36,54 @@ function getPlayerStats(playerId) {
   return {
     starts,
     subs,
-    goals,
-    appsDisplay: subs > 0 ? `${starts}+${subs}` : `${starts}`
+    apps: starts + subs,
+    goals
   };
 }
 
-function sortByStartsThenSubsThenGoalsThenName(a, b) {
-  return (
-    b.starts - a.starts ||
-    b.subs - a.subs ||
-    b.goals - a.goals ||
-    a.name.localeCompare(b.name)
-  );
+function enrichPlayers(list) {
+  return list.map(p => {
+    const stats = getPlayerStats(p.id);
+
+    return {
+      ...p,
+      starts: stats.starts,
+      subs: stats.subs,
+      apps: stats.apps,
+      goalsCalc: stats.goals
+    };
+  });
+}
+
+function compare(a, b) {
+  let result = 0;
+
+  if (sortColumn === "name") {
+    result = a.name.localeCompare(b.name);
+  }
+
+  if (sortColumn === "position") {
+    result =
+      String(a.position || "").localeCompare(String(b.position || "")) ||
+      a.name.localeCompare(b.name);
+  }
+
+  if (sortColumn === "apps") {
+    result =
+      b.apps - a.apps ||
+      b.starts - a.starts ||
+      b.subs - a.subs ||
+      a.name.localeCompare(b.name);
+  }
+
+  if (sortColumn === "goals") {
+    result =
+      b.goalsCalc - a.goalsCalc ||
+      b.apps - a.apps ||
+      a.name.localeCompare(b.name);
+  }
+
+  return sortAsc ? result : -result;
 }
 
 function render(list) {
@@ -57,29 +97,43 @@ function render(list) {
     return;
   }
 
-  const sorted = [...list]
-    .map(p => {
-      const stats = getPlayerStats(p.id);
-      return {
-        ...p,
-        starts: stats.starts,
-        subs: stats.subs,
-        goalsCalc: stats.goals,
-        appsDisplay: stats.appsDisplay
-      };
-    })
-    .sort(sortByStartsThenSubsThenGoalsThenName);
+  const rows = enrichPlayers(list).sort(compare);
 
-  sorted.forEach(p => {
+  rows.forEach(p => {
     el.innerHTML += `
       <tr>
         <td><a href="player.html?id=${p.id}">${p.name}</a></td>
         <td>${p.position || ""}</td>
-        <td>${p.starts + p.subs}</td>
+        <td>${p.apps}</td>
         <td>${p.goalsCalc}</td>
       </tr>
     `;
   });
+}
+
+function setSort(col) {
+  if (sortColumn === col) {
+    sortAsc = !sortAsc;
+  } else {
+    sortColumn = col;
+    sortAsc = true;
+  }
+
+  const q = document.getElementById("search").value.toLowerCase().trim();
+
+  const filtered = players.filter(p =>
+    String(p.name || "").toLowerCase().includes(q) ||
+    String(p.position || "").toLowerCase().includes(q)
+  );
+
+  render(filtered);
+}
+
+function attachSortHandlers() {
+  document.getElementById("sort-name").onclick = () => setSort("name");
+  document.getElementById("sort-position").onclick = () => setSort("position");
+  document.getElementById("sort-apps").onclick = () => setSort("apps");
+  document.getElementById("sort-goals").onclick = () => setSort("goals");
 }
 
 document.getElementById("search").addEventListener("input", e => {
