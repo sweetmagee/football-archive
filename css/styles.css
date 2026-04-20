@@ -423,3 +423,19 @@ tbody tr:hover {
 .match-team-draw {
   background: #f2f2f2;
 }
+.match-lineups-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.match-lineup-column {
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .match-lineups-grid {
+    grid-template-columns: 1fr;
+  }
+}
