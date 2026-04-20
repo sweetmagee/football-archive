@@ -190,48 +190,59 @@ ${m.home_score}-${m.away_score}
   }
 
   function renderTopScorers(matchList) {
-    scorersEl.innerHTML = "";
+  scorersEl.innerHTML = "";
 
-    const validMatchIds = new Set(matchList.map(m => String(m.id).trim()));
-    const scorerMap = {};
+  const validMatchIds = new Set(matchList.map(m => String(m.id).trim()));
+  const scorerMap = {};
 
-    appearances.forEach(a => {
-      const matchId = String(a.match_id).trim();
-      const playerId = String(a.player_id).trim();
-      const goals = Number(a.goals || 0);
+  appearances.forEach(a => {
+    const matchId = String(a.match_id).trim();
+    const playerId = String(a.player_id).trim();
+    const goals = Number(a.goals || 0);
 
-      if (!validMatchIds.has(matchId) || goals <= 0) return;
+    if (!validMatchIds.has(matchId)) return;
 
-      if (!scorerMap[playerId]) scorerMap[playerId] = 0;
-      scorerMap[playerId] += goals;
-    });
-
-    const scorerRows = Object.entries(scorerMap)
-      .map(([playerId, goals]) => ({ playerId, goals }))
-      .sort((a, b) =>
-        b.goals - a.goals ||
-        playerName(a.playerId).localeCompare(playerName(b.playerId))
-      )
-      .slice(0, 15);
-
-    if (scorerRows.length === 0) {
-      scorersEl.innerHTML = `<div class="empty-note">No scorers recorded.</div>`;
-      return;
+    if (!scorerMap[playerId]) {
+      scorerMap[playerId] = { goals: 0, apps: 0 };
     }
 
-    scorerRows.forEach((row, index) => {
-      const div = document.createElement("div");
-      div.className = "scorer-row";
-      div.innerHTML = `
-        <span class="scorer-pos">${index + 1}.</span>
-        <span class="scorer-name">
-          <a href="player.html?id=${row.playerId}">${playerName(row.playerId)}</a>
-        </span>
-        <span class="scorer-goals">${row.goals}</span>
-      `;
-      scorersEl.appendChild(div);
-    });
+    scorerMap[playerId].apps += 1;
+    scorerMap[playerId].goals += goals;
+  });
+
+  const scorerRows = Object.entries(scorerMap)
+    .map(([playerId, stats]) => ({
+      playerId,
+      goals: stats.goals,
+      apps: stats.apps,
+      name: playerName(playerId)
+    }))
+    .filter(row => row.goals > 0)
+    .sort((a, b) =>
+      b.goals - a.goals ||
+      b.apps - a.apps ||
+      a.name.localeCompare(b.name)
+    )
+    .slice(0, 15);
+
+  if (scorerRows.length === 0) {
+    scorersEl.innerHTML = `<div class="empty-note">No scorers recorded.</div>`;
+    return;
   }
+
+  scorerRows.forEach((row, index) => {
+    const div = document.createElement("div");
+    div.className = "scorer-row";
+    div.innerHTML = `
+      <span class="scorer-pos">${index + 1}.</span>
+      <span class="scorer-name">
+        <a href="player.html?id=${row.playerId}">${row.name}</a>
+      </span>
+      <span class="scorer-goals">${row.goals}</span>
+    `;
+    scorersEl.appendChild(div);
+  });
+}
 
   function inSeasonRange(item) {
     return Number(item.start_season || 0) <= Number(seasonId) &&

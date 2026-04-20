@@ -439,16 +439,21 @@ Promise.all([
       });
 
       const rows = Object.entries(seasonScorers)
-        .map(([playerId, goals]) => ({
-          playerId,
-          name: playerName(playerId),
-          goals
-        }))
-        .filter(row => row.goals > 0)
-        .sort((a, b) =>
-          b.goals - a.goals ||
-          a.name.localeCompare(b.name)
-        );
+  .map(([playerId, goals]) => {
+    const stats = getPlayerStats(playerId, id);
+    return {
+      playerId,
+      name: playerName(playerId),
+      goals,
+      apps: stats.totalApps
+    };
+  })
+  .filter(row => row.goals > 0)
+  .sort((a, b) =>
+    b.goals - a.goals ||
+    b.apps - a.apps ||
+    a.name.localeCompare(b.name)
+  );
 
       topScorersWrap.innerHTML += `
         <h4>${seasonName(seasonId)}</h4>
