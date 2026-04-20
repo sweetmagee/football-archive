@@ -508,7 +508,7 @@ tbody tr:hover {
 }
 
 .site-header-image {
-  background-image: url("images/header/header.jpg");
+  background-image: url("/football-archive/images/header/header.jpg");
   background-size: cover;
   background-position: center;
   padding: 0;
