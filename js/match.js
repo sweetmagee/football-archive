@@ -134,7 +134,9 @@ Promise.all([
 
       <p class="stat-line"><strong>Date:</strong> ${match.date || ''}</p>
       <p class="stat-line"><strong>Kick-off:</strong> ${match.kickoff_time || 'Not recorded'}</p>
-      <p class="stat-line"><strong>Round:</strong> ${match.round || ''}</p>
+      ${match.round && String(match.round).trim() !== ''
+  ? `<p class="stat-line"><strong>Round:</strong> ${match.round}</p>`
+  : ''}
       <p class="stat-line"><strong>Venue:</strong> ${match.venue || 'Not recorded'}</p>
       <p class="stat-line"><strong>Attendance:</strong> ${match.attendance || 'Not recorded'}</p>
       <p class="stat-line"><strong>Referee:</strong> ${match.referee || 'Not recorded'}</p>
@@ -219,18 +221,21 @@ Promise.all([
     }
 
     html += `<h4>Goals</h4>`;
-    if (scorers.length === 0) {
-      html += `<div>No goals recorded</div>`;
-    } else {
-      scorers.forEach(a => {
-        html += `
-          <div>
-            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-            — ${a.goals}
-          </div>
-        `;
-      });
-    }
+if (scorers.length === 0) {
+  html += `<div>No goals recorded</div>`;
+} else {
+  scorers.forEach(a => {
+    const goals = Number(a.goals || 0);
+    const icons = '⚽'.repeat(goals);
+
+    html += `
+      <div>
+        <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+        <span class="goal-icons">${icons}</span>
+      </div>
+    `;
+  });
+}
 
     html += `<h4>Yellow Cards</h4>`;
     if (yellows.length === 0) {
