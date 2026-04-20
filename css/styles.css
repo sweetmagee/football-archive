@@ -323,3 +323,42 @@ tbody tr:hover {
 .match-scoreline img {
   vertical-align: middle;
 }
+.team-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-badge-small {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.team-badge-medium {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.team-badge-large {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  display: block;
+  border: 1px solid #d5d5d5;
+  background: #fff;
+  padding: 4px;
+}
+
+.team-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.team-header-text h2 {
+  margin-bottom: 8px;
+}
