@@ -96,7 +96,17 @@ Promise.all([
       <div class="competition-header">
         ${competitionBadgeHtml(match.competition)}
         <div>
-          <h2>${homeName} ${match.home_score}-${match.away_score} ${awayName}</h2>
+          <h2>
+  <span class="team-inline">
+    <img class="team-badge-medium" src="images/teams/${match.home_team}.png" alt="" onerror="this.style.display='none'">
+    <span>${homeName}</span>
+  </span>
+  ${match.home_score}-${match.away_score}
+  <span class="team-inline">
+    <img class="team-badge-medium" src="images/teams/${match.away_team}.png" alt="" onerror="this.style.display='none'">
+    <span>${awayName}</span>
+  </span>
+</h2>
           <p class="stat-line"><strong>Competition:</strong> ${match.competition || ''}</p>
         </div>
       </div>
@@ -120,12 +130,23 @@ Promise.all([
         </thead>
         <tbody>
           <tr>
-            <td><a href="team.html?id=${match.home_team}">${homeName}</a></td>
+            <td>
+  <span class="team-inline">
+    <img class="team-badge-small" src="images/teams/${match.home_team}.png" alt="" onerror="this.style.display='none'">
+    <a href="team.html?id=${match.home_team}">${homeName}</a>
+  </span>
+</td>
             <td>${homeCaptainHtml}</td>
             <td>${homeManagerHtml}</td>
           </tr>
           <tr>
-            <td><a href="team.html?id=${match.away_team}">${awayName}</a></td>
+             <td>
+  <span class="team-inline">
+    <img class="team-badge-small" src="images/teams/${match.away_team}.png" alt="" onerror="this.style.display='none'">
+    <a href="team.html?id=${match.away_team}">${awayName}</a>
+  </span>
+</td>
+
             <td>${awayCaptainHtml}</td>
             <td>${awayManagerHtml}</td>
           </tr>

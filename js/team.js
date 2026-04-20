@@ -33,6 +33,10 @@ Promise.all([
     return p ? p.name : playerId;
   }
 
+  function teamBadgeHtml(teamId, sizeClass = 'team-badge-small') {
+    return `<img class="${sizeClass}" src="images/teams/${teamId}.png" alt="" onerror="this.style.display='none'">`;
+  }
+
   const squad = players
     .filter(p => String(p.team).trim() === String(id).trim())
     .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
@@ -72,7 +76,12 @@ Promise.all([
     });
 
     return {
-      P, W, D, L, GF, GA,
+      P,
+      W,
+      D,
+      L,
+      GF,
+      GA,
       GD: GF - GA,
       PTS: (W * 3) + D
     };
@@ -82,19 +91,24 @@ Promise.all([
 
   el.innerHTML = `
     <div class="content-box">
-      <h2>${team.name}</h2>
-      <p><strong>Played:</strong> ${overall.P}</p>
-      <p><strong>Won:</strong> ${overall.W}</p>
-      <p><strong>Drawn:</strong> ${overall.D}</p>
-      <p><strong>Lost:</strong> ${overall.L}</p>
-      <p><strong>Goals For:</strong> ${overall.GF}</p>
-      <p><strong>Goals Against:</strong> ${overall.GA}</p>
-      <p><strong>Goal Difference:</strong> ${overall.GD}</p>
-      <p><strong>Points:</strong> ${overall.PTS}</p>
+      <div class="team-header">
+        <img class="team-badge-large" src="images/teams/${team.id}.png" alt="${team.name}" onerror="this.style.display='none'">
+        <div class="team-header-text">
+          <h2>${team.name}</h2>
+          <p><strong>Played:</strong> ${overall.P}</p>
+          <p><strong>Won:</strong> ${overall.W}</p>
+          <p><strong>Drawn:</strong> ${overall.D}</p>
+          <p><strong>Lost:</strong> ${overall.L}</p>
+          <p><strong>Goals For:</strong> ${overall.GF}</p>
+          <p><strong>Goals Against:</strong> ${overall.GA}</p>
+          <p><strong>Goal Difference:</strong> ${overall.GD}</p>
+          <p><strong>Points:</strong> ${overall.PTS}</p>
+        </div>
+      </div>
     </div>
   `;
 
-  // Club history section
+  // Club history
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Club History</h3>
@@ -147,42 +161,42 @@ Promise.all([
   const honoursTable = document.getElementById('honoursTable');
 
   if (teamCaptains.length === 0) {
-  captainsTable.innerHTML = `<tr><td colspan="3">No captains recorded.</td></tr>`;
-} else {
-  teamCaptains.forEach(c => {
-    const player = players.find(p => String(p.id).trim() === String(c.player_id).trim());
-    const playerDisplay = player
-      ? `<a href="player.html?id=${player.id}">${player.name}</a>`
-      : c.player_id;
+    captainsTable.innerHTML = `<tr><td colspan="3">No captains recorded.</td></tr>`;
+  } else {
+    teamCaptains.forEach(c => {
+      const player = players.find(p => String(p.id).trim() === String(c.player_id).trim());
+      const playerDisplay = player
+        ? `<a href="player.html?id=${player.id}">${player.name}</a>`
+        : c.player_id;
 
-    captainsTable.innerHTML += `
-      <tr>
-        <td>${playerDisplay}</td>
-        <td>${seasonName(c.start_season)}</td>
-        <td>${seasonName(c.end_season)}</td>
-      </tr>
-    `;
-  });
-}
+      captainsTable.innerHTML += `
+        <tr>
+          <td>${playerDisplay}</td>
+          <td>${seasonName(c.start_season)}</td>
+          <td>${seasonName(c.end_season)}</td>
+        </tr>
+      `;
+    });
+  }
 
-if (teamManagers.length === 0) {
-  managersTable.innerHTML = `<tr><td colspan="3">No managers recorded.</td></tr>`;
-} else {
-  teamManagers.forEach(m => {
-    const player = players.find(p => String(p.id).trim() === String(m.player_id).trim());
-    const playerDisplay = player
-      ? `<a href="player.html?id=${player.id}">${player.name}</a>`
-      : m.player_id;
+  if (teamManagers.length === 0) {
+    managersTable.innerHTML = `<tr><td colspan="3">No managers recorded.</td></tr>`;
+  } else {
+    teamManagers.forEach(m => {
+      const player = players.find(p => String(p.id).trim() === String(m.player_id).trim());
+      const playerDisplay = player
+        ? `<a href="player.html?id=${player.id}">${player.name}</a>`
+        : m.player_id;
 
-    managersTable.innerHTML += `
-      <tr>
-        <td>${playerDisplay}</td>
-        <td>${seasonName(m.start_season)}</td>
-        <td>${seasonName(m.end_season)}</td>
-      </tr>
-    `;
-  });
-}
+      managersTable.innerHTML += `
+        <tr>
+          <td>${playerDisplay}</td>
+          <td>${seasonName(m.start_season)}</td>
+          <td>${seasonName(m.end_season)}</td>
+        </tr>
+      `;
+    });
+  }
 
   if (teamHonours.length === 0) {
     honoursTable.innerHTML = `<tr><td colspan="3">No honours recorded.</td></tr>`;
@@ -198,7 +212,7 @@ if (teamManagers.length === 0) {
     });
   }
 
-  // Season summary
+  // Season-by-season summary
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Season-by-Season Summary</h3>
@@ -222,7 +236,6 @@ if (teamManagers.length === 0) {
   `;
 
   const summaryTable = document.getElementById('seasonSummaryTable');
-
   const groupedBySeason = {};
 
   teamMatches.forEach(m => {
@@ -251,7 +264,7 @@ if (teamManagers.length === 0) {
       `;
     });
 
-  // Overall player leaderboard
+  // Overall player leaderboard data
   const leaderboard = {};
 
   appearances.forEach(a => {
@@ -361,6 +374,39 @@ if (teamManagers.length === 0) {
     });
   }
 
+  // Player leaderboard
+  el.innerHTML += `
+    <div class="content-box section-block">
+      <h3>Player Leaderboard</h3>
+      <table class="archive-table">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Apps</th>
+            <th>Goals</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardTable"></tbody>
+      </table>
+    </div>
+  `;
+
+  const leaderboardTable = document.getElementById('leaderboardTable');
+
+  if (leaderboardRows.length === 0) {
+    leaderboardTable.innerHTML = `<tr><td colspan="3">No appearance data available.</td></tr>`;
+  } else {
+    leaderboardRows.forEach(row => {
+      leaderboardTable.innerHTML += `
+        <tr>
+          <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
+          <td>${row.apps}</td>
+          <td>${row.goals}</td>
+        </tr>
+      `;
+    });
+  }
+
   // Top scorers by season
   el.innerHTML += `
     <div class="content-box section-block">
@@ -435,6 +481,7 @@ if (teamManagers.length === 0) {
       }
     });
 
+  // Squad
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Squad</h3>
@@ -469,6 +516,7 @@ if (teamManagers.length === 0) {
     });
   }
 
+  // Matches
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Matches</h3>
@@ -499,7 +547,15 @@ if (teamManagers.length === 0) {
               <div class="match-date">${m.date || ''}</div>
               <div class="match-scoreline">
                 <a href="match.html?id=${m.id}">
-                  ${teamName(m.home_team)} ${m.home_score}-${m.away_score} ${teamName(m.away_team)}
+                  <span class="team-inline">
+                    ${teamBadgeHtml(m.home_team)}
+                    <span>${teamName(m.home_team)}</span>
+                  </span>
+                  ${m.home_score}-${m.away_score}
+                  <span class="team-inline">
+                    ${teamBadgeHtml(m.away_team)}
+                    <span>${teamName(m.away_team)}</span>
+                  </span>
                 </a>
               </div>
               <div class="match-meta">${m.competition || ''}${m.round ? ` - ${m.round}` : ''}</div>

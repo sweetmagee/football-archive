@@ -35,7 +35,12 @@ Promise.all([
           <p><strong>Position:</strong> ${p.position || ''}</p>
           <p><strong>Date of birth:</strong> ${p.dob || ''}</p>
           <p><strong>Nationality:</strong> ${p.nationality || ''}</p>
-          <p><strong>Team:</strong> <a href="team.html?id=${p.team}">${teamName(p.team || '')}</a></p>
+          <p><strong>Team:</strong> 
+  <span class="team-inline">
+    <img class="team-badge-small" src="images/teams/${p.team}.png" alt="" onerror="this.style.display='none'">
+    <a href="team.html?id=${p.team}">${teamName(p.team || '')}</a>
+  </span>
+</p>
           <p><strong>Career Apps:</strong> ${p.apps ?? 0}</p>
           <p><strong>Career Goals:</strong> ${p.goals ?? 0}</p>
           <p>${p.bio || ''}</p>

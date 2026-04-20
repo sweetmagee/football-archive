@@ -127,7 +127,12 @@ Promise.all([
 
       tr.innerHTML = `
         <td>${index + 1}</td>
-        <td class="team-col"><a href="team.html?id=${row.teamId}">${teamName(row.teamId)}</a></td>
+       <td class="team-col">
+  <span class="team-inline">
+    <img class="team-badge-small" src="images/teams/${row.teamId}.png" alt="" onerror="this.style.display='none'">
+    <a href="team.html?id=${row.teamId}">${teamName(row.teamId)}</a>
+  </span>
+</td>
         <td>${row.P}</td>
         <td>${row.W}</td>
         <td>${row.D}</td>
@@ -162,7 +167,15 @@ Promise.all([
         <div class="match-date">${m.date}</div>
         <div class="match-scoreline">
           <a href="match.html?id=${m.id}">
-            ${teamName(m.home_team)} ${m.home_score}-${m.away_score} ${teamName(m.away_team)}
+            <span class="team-inline">
+  <img class="team-badge-small" src="images/teams/${m.home_team}.png" alt="" onerror="this.style.display='none'">
+  <span>${teamName(m.home_team)}</span>
+</span>
+${m.home_score}-${m.away_score}
+<span class="team-inline">
+  <img class="team-badge-small" src="images/teams/${m.away_team}.png" alt="" onerror="this.style.display='none'">
+  <span>${teamName(m.away_team)}</span>
+</span>
           </a>
         </div>
         <div class="match-meta">
