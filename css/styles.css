@@ -362,3 +362,26 @@ tbody tr:hover {
 .team-header-text h2 {
   margin-bottom: 8px;
 }
+.match-score-header {
+  margin-bottom: 12px;
+}
+
+.match-team-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.match-team-line:last-child {
+  border-bottom: none;
+}
+
+.team-line-score {
+  font-size: 1.6rem;
+  min-width: 30px;
+  text-align: right;
+}
