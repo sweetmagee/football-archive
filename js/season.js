@@ -189,7 +189,7 @@ ${m.home_score}-${m.away_score}
     });
   }
 
-  function renderTopScorers(matchList) {
+ function renderTopScorers(matchList) {
   scorersEl.innerHTML = "";
 
   const validMatchIds = new Set(matchList.map(m => String(m.id).trim()));
@@ -198,29 +198,39 @@ ${m.home_score}-${m.away_score}
   appearances.forEach(a => {
     const matchId = String(a.match_id).trim();
     const playerId = String(a.player_id).trim();
-    const goals = Number(a.goals || 0);
 
     if (!validMatchIds.has(matchId)) return;
 
     if (!scorerMap[playerId]) {
-      scorerMap[playerId] = { goals: 0, apps: 0 };
+      scorerMap[playerId] = {
+        goals: 0,
+        starts: 0,
+        subs: 0
+      };
     }
 
-    scorerMap[playerId].apps += 1;
-    scorerMap[playerId].goals += goals;
+    scorerMap[playerId].goals += Number(a.goals || 0);
+
+    if (Number(a.is_starting) === 1) {
+      scorerMap[playerId].starts += 1;
+    } else {
+      scorerMap[playerId].subs += 1;
+    }
   });
 
   const scorerRows = Object.entries(scorerMap)
     .map(([playerId, stats]) => ({
       playerId,
+      name: playerName(playerId),
       goals: stats.goals,
-      apps: stats.apps,
-      name: playerName(playerId)
+      starts: stats.starts,
+      subs: stats.subs
     }))
     .filter(row => row.goals > 0)
     .sort((a, b) =>
       b.goals - a.goals ||
-      b.apps - a.apps ||
+      b.starts - a.starts ||
+      b.subs - a.subs ||
       a.name.localeCompare(b.name)
     )
     .slice(0, 15);
