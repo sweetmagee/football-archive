@@ -452,3 +452,20 @@ tbody tr:hover {
   margin-left: 8px;
   letter-spacing: 2px;
 }
+.lineup-player {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 0;
+}
+.player-icons {
+  white-space: nowrap;
+  letter-spacing: 2px;
+  margin-left: auto;
+}
+.sub-minute {
+  color: #666;
+  font-size: 0.9rem;
+  margin-left: 6px;
+}
