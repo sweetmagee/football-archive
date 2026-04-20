@@ -485,3 +485,11 @@ tbody tr:hover {
   margin-right: 18px;
   font-weight: bold;
 }
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable:hover {
+  text-decoration: underline;
+}
