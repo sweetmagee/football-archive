@@ -213,49 +213,53 @@ Promise.all([
     return '';
   }
 
-  function renderTeamSection(title, teamApps) {
-    let html = `<div class="content-box section-block match-lineup-column"><h3>${title}</h3>`;
+ function renderTeamSection(title, teamApps) {
+  let html = `<div class="content-box section-block match-lineup-column"><h3>${title}</h3>`;
 
-    const starters = teamApps.filter(a => Number(a.is_starting) === 1);
-    const subs = teamApps.filter(a => Number(a.is_starting) !== 1);
+  const starters = teamApps.filter(a => Number(a.is_starting) === 1);
+  const subs = teamApps.filter(a => Number(a.is_starting) !== 1);
 
-    html += `<h4>Starting XI</h4>`;
-    if (starters.length === 0) {
-      html += `<div>None listed</div>`;
-    } else {
-      starters.forEach(a => {
-        html += `
-          <div class="lineup-player">
-            <span>
-              <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-              ${subMarker(a)}
-            </span>
-            ${playerIcons(a)}
-          </div>
-        `;
-      });
-    }
+  html += `<h4 class="lineup-heading">Starting XI</h4>`;
 
-    html += `<h4>Substitutes</h4>`;
-    if (subs.length === 0) {
-      html += `<div>None listed</div>`;
-    } else {
-      subs.forEach(a => {
-        html += `
-          <div class="lineup-player">
-            <span>
-              <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-              ${subMarker(a)}
-            </span>
-            ${playerIcons(a)}
-          </div>
-        `;
-      });
-    }
-
-    html += `</div>`;
-    return html;
+  if (starters.length === 0) {
+    html += `<div>None listed</div>`;
+  } else {
+    starters.forEach(a => {
+      html += `
+        <div class="lineup-player">
+          <span>
+            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+            ${subMarker(a)}
+          </span>
+          ${playerIcons(a)}
+        </div>
+      `;
+    });
   }
+
+  html += `<div class="lineup-gap"></div>`;
+
+  html += `<h4 class="lineup-heading">Substitutes Used</h4>`;
+
+  if (subs.length === 0) {
+    html += `<div>None listed</div>`;
+  } else {
+    subs.forEach(a => {
+      html += `
+        <div class="lineup-player">
+          <span>
+            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+            ${subMarker(a)}
+          </span>
+          ${playerIcons(a)}
+        </div>
+      `;
+    });
+  }
+
+  html += `</div>`;
+  return html;
+}
 
   const homeHasInfo = homeApps.length > 0;
   const awayHasInfo = awayApps.length > 0;
