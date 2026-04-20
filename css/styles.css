@@ -475,3 +475,13 @@ tbody tr:hover {
 .lineup-gap {
   height: 10px;
 }
+.home-intro {
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.home-links a {
+  display: inline-block;
+  margin-right: 18px;
+  font-weight: bold;
+}
