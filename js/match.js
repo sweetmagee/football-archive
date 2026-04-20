@@ -67,10 +67,20 @@ Promise.all([
     ? `<a href="player.html?id=${awayManager.player_id}">${playerName(awayManager.player_id)}</a>`
     : 'Not recorded';
 
+  const notesHtml = match.notes && String(match.notes).trim() !== ''
+    ? `
+      <div class="content-box section-block">
+        <h3>Notes</h3>
+        <p>${match.notes}</p>
+      </div>
+    `
+    : '';
+
   el.innerHTML = `
     <div class="content-box">
       <h2>${homeName} ${match.home_score}-${match.away_score} ${awayName}</h2>
       <p class="stat-line"><strong>Date:</strong> ${match.date || ''}</p>
+      <p class="stat-line"><strong>Kick-off:</strong> ${match.kickoff_time || 'Not recorded'}</p>
       <p class="stat-line"><strong>Competition:</strong> ${match.competition || ''}</p>
       <p class="stat-line"><strong>Round:</strong> ${match.round || ''}</p>
       <p class="stat-line"><strong>Venue:</strong> ${match.venue || 'Not recorded'}</p>
@@ -102,6 +112,8 @@ Promise.all([
         </tbody>
       </table>
     </div>
+
+    ${notesHtml}
   `;
 
   const matchApps = apps.filter(a => String(a.match_id).trim() === String(id).trim());
