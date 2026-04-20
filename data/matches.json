@@ -8,7 +8,10 @@
     "away_score": "1",
     "season_id": "1",
     "competition": "Friendly",
-    "round": "1"
+    "round": "1",
+    "venue": "Hartsdown Park",
+    "attendance": "1,000",
+    "referee": "J B Roffey"
   },
   {
     "id": "m2",
@@ -19,6 +22,9 @@
     "away_score": "6",
     "season_id": "2",
     "competition": "League",
-    "round": ""
+    "round": "",
+    "venue": "Southwood",
+    "attendance": "2,001",
+    "referee": ""
   }
 ]
