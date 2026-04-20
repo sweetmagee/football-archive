@@ -22,24 +22,24 @@ Promise.all([
   const homeName = homeTeam ? homeTeam.name : match.home_team;
   const awayName = awayTeam ? awayTeam.name : match.away_team;
 
-  function slugifyCompetition(name) {
-    return String(name || "")
-      .toLowerCase()
-      .trim()
-      .replace(/&/g, "and")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  }
-
-  function competitionBadgeHtml(competition, size = "42") {
-    if (!competition || String(competition).trim() === "") return "";
-    const slug = slugifyCompetition(competition);
-    return `<img class="competition-badge" src="images/competitions/${slug}.png" alt="${competition}" title="${competition}" onerror="this.style.display='none'">`;
-  }
-
   function playerName(playerId) {
     const p = players.find(x => String(x.id).trim() === String(playerId).trim());
     return p ? p.name : playerId;
+  }
+
+  function slugifyCompetition(name) {
+    return String(name || '')
+      .toLowerCase()
+      .trim()
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  function competitionBadgeHtml(competition) {
+    if (!competition || String(competition).trim() === '') return '';
+    const slug = slugifyCompetition(competition);
+    return `<img class="competition-badge" src="images/competitions/${slug}.png" alt="${competition}" title="${competition}" onerror="this.style.display='none'">`;
   }
 
   function inSeasonRange(item, seasonId) {
@@ -91,31 +91,47 @@ Promise.all([
     `
     : '';
 
+  const homeScoreNum = Number(match.home_score || 0);
+  const awayScoreNum = Number(match.away_score || 0);
+
+  let homeResultClass = 'match-team-draw';
+  let awayResultClass = 'match-team-draw';
+
+  if (homeScoreNum > awayScoreNum) {
+    homeResultClass = 'match-team-winner';
+    awayResultClass = 'match-team-loser';
+  } else if (awayScoreNum > homeScoreNum) {
+    homeResultClass = 'match-team-loser';
+    awayResultClass = 'match-team-winner';
+  }
+
   el.innerHTML = `
     <div class="content-box">
       <div class="competition-header">
         ${competitionBadgeHtml(match.competition)}
         <div>
-         <div class="match-score-header">
-  <div class="match-team-line">
-    <span class="team-inline">
-      <img class="team-badge-medium" src="images/teams/${match.home_team}.png" alt="" onerror="this.style.display='none'">
-      <span>${homeName}</span>
-    </span>
-    <span class="team-line-score">${match.home_score}</span>
-  </div>
+          <div class="match-score-header">
+            <div class="match-team-line ${homeResultClass}">
+              <span class="team-inline">
+                <img class="team-badge-medium" src="images/teams/${match.home_team}.png" alt="" onerror="this.style.display='none'">
+                <span>${homeName}</span>
+              </span>
+              <span class="team-line-score">${match.home_score}</span>
+            </div>
 
-  <div class="match-team-line">
-    <span class="team-inline">
-      <img class="team-badge-medium" src="images/teams/${match.away_team}.png" alt="" onerror="this.style.display='none'">
-      <span>${awayName}</span>
-    </span>
-    <span class="team-line-score">${match.away_score}</span>
-  </div>
-</div>
+            <div class="match-team-line ${awayResultClass}">
+              <span class="team-inline">
+                <img class="team-badge-medium" src="images/teams/${match.away_team}.png" alt="" onerror="this.style.display='none'">
+                <span>${awayName}</span>
+              </span>
+              <span class="team-line-score">${match.away_score}</span>
+            </div>
+          </div>
+
           <p class="stat-line"><strong>Competition:</strong> ${match.competition || ''}</p>
         </div>
       </div>
+
       <p class="stat-line"><strong>Date:</strong> ${match.date || ''}</p>
       <p class="stat-line"><strong>Kick-off:</strong> ${match.kickoff_time || 'Not recorded'}</p>
       <p class="stat-line"><strong>Round:</strong> ${match.round || ''}</p>
@@ -137,22 +153,21 @@ Promise.all([
         <tbody>
           <tr>
             <td>
-  <span class="team-inline">
-    <img class="team-badge-small" src="images/teams/${match.home_team}.png" alt="" onerror="this.style.display='none'">
-    <a href="team.html?id=${match.home_team}">${homeName}</a>
-  </span>
-</td>
+              <span class="team-inline">
+                <img class="team-badge-small" src="images/teams/${match.home_team}.png" alt="" onerror="this.style.display='none'">
+                <a href="team.html?id=${match.home_team}">${homeName}</a>
+              </span>
+            </td>
             <td>${homeCaptainHtml}</td>
             <td>${homeManagerHtml}</td>
           </tr>
           <tr>
-             <td>
-  <span class="team-inline">
-    <img class="team-badge-small" src="images/teams/${match.away_team}.png" alt="" onerror="this.style.display='none'">
-    <a href="team.html?id=${match.away_team}">${awayName}</a>
-  </span>
-</td>
-
+            <td>
+              <span class="team-inline">
+                <img class="team-badge-small" src="images/teams/${match.away_team}.png" alt="" onerror="this.style.display='none'">
+                <a href="team.html?id=${match.away_team}">${awayName}</a>
+              </span>
+            </td>
             <td>${awayCaptainHtml}</td>
             <td>${awayManagerHtml}</td>
           </tr>
@@ -164,6 +179,7 @@ Promise.all([
   `;
 
   const matchApps = apps.filter(a => String(a.match_id).trim() === String(id).trim());
+
   const homeApps = matchApps.filter(a => String(a.team).trim() === String(match.home_team).trim());
   const awayApps = matchApps.filter(a => String(a.team).trim() === String(match.away_team).trim());
 
@@ -181,7 +197,11 @@ Promise.all([
       html += `<div>None listed</div>`;
     } else {
       starters.forEach(a => {
-        html += `<div><a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a></div>`;
+        html += `
+          <div>
+            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+          </div>
+        `;
       });
     }
 
@@ -190,7 +210,12 @@ Promise.all([
       html += `<div>None listed</div>`;
     } else {
       subs.forEach(a => {
-        html += `<div><a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a> ${a.minute_in ? `(${a.minute_in}')` : ''}</div>`;
+        html += `
+          <div>
+            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+            ${a.minute_in ? `(${a.minute_in}')` : ''}
+          </div>
+        `;
       });
     }
 
@@ -199,7 +224,12 @@ Promise.all([
       html += `<div>No goals recorded</div>`;
     } else {
       scorers.forEach(a => {
-        html += `<div><a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a> — ${a.goals}</div>`;
+        html += `
+          <div>
+            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+            — ${a.goals}
+          </div>
+        `;
       });
     }
 
@@ -208,7 +238,12 @@ Promise.all([
       html += `<div>None</div>`;
     } else {
       yellows.forEach(a => {
-        html += `<div><a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a> — ${a.yellow}</div>`;
+        html += `
+          <div>
+            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+            — ${a.yellow}
+          </div>
+        `;
       });
     }
 
@@ -217,7 +252,12 @@ Promise.all([
       html += `<div>None</div>`;
     } else {
       reds.forEach(a => {
-        html += `<div><a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a> — ${a.red}</div>`;
+        html += `
+          <div>
+            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+            — ${a.red}
+          </div>
+        `;
       });
     }
 
@@ -266,7 +306,12 @@ Promise.all([
 
   allEvents.sort((a, b) => a.minute - b.minute);
 
-  el.innerHTML += `<div class="content-box section-block"><h3>Match Timeline</h3><div id="timeline"></div></div>`;
+  el.innerHTML += `
+    <div class="content-box section-block">
+      <h3>Match Timeline</h3>
+      <div id="timeline"></div>
+    </div>
+  `;
 
   const timelineEl = document.getElementById('timeline');
 
@@ -277,6 +322,7 @@ Promise.all([
       timelineEl.innerHTML += `<div class="timeline-event">${ev.minute}' ${ev.text}</div>`;
     });
   }
+
 }).catch(err => {
   document.getElementById('match').innerHTML =
     `<div class="content-box"><p>Error loading match page: ${err.message}</p></div>`;
