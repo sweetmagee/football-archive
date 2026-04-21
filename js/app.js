@@ -1,7 +1,7 @@
 let players = [];
 let appearances = [];
 
-let sortColumn = "name";
+let sortColumn = "default";
 let sortAsc = true;
 
 Promise.all([
@@ -42,22 +42,49 @@ function getPlayerStats(playerId) {
   };
 }
 
+function splitName(fullName) {
+  const parts = String(fullName || "").trim().split(/\s+/);
+
+  if (parts.length === 0) {
+    return { first: "", last: "" };
+  }
+
+  if (parts.length === 1) {
+    return { first: "", last: parts[0] };
+  }
+
+  const last = parts.pop();
+  const first = parts.join(" ");
+
+  return { first, last };
+}
+
 function enrichPlayers(list) {
   return list.map(p => {
     const stats = getPlayerStats(p.id);
+    const nameParts = splitName(p.name);
 
     return {
       ...p,
       starts: stats.starts,
       subs: stats.subs,
       apps: stats.apps,
-      goalsCalc: stats.goals
+      goalsCalc: stats.goals,
+      firstName: nameParts.first,
+      lastName: nameParts.last
     };
   });
 }
 
 function compare(a, b) {
   let result = 0;
+
+  if (sortColumn === "default") {
+    result =
+      a.lastName.localeCompare(b.lastName) ||
+      a.firstName.localeCompare(b.firstName) ||
+      b.apps - a.apps;
+  }
 
   if (sortColumn === "name") {
     result = a.name.localeCompare(b.name);
@@ -80,8 +107,7 @@ function compare(a, b) {
   if (sortColumn === "goals") {
     result =
       b.goalsCalc - a.goalsCalc ||
-      b.starts - a.starts ||
-      b.subs - a.subs ||
+      b.apps - a.apps ||
       a.name.localeCompare(b.name);
   }
 
