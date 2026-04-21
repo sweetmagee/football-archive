@@ -614,3 +614,24 @@ tbody tr:hover {
   color: #666;
   font-size: 0.9em;
 }
+.random-player-box {
+  transform: scale(0.75);
+  transform-origin: top center;
+}
+
+.random-player-box .featured-player-card {
+  grid-template-columns: 100px 1fr;
+  gap: 12px;
+}
+
+.random-player-box .featured-player-image img {
+  max-width: 100px;
+}
+
+.random-player-box h2 {
+  margin-bottom: 10px;
+}
+
+.random-player-box p {
+  margin-bottom: 8px;
+}
