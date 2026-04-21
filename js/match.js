@@ -1,15 +1,15 @@
-const id = new URLSearchParams(window.location.search).get('id');
+const id = new URLSearchParams(window.location.search).get("id");
 
 Promise.all([
-  fetch('data/matches.json').then(r => r.json()),
-  fetch('data/appearances.json').then(r => r.json()),
-  fetch('data/players.json').then(r => r.json()),
-  fetch('data/teams.json').then(r => r.json()),
-  fetch('data/captains.json').then(r => r.json()).catch(() => []),
-  fetch('data/managers.json').then(r => r.json()).catch(() => [])
+  fetch("data/matches.json").then(r => r.json()),
+  fetch("data/appearances.json").then(r => r.json()),
+  fetch("data/players.json").then(r => r.json()),
+  fetch("data/teams.json").then(r => r.json()),
+  fetch("data/captains.json").then(r => r.json()).catch(() => []),
+  fetch("data/managers.json").then(r => r.json()).catch(() => [])
 ]).then(([matches, apps, players, teams, captains, managers]) => {
   const match = matches.find(m => String(m.id).trim() === String(id).trim());
-  const el = document.getElementById('match');
+  const el = document.getElementById("match");
 
   if (!match) {
     el.innerHTML = '<div class="content-box"><p>Match not found.</p></div>';
@@ -28,16 +28,16 @@ Promise.all([
   }
 
   function slugifyCompetition(name) {
-    return String(name || '')
+    return String(name || "")
       .toLowerCase()
       .trim()
-      .replace(/&/g, 'and')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
   }
 
   function competitionBadgeHtml(competition) {
-    if (!competition || String(competition).trim() === '') return '';
+    if (!competition || String(competition).trim() === "") return "";
     const slug = slugifyCompetition(competition);
     return `<img class="competition-badge" src="images/competitions/${slug}.png" alt="${competition}" title="${competition}" onerror="this.style.display='none'">`;
   }
@@ -54,55 +54,53 @@ Promise.all([
     );
   }
 
-  function getManager(teamId, seasonId) {
-    return managers.find(m =>
-      String(m.team_id).trim() === String(teamId).trim() &&
-      inSeasonRange(m, seasonId)
-    );
-  }
-
   const homeCaptain = getCaptain(match.home_team, match.season_id);
   const awayCaptain = getCaptain(match.away_team, match.season_id);
-  const homeManager = getManager(match.home_team, match.season_id);
-  const awayManager = getManager(match.away_team, match.season_id);
+
+  const homeManager = managers.find(m =>
+    String(m.id).trim() === String(match.home_manager_id || "").trim()
+  );
+  const awayManager = managers.find(m =>
+    String(m.id).trim() === String(match.away_manager_id || "").trim()
+  );
 
   const homeCaptainHtml = homeCaptain
     ? `<a href="player.html?id=${homeCaptain.player_id}">${playerName(homeCaptain.player_id)}</a>`
-    : 'Not recorded';
+    : "Not recorded";
 
   const awayCaptainHtml = awayCaptain
     ? `<a href="player.html?id=${awayCaptain.player_id}">${playerName(awayCaptain.player_id)}</a>`
-    : 'Not recorded';
+    : "Not recorded";
 
   const homeManagerHtml = homeManager
-    ? `<a href="player.html?id=${homeManager.player_id}">${playerName(homeManager.player_id)}</a>`
-    : 'Not recorded';
+    ? `<a href="manager.html?id=${homeManager.id}">${homeManager.name}</a>`
+    : "Not recorded";
 
   const awayManagerHtml = awayManager
-    ? `<a href="player.html?id=${awayManager.player_id}">${playerName(awayManager.player_id)}</a>`
-    : 'Not recorded';
+    ? `<a href="manager.html?id=${awayManager.id}">${awayManager.name}</a>`
+    : "Not recorded";
 
-  const notesHtml = match.notes && String(match.notes).trim() !== ''
+  const notesHtml = match.notes && String(match.notes).trim() !== ""
     ? `
       <div class="content-box section-block">
         <h3>Notes</h3>
         <p>${match.notes}</p>
       </div>
     `
-    : '';
+    : "";
 
   const homeScoreNum = Number(match.home_score || 0);
   const awayScoreNum = Number(match.away_score || 0);
 
-  let homeResultClass = 'match-team-draw';
-  let awayResultClass = 'match-team-draw';
+  let homeResultClass = "match-team-draw";
+  let awayResultClass = "match-team-draw";
 
   if (homeScoreNum > awayScoreNum) {
-    homeResultClass = 'match-team-winner';
-    awayResultClass = 'match-team-loser';
+    homeResultClass = "match-team-winner";
+    awayResultClass = "match-team-loser";
   } else if (awayScoreNum > homeScoreNum) {
-    homeResultClass = 'match-team-loser';
-    awayResultClass = 'match-team-winner';
+    homeResultClass = "match-team-loser";
+    awayResultClass = "match-team-winner";
   }
 
   el.innerHTML = `
@@ -128,18 +126,18 @@ Promise.all([
             </div>
           </div>
 
-          <p class="stat-line"><strong>Competition:</strong> ${match.competition || ''}</p>
+          <p class="stat-line"><strong>Competition:</strong> ${match.competition || ""}</p>
         </div>
       </div>
 
-      <p class="stat-line"><strong>Date:</strong> ${match.date || ''}</p>
-      <p class="stat-line"><strong>Kick-off:</strong> ${match.kickoff_time || 'Not recorded'}</p>
-      ${match.round && String(match.round).trim() !== ''
+      <p class="stat-line"><strong>Date:</strong> ${match.date || ""}</p>
+      <p class="stat-line"><strong>Kick-off:</strong> ${match.kickoff_time || "Not recorded"}</p>
+      ${match.round && String(match.round).trim() !== ""
         ? `<p class="stat-line"><strong>Round:</strong> ${match.round}</p>`
-        : ''}
-      <p class="stat-line"><strong>Venue:</strong> ${match.venue || 'Not recorded'}</p>
-      <p class="stat-line"><strong>Attendance:</strong> ${match.attendance || 'Not recorded'}</p>
-      <p class="stat-line"><strong>Referee:</strong> ${match.referee || 'Not recorded'}</p>
+        : ""}
+      <p class="stat-line"><strong>Venue:</strong> ${match.venue || "Not recorded"}</p>
+      <p class="stat-line"><strong>Attendance:</strong> ${match.attendance || "Not recorded"}</p>
+      <p class="stat-line"><strong>Referee:</strong> ${match.referee || "Not recorded"}</p>
     </div>
 
     <div class="content-box section-block">
@@ -185,13 +183,13 @@ Promise.all([
   const awayApps = matchApps.filter(a => String(a.team).trim() === String(match.away_team).trim());
 
   function playerIcons(a) {
-    const goals = '⚽'.repeat(Number(a.goals || 0));
-    const yellows = '🟨'.repeat(Number(a.yellow || 0));
-    const reds = '🟥'.repeat(Number(a.red || 0));
+    const goals = "⚽".repeat(Number(a.goals || 0));
+    const yellows = "🟨".repeat(Number(a.yellow || 0));
+    const reds = "🟥".repeat(Number(a.red || 0));
 
     return (goals || yellows || reds)
       ? `<span class="player-icons">${goals}${yellows}${reds}</span>`
-      : '';
+      : "";
   }
 
   function subMarker(a) {
@@ -203,63 +201,62 @@ Promise.all([
       if (minuteOut > 0 && minuteOut < 90) {
         return `<span class="sub-minute">↓ ${minuteOut}'</span>`;
       }
-      return '';
+      return "";
     }
 
     if (minuteIn > 0) {
       return `<span class="sub-minute">↑ ${minuteIn}'</span>`;
     }
 
-    return '';
+    return "";
   }
 
- function renderTeamSection(title, teamApps) {
-  let html = `<div class="content-box section-block match-lineup-column"><h3>${title}</h3>`;
+  function renderTeamSection(title, teamApps) {
+    let html = `<div class="content-box section-block match-lineup-column"><h3>${title}</h3>`;
 
-  const starters = teamApps.filter(a => Number(a.is_starting) === 1);
-  const subs = teamApps.filter(a => Number(a.is_starting) !== 1);
+    const starters = teamApps.filter(a => Number(a.is_starting) === 1);
+    const subs = teamApps.filter(a => Number(a.is_starting) !== 1);
 
-  html += `<h4 class="lineup-heading">Starting XI</h4>`;
+    html += `<h4 class="lineup-heading">Starting XI</h4>`;
 
-  if (starters.length === 0) {
-    html += `<div>None listed</div>`;
-  } else {
-    starters.forEach(a => {
-      html += `
-        <div class="lineup-player">
-          <span>
-            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-            ${subMarker(a)}
-          </span>
-          ${playerIcons(a)}
-        </div>
-      `;
-    });
+    if (starters.length === 0) {
+      html += `<div>None listed</div>`;
+    } else {
+      starters.forEach(a => {
+        html += `
+          <div class="lineup-player">
+            <span>
+              <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+              ${subMarker(a)}
+            </span>
+            ${playerIcons(a)}
+          </div>
+        `;
+      });
+    }
+
+    html += `<div class="lineup-gap"></div>`;
+    html += `<h4 class="lineup-heading">Substitutes Used</h4>`;
+
+    if (subs.length === 0) {
+      html += `<div>None listed</div>`;
+    } else {
+      subs.forEach(a => {
+        html += `
+          <div class="lineup-player">
+            <span>
+              <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
+              ${subMarker(a)}
+            </span>
+            ${playerIcons(a)}
+          </div>
+        `;
+      });
+    }
+
+    html += `</div>`;
+    return html;
   }
-
-  html += `<div class="lineup-gap"></div>`;
-
-  html += `<h4 class="lineup-heading">Substitutes Used</h4>`;
-
-  if (subs.length === 0) {
-    html += `<div>None listed</div>`;
-  } else {
-    subs.forEach(a => {
-      html += `
-        <div class="lineup-player">
-          <span>
-            <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
-            ${subMarker(a)}
-          </span>
-          ${playerIcons(a)}
-        </div>
-      `;
-    });
-  }
-
-  html += `</div>`;
-  return html;
-}
 
   const homeHasInfo = homeApps.length > 0;
   const awayHasInfo = awayApps.length > 0;
@@ -338,7 +335,7 @@ Promise.all([
     </div>
   `;
 
-  const timelineEl = document.getElementById('timeline');
+  const timelineEl = document.getElementById("timeline");
 
   if (allEvents.length === 0) {
     timelineEl.innerHTML = `<div>No timeline events recorded</div>`;
@@ -349,7 +346,7 @@ Promise.all([
   }
 
 }).catch(err => {
-  document.getElementById('match').innerHTML =
+  document.getElementById("match").innerHTML =
     `<div class="content-box"><p>Error loading match page: ${err.message}</p></div>`;
   console.error(err);
 });
