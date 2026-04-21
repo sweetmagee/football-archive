@@ -599,3 +599,14 @@ tbody tr:hover {
   color: #555;
   font-weight: 600;
 }
+.archive-button {
+  padding: 8px 14px;
+  border: 1px solid #999;
+  background: #f3f3f3;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.archive-button:hover {
+  background: #e9e9e9;
+}
