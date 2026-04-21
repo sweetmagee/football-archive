@@ -2,29 +2,36 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Player | Margate & Thanet United FC Archive</title>
+  <title>Manager | Margate & Thanet United FC Archive</title>
   <base href="/football-archive/">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
- <div class="header-bar site-header-image">
+  <div class="header-bar site-header-image">
     <div class="site-header-overlay">
       <h1>Margate &amp; Thanet United FC Archive</h1>
+      <div class="header-top-row">
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="players.html">Players</a>
+          <a href="seasons.html">Seasons</a>
+          <a href="managers.html">Managers</a>
+        </div>
 
-      <div class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="players.html">Players</a>
-        <a href="seasons.html">Seasons</a>
+        <form id="siteSearchForm" class="site-search-form">
+          <input id="siteSearchInput" type="search" placeholder="Search site..." aria-label="Search site">
+          <button type="submit">Search</button>
+        </form>
       </div>
     </div>
   </div>
 
-
   <div class="page-wrap">
-    <div id="player"></div>
+    <div id="managerPage"></div>
   </div>
 
-  <script src="js/player.js"></script>
+  <script src="js/site-search.js"></script>
+  <script src="js/manager.js"></script>
 </body>
 </html>
