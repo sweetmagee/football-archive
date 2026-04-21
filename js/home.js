@@ -37,6 +37,18 @@ Promise.all([
     };
   }
 
+  function formatDateAdded(value) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+
+    return d.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
+  }
+
   function renderRandomPlayer(excludeId = null) {
     if (!players.length) {
       featuredEl.innerHTML = `<p>No players available.</p>`;
@@ -84,11 +96,18 @@ Promise.all([
     `;
   }
 
-  // Latest Additions = last 5 in players.json
-  const latestPlayers = [...players].slice(-5).reverse();
+  // Latest Additions = newest date_added first
+  const latestPlayers = [...players]
+    .filter(p => p.date_added && String(p.date_added).trim() !== "")
+    .sort((a, b) => {
+      const da = new Date(a.date_added);
+      const db = new Date(b.date_added);
+      return db - da;
+    })
+    .slice(0, 5);
 
   if (!latestPlayers.length) {
-    latestEl.innerHTML = `<p>No players available.</p>`;
+    latestEl.innerHTML = `<p>No recent additions available.</p>`;
   } else {
     latestEl.innerHTML = `
       <ul class="home-list">
@@ -96,6 +115,7 @@ Promise.all([
           <li>
             <a href="player.html?id=${p.id}">${p.name}</a>
             ${p.position ? ` — ${p.position}` : ""}
+            ${p.date_added ? `<span class="date-added">(${formatDateAdded(p.date_added)})</span>` : ""}
           </li>
         `).join("")}
       </ul>
