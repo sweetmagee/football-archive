@@ -87,13 +87,17 @@ function compare(a, b) {
   }
 
   if (sortColumn === "name") {
-    result = a.name.localeCompare(b.name);
+    result =
+      a.lastName.localeCompare(b.lastName) ||
+      a.firstName.localeCompare(b.firstName) ||
+      b.apps - a.apps;
   }
 
   if (sortColumn === "position") {
     result =
       String(a.position || "").localeCompare(String(b.position || "")) ||
-      a.name.localeCompare(b.name);
+      a.lastName.localeCompare(b.lastName) ||
+      a.firstName.localeCompare(b.firstName);
   }
 
   if (sortColumn === "apps") {
@@ -101,14 +105,16 @@ function compare(a, b) {
       b.apps - a.apps ||
       b.starts - a.starts ||
       b.subs - a.subs ||
-      a.name.localeCompare(b.name);
+      a.lastName.localeCompare(b.lastName) ||
+      a.firstName.localeCompare(b.firstName);
   }
 
   if (sortColumn === "goals") {
     result =
       b.goalsCalc - a.goalsCalc ||
       b.apps - a.apps ||
-      a.name.localeCompare(b.name);
+      a.lastName.localeCompare(b.lastName) ||
+      a.firstName.localeCompare(b.firstName);
   }
 
   return sortAsc ? result : -result;
