@@ -122,16 +122,25 @@ function compare(a, b) {
 
 function render(list) {
   const el = document.getElementById("playerTable");
+  const countEl = document.getElementById("playerCount");
+
   if (!el) return;
 
   el.innerHTML = "";
 
   if (!list || list.length === 0) {
+    if (countEl) countEl.textContent = "0 players listed";
     el.innerHTML = `<tr><td colspan="4">No players found.</td></tr>`;
     return;
   }
 
   const rows = enrichPlayers(list).sort(compare);
+
+  if (countEl) {
+    const total = rows.length;
+    countEl.textContent =
+      total === 1 ? "1 player listed" : `${total} players listed`;
+  }
 
   rows.forEach(p => {
     el.innerHTML += `
@@ -144,7 +153,6 @@ function render(list) {
     `;
   });
 }
-
 function setSort(col) {
   if (sortColumn === col) {
     sortAsc = !sortAsc;
