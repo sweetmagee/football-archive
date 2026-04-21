@@ -14,6 +14,7 @@ Promise.all([
 ]).then(([players, appearances, teams]) => {
   const latestEl = document.getElementById("latestAdditions");
   const featuredEl = document.getElementById("featuredPlayer");
+  const randomBtn = document.getElementById("randomPlayerBtn");
 
   function teamName(teamId) {
     const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
@@ -36,6 +37,53 @@ Promise.all([
     };
   }
 
+  function renderRandomPlayer(excludeId = null) {
+    if (!players.length) {
+      featuredEl.innerHTML = `<p>No players available.</p>`;
+      return;
+    }
+
+    let pool = players;
+    if (excludeId !== null && players.length > 1) {
+      pool = players.filter(p => String(p.id).trim() !== String(excludeId).trim());
+    }
+
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    const featured = pool[randomIndex];
+    const stats = getPlayerStats(featured.id);
+
+    const photo = featured.photo && featured.photo.trim() !== ""
+      ? featured.photo.trim()
+      : "default.png";
+
+    featuredEl.dataset.currentPlayerId = featured.id;
+
+    featuredEl.innerHTML = `
+      <div class="featured-player-card">
+        <div class="featured-player-image">
+          <img src="images/players/${photo}"
+               alt="${featured.name}"
+               onerror="this.src='images/players/default.png'">
+        </div>
+
+        <div class="featured-player-text">
+          <h3>
+            <a href="player.html?id=${featured.id}">
+              ${featured.name}
+            </a>
+          </h3>
+
+          <p><strong>Position:</strong> ${featured.position || "Not recorded"}</p>
+          <p><strong>Team:</strong> ${teamName(featured.team || "")}</p>
+          <p><strong>Appearances:</strong> ${stats.appsDisplay}</p>
+          <p><strong>Goals:</strong> ${stats.goals}</p>
+
+          ${featured.bio ? `<p>${featured.bio}</p>` : ""}
+        </div>
+      </div>
+    `;
+  }
+
   // Latest Additions = last 5 in players.json
   const latestPlayers = [...players].slice(-5).reverse();
 
@@ -54,45 +102,14 @@ Promise.all([
     `;
   }
 
-  // RANDOM PLAYER
-  if (!players.length) {
-    featuredEl.innerHTML = `<p>No players available.</p>`;
-    return;
+  renderRandomPlayer();
+
+  if (randomBtn) {
+    randomBtn.addEventListener("click", () => {
+      const currentId = featuredEl.dataset.currentPlayerId || null;
+      renderRandomPlayer(currentId);
+    });
   }
-
-  const randomIndex = Math.floor(Math.random() * players.length);
-  const featured = players[randomIndex];
-
-  const stats = getPlayerStats(featured.id);
-
-  const photo = featured.photo && featured.photo.trim() !== ""
-    ? featured.photo.trim()
-    : "default.png";
-
-  featuredEl.innerHTML = `
-    <div class="featured-player-card">
-      <div class="featured-player-image">
-        <img src="images/players/${photo}"
-             alt="${featured.name}"
-             onerror="this.src='images/players/default.png'">
-      </div>
-
-      <div class="featured-player-text">
-        <h3>
-          <a href="player.html?id=${featured.id}">
-            ${featured.name}
-          </a>
-        </h3>
-
-        <p><strong>Position:</strong> ${featured.position || "Not recorded"}</p>
-        <p><strong>Team:</strong> ${teamName(featured.team || "")}</p>
-        <p><strong>Appearances:</strong> ${stats.appsDisplay}</p>
-        <p><strong>Goals:</strong> ${stats.goals}</p>
-
-        ${featured.bio ? `<p>${featured.bio}</p>` : ""}
-      </div>
-    </div>
-  `;
 
 }).catch(err => {
   console.error(err);
