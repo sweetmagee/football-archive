@@ -6,10 +6,9 @@
     "position": "Goalkeeper",
     "nationality": "England",
     "team": "t1",
-    "apps": "120",
-    "goals": "25",
     "photo": "p1.jpg",
-    "bio": "Keeper born in London, later played for Dulwich."
+    "bio": "Keeper born in London, later played for Dulwich.",
+    "date_added": "2026-04-21"
   },
   {
     "id": "p2",
@@ -18,10 +17,9 @@
     "position": "Right Back",
     "nationality": "England",
     "team": "t1",
-    "apps": "9",
-    "goals": "9",
     "photo": "",
-    "bio": ""
+    "bio": "",
+    "date_added": "2026-04-22"
   },
   {
     "id": "p3",
@@ -30,10 +28,9 @@
     "position": "Left Back",
     "nationality": "England",
     "team": "t1",
-    "apps": "8",
-    "goals": "8",
     "photo": "",
-    "bio": ""
+    "bio": "",
+    "date_added": "2026-04-23"
   },
   {
     "id": "p4",
@@ -42,10 +39,9 @@
     "position": "Centre Back",
     "nationality": "Nigeria",
     "team": "t1",
-    "apps": "77",
-    "goals": "7",
     "photo": "",
-    "bio": "Super"
+    "bio": "Super",
+    "date_added": "2026-04-24"
   },
   {
     "id": "p5",
@@ -54,10 +50,9 @@
     "position": "Midfielder",
     "nationality": "England",
     "team": "t1",
-    "apps": "55",
-    "goals": "6",
     "photo": "",
-    "bio": ""
+    "bio": "",
+    "date_added": "2026-04-25"
   },
   {
     "id": "p6",
@@ -66,10 +61,9 @@
     "position": "Midfielder",
     "nationality": "England",
     "team": "t1",
-    "apps": "22",
-    "goals": "5",
     "photo": "",
-    "bio": ""
+    "bio": "",
+    "date_added": "2026-04-26"
   },
   {
     "id": "p7",
@@ -78,10 +72,9 @@
     "position": "Midfielder",
     "nationality": "England",
     "team": "t1",
-    "apps": "366",
-    "goals": "4",
     "photo": "",
-    "bio": ""
+    "bio": "",
+    "date_added": "2026-04-27"
   },
   {
     "id": "p8",
@@ -90,10 +83,9 @@
     "position": "Utility",
     "nationality": "England",
     "team": "t1",
-    "apps": "55",
-    "goals": "3",
     "photo": "",
-    "bio": ""
+    "bio": "",
+    "date_added": "2026-04-28"
   },
   {
     "id": "p9",
@@ -102,10 +94,9 @@
     "position": "Striker",
     "nationality": "England",
     "team": "t1",
-    "apps": "69",
-    "goals": "2",
     "photo": "",
-    "bio": "Beardy"
+    "bio": "Beardy",
+    "date_added": "2026-04-29"
   },
   {
     "id": "p10",
@@ -114,10 +105,9 @@
     "position": "Striker",
     "nationality": "England",
     "team": "t1",
-    "apps": "5",
-    "goals": "1",
     "photo": "",
-    "bio": ""
+    "bio": "",
+    "date_added": "2026-04-30"
   },
   {
     "id": "p11",
@@ -126,93 +116,52 @@
     "position": "Midfielder",
     "nationality": "England",
     "team": "t1",
-    "apps": "9",
-    "goals": "0",
     "photo": "",
-    "bio": ""
+    "bio": "",
+    "date_added": "2026-05-01"
   },
   {
     "id": "p12",
     "name": "Billy Plews",
     "dob": "",
-    "position": "",
+    "position": "Centre Back",
     "nationality": "",
     "team": "t1",
-    "apps": "",
-    "goals": "",
     "photo": "",
-    "bio": ""
+    "bio": "",
+    "date_added": "2026-05-02"
   },
   {
     "id": "p13",
     "name": "Karl Rolls",
     "dob": "",
-    "position": "",
+    "position": "Striker",
     "nationality": "",
     "team": "t1",
-    "apps": "",
-    "goals": "",
     "photo": "",
-    "bio": ""
+    "bio": "",
+    "date_added": "2026-05-03"
   },
   {
     "id": "p14",
     "name": "Joe Brayne",
     "dob": "",
-    "position": "",
+    "position": "Striker",
     "nationality": "",
     "team": "t1",
-    "apps": "",
-    "goals": "",
     "photo": "",
-    "bio": ""
+    "bio": "",
+    "date_added": "2026-05-04"
   },
   {
     "id": "p15",
     "name": "Steve Cuggy",
     "dob": "",
-    "position": "",
+    "position": "Striker",
     "nationality": "",
     "team": "t1",
-    "apps": "",
-    "goals": "",
     "photo": "",
-    "bio": ""
-  },
-  {
-    "id": "p16",
-    "name": "",
-    "dob": "",
-    "position": "",
-    "nationality": "",
-    "team": "",
-    "apps": "",
-    "goals": "",
-    "photo": "",
-    "bio": ""
-  },
-  {
-    "id": "p17",
-    "name": "",
-    "dob": "",
-    "position": "",
-    "nationality": "",
-    "team": "",
-    "apps": "",
-    "goals": "",
-    "photo": "",
-    "bio": ""
-  },
-  {
-    "id": "p18",
-    "name": "",
-    "dob": "",
-    "position": "",
-    "nationality": "",
-    "team": "",
-    "apps": "",
-    "goals": "",
-    "photo": "",
-    "bio": ""
+    "bio": "",
+    "date_added": "2026-05-05"
   }
 ]
