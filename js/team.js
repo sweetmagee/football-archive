@@ -18,6 +18,16 @@ Promise.all([
     return;
   }
 
+  function isCountableMatch(match) {
+    return (
+      match &&
+      match.home_score !== '?' &&
+      match.away_score !== '?' &&
+      !Number.isNaN(Number(match.home_score)) &&
+      !Number.isNaN(Number(match.away_score))
+    );
+  }
+
   function seasonName(seasonId) {
     const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
     return season ? season.name : seasonId;
@@ -38,11 +48,16 @@ Promise.all([
   }
 
   function getPlayerStats(playerId, teamId = null) {
-    let pa = appearances.filter(a => String(a.player_id).trim() === String(playerId).trim());
+    let pa = appearances.filter(a => {
+      if (String(a.player_id).trim() !== String(playerId).trim()) return false;
 
-    if (teamId !== null) {
-      pa = pa.filter(a => String(a.team).trim() === String(teamId).trim());
-    }
+      if (teamId !== null && String(a.team).trim() !== String(teamId).trim()) {
+        return false;
+      }
+
+      const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+      return isCountableMatch(match);
+    });
 
     const starts = pa.filter(a => Number(a.is_starting) === 1).length;
     const subs = pa.filter(a => Number(a.is_starting) !== 1).length;
@@ -80,8 +95,11 @@ Promise.all([
     .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
 
   const teamMatches = matches.filter(m =>
-    String(m.home_team).trim() === String(id).trim() ||
-    String(m.away_team).trim() === String(id).trim()
+    (
+      String(m.home_team).trim() === String(id).trim() ||
+      String(m.away_team).trim() === String(id).trim()
+    ) &&
+    isCountableMatch(m)
   );
 
   const teamCaptains = captains
@@ -97,7 +115,12 @@ Promise.all([
     .sort((a, b) => Number(a.season || 0) - Number(b.season || 0));
 
   function getRecord(matchList) {
-    let P = 0, W = 0, D = 0, L = 0, GF = 0, GA = 0;
+    let P = 0;
+    let W = 0;
+    let D = 0;
+    let L = 0;
+    let GF = 0;
+    let GA = 0;
 
     matchList.forEach(m => {
       const isHome = String(m.home_team).trim() === String(id).trim();
@@ -220,14 +243,20 @@ Promise.all([
     managersTable.innerHTML = `<tr><td colspan="3">No managers recorded.</td></tr>`;
   } else {
     teamManagers.forEach(m => {
-      const player = players.find(p => String(p.id).trim() === String(m.player_id).trim());
-      const playerDisplay = player
-        ? `<a href="player.html?id=${player.id}">${player.name}</a>`
-        : m.player_id;
+      let managerDisplay = m.name || '';
+
+      if (m.player_id) {
+        const player = players.find(p => String(p.id).trim() === String(m.player_id).trim());
+        managerDisplay = player
+          ? `<a href="player.html?id=${player.id}">${player.name}</a>`
+          : m.player_id;
+      } else if (m.id) {
+        managerDisplay = `<a href="manager.html?id=${m.id}">${m.name || m.id}</a>`;
+      }
 
       managersTable.innerHTML += `
         <tr>
-          <td>${playerDisplay}</td>
+          <td>${managerDisplay || 'Not recorded'}</td>
           <td>${seasonName(m.start_season)}</td>
           <td>${seasonName(m.end_season)}</td>
         </tr>

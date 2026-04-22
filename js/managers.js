@@ -19,10 +19,23 @@ Promise.all([
     return null;
   }
 
+  function isCountableMatch(match) {
+    return (
+      match &&
+      match.home_score !== "?" &&
+      match.away_score !== "?" &&
+      !Number.isNaN(Number(match.home_score)) &&
+      !Number.isNaN(Number(match.away_score))
+    );
+  }
+
   const rows = managers.map(mgr => {
     const mgrMatches = matches.filter(m =>
-      String(m.home_manager_id || "").trim() === String(mgr.id).trim() ||
-      String(m.away_manager_id || "").trim() === String(mgr.id).trim()
+      (
+        String(m.home_manager_id || "").trim() === String(mgr.id).trim() ||
+        String(m.away_manager_id || "").trim() === String(mgr.id).trim()
+      ) &&
+      isCountableMatch(m)
     );
 
     const sortedMatches = [...mgrMatches].sort((a, b) => parseDate(a.date) - parseDate(b.date));

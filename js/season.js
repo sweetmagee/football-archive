@@ -10,7 +10,7 @@ Promise.all([
   fetch("data/captains.json").then(r => r.json()).catch(() => []),
   fetch("data/managers.json").then(r => r.json()).catch(() => [])
 ]).then(([matches, teams, seasons, appearances, players, captains, managers]) => {
-  const season = seasons.find(s => String(s.id) == String(seasonId));
+  const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
   const titleEl = document.getElementById("seasonTitle");
   const tableBody = document.getElementById("tableBody");
   const matchesEl = document.getElementById("matches");
@@ -23,12 +23,15 @@ Promise.all([
     return;
   }
 
-  titleEl.textContent = season.name;
-
-  const seasonMatches = matches.filter(m => String(m.season_id) == String(seasonId));
-  const leagueMatches = seasonMatches.filter(m =>
-    !m.competition || String(m.competition).toLowerCase() === "league"
-  );
+  function isCountableMatch(match) {
+    return (
+      match &&
+      match.home_score !== "?" &&
+      match.away_score !== "?" &&
+      !Number.isNaN(Number(match.home_score)) &&
+      !Number.isNaN(Number(match.away_score))
+    );
+  }
 
   function slugifyCompetition(name) {
     return String(name || "")
@@ -54,6 +57,25 @@ Promise.all([
     const player = players.find(p => String(p.id).trim() === String(playerId).trim());
     return player ? player.name : playerId;
   }
+
+  function formatManager(manager) {
+    if (!manager) return "Not recorded";
+    if (manager.id) {
+      return `<a href="manager.html?id=${manager.id}">${manager.name || manager.id}</a>`;
+    }
+    return manager.name || "Not recorded";
+  }
+
+  titleEl.textContent = season.name;
+
+  const seasonMatches = matches.filter(m =>
+    String(m.season_id).trim() === String(seasonId).trim() &&
+    isCountableMatch(m)
+  );
+
+  const leagueMatches = seasonMatches.filter(m =>
+    !m.competition || String(m.competition).toLowerCase() === "league"
+  );
 
   function buildTable(matchList) {
     const table = {};
@@ -117,7 +139,11 @@ Promise.all([
     tableBody.innerHTML = "";
 
     if (rows.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="10">No league matches found for this season.</td></tr>`;
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="10">No league matches found for this season.</td>
+        </tr>
+      `;
       return;
     }
 
@@ -127,12 +153,12 @@ Promise.all([
 
       tr.innerHTML = `
         <td>${index + 1}</td>
-       <td class="team-col">
-  <span class="team-inline">
-    <img class="team-badge-small" src="images/teams/${row.teamId}.png" alt="" onerror="this.style.display='none'">
-    <a href="team.html?id=${row.teamId}">${teamName(row.teamId)}</a>
-  </span>
-</td>
+        <td class="team-col">
+          <span class="team-inline">
+            <img class="team-badge-small" src="images/teams/${row.teamId}.png" alt="" onerror="this.style.display='none'">
+            <a href="team.html?id=${row.teamId}">${teamName(row.teamId)}</a>
+          </span>
+        </td>
         <td>${row.P}</td>
         <td>${row.W}</td>
         <td>${row.D}</td>
@@ -168,14 +194,14 @@ Promise.all([
         <div class="match-scoreline">
           <a href="match.html?id=${m.id}">
             <span class="team-inline">
-  <img class="team-badge-small" src="images/teams/${m.home_team}.png" alt="" onerror="this.style.display='none'">
-  <span>${teamName(m.home_team)}</span>
-</span>
-${m.home_score}-${m.away_score}
-<span class="team-inline">
-  <img class="team-badge-small" src="images/teams/${m.away_team}.png" alt="" onerror="this.style.display='none'">
-  <span>${teamName(m.away_team)}</span>
-</span>
+              <img class="team-badge-small" src="images/teams/${m.home_team}.png" alt="" onerror="this.style.display='none'">
+              <span>${teamName(m.home_team)}</span>
+            </span>
+            ${m.home_score}-${m.away_score}
+            <span class="team-inline">
+              <img class="team-badge-small" src="images/teams/${m.away_team}.png" alt="" onerror="this.style.display='none'">
+              <span>${teamName(m.away_team)}</span>
+            </span>
           </a>
         </div>
         <div class="match-meta">
@@ -189,74 +215,69 @@ ${m.home_score}-${m.away_score}
     });
   }
 
- function renderTopScorers(matchList) {
-  scorersEl.innerHTML = "";
+  function renderTopScorers(matchList) {
+    scorersEl.innerHTML = "";
 
-  const validMatchIds = new Set(matchList.map(m => String(m.id).trim()));
-  const scorerMap = {};
+    const validMatchIds = new Set(matchList.map(m => String(m.id).trim()));
+    const scorerMap = {};
 
-  appearances.forEach(a => {
-    const matchId = String(a.match_id).trim();
-    const playerId = String(a.player_id).trim();
+    appearances.forEach(a => {
+      const matchId = String(a.match_id).trim();
+      const playerId = String(a.player_id).trim();
 
-    if (!validMatchIds.has(matchId)) return;
+      if (!validMatchIds.has(matchId)) return;
 
-    if (!scorerMap[playerId]) {
-      scorerMap[playerId] = {
-        goals: 0,
-        starts: 0,
-        subs: 0
-      };
+      if (!scorerMap[playerId]) {
+        scorerMap[playerId] = {
+          goals: 0,
+          starts: 0,
+          subs: 0
+        };
+      }
+
+      scorerMap[playerId].goals += Number(a.goals || 0);
+
+      if (Number(a.is_starting) === 1) {
+        scorerMap[playerId].starts += 1;
+      } else {
+        scorerMap[playerId].subs += 1;
+      }
+    });
+
+    const scorerRows = Object.entries(scorerMap)
+      .map(([playerId, stats]) => ({
+        playerId,
+        name: playerName(playerId),
+        goals: stats.goals,
+        starts: stats.starts,
+        subs: stats.subs
+      }))
+      .filter(row => row.goals > 0)
+      .sort((a, b) =>
+        b.goals - a.goals ||
+        b.starts - a.starts ||
+        b.subs - a.subs ||
+        a.name.localeCompare(b.name)
+      )
+      .slice(0, 15);
+
+    if (scorerRows.length === 0) {
+      scorersEl.innerHTML = `<div class="empty-note">No scorers recorded.</div>`;
+      return;
     }
 
-    scorerMap[playerId].goals += Number(a.goals || 0);
-
-    if (Number(a.is_starting) === 1) {
-      scorerMap[playerId].starts += 1;
-    } else {
-      scorerMap[playerId].subs += 1;
-    }
-  });
-
-  const scorerRows = Object.entries(scorerMap)
-    .map(([playerId, stats]) => ({
-      playerId,
-      name: playerName(playerId),
-      goals: stats.goals,
-      starts: stats.starts,
-      subs: stats.subs
-    }))
-    .filter(row => row.goals > 0)
-    .sort((a, b) =>
-      b.goals - a.goals ||
-      b.starts - a.starts ||
-      b.subs - a.subs ||
-      a.name.localeCompare(b.name)
-    )
-    .slice(0, 15);
-
-  if (scorerRows.length === 0) {
-    scorersEl.innerHTML = `<div class="empty-note">No scorers recorded.</div>`;
-    return;
-  }
-
-  scorerRows.forEach((row, index) => {
-    const div = document.createElement("div");
-    div.className = "scorer-row";
-    div.innerHTML = `
-      <span class="scorer-pos">${index + 1}.</span>
-      <span class="scorer-name">
-        <a href="player.html?id=${row.playerId}">${row.name}</a>
-      </span>
-      <span class="scorer-goals">${row.goals}</span>
-    `;
-    scorersEl.appendChild(div);
-  });
-}
-
-  function inSeasonRange(item) {
-    return Number(item.start_season || 0) <= Number(seasonId) &&
-           Number(item.end_season || 0) >= Number(seasonId);
+    scorerRows.forEach((row, index) => {
+      const div = document.createElement("div");
+      div.className = "scorer-row";
+      div.innerHTML = `
+        <span class="scorer-pos">${index + 1}.</span>
+        <span class="scorer-name">
+          <a href="player.html?id=${row.playerId}">${row.name}</a>
+        </span>
+        <span class="scorer-goals">${row.goals}</span>
+      `;
+      scorersEl.appendChild(div);
+    });
   }
 
   function renderOfficials() {
@@ -266,13 +287,42 @@ ${m.home_score}-${m.away_score}
       seasonTeams.add(String(m.away_team).trim());
     });
 
-    const seasonCaptains = captains.filter(c =>
-      seasonTeams.has(String(c.team_id).trim()) && inSeasonRange(c)
-    );
+    const seasonCaptains = [];
+    const seasonManagers = [];
 
-    const seasonManagers = managers.filter(m =>
-      seasonTeams.has(String(m.team_id).trim()) && inSeasonRange(m)
-    );
+    seasonTeams.forEach(teamId => {
+      const captain = captains.find(c =>
+        String(c.team_id).trim() === teamId &&
+        Number(c.start_season || 0) <= Number(seasonId) &&
+        Number(c.end_season || 0) >= Number(seasonId)
+      );
+
+      if (captain) {
+        seasonCaptains.push(captain);
+      }
+
+      const teamSeasonMatches = seasonMatches.filter(m =>
+        String(m.home_team).trim() === teamId || String(m.away_team).trim() === teamId
+      );
+
+      let managerRecord = null;
+      for (const m of teamSeasonMatches) {
+        const managerId =
+          String(m.home_team).trim() === teamId
+            ? String(m.home_manager_id || "").trim()
+            : String(m.away_manager_id || "").trim();
+
+        if (managerId) {
+          const manager = managers.find(x => String(x.id).trim() === managerId);
+          managerRecord = manager || { id: managerId, name: managerId };
+          break;
+        }
+      }
+
+      if (managerRecord) {
+        seasonManagers.push({ team_id: teamId, manager: managerRecord });
+      }
+    });
 
     if (seasonCaptains.length === 0) {
       seasonCaptainsTable.innerHTML = `<tr><td colspan="2">No captains recorded for this season.</td></tr>`;
@@ -294,11 +344,11 @@ ${m.home_score}-${m.away_score}
     } else {
       seasonManagers
         .sort((a, b) => teamName(a.team_id).localeCompare(teamName(b.team_id)))
-        .forEach(m => {
+        .forEach(row => {
           seasonManagersTable.innerHTML += `
             <tr>
-              <td><a href="team.html?id=${m.team_id}">${teamName(m.team_id)}</a></td>
-              <td><a href="player.html?id=${m.player_id}">${playerName(m.player_id)}</a></td>
+              <td><a href="team.html?id=${row.team_id}">${teamName(row.team_id)}</a></td>
+              <td>${formatManager(row.manager)}</td>
             </tr>
           `;
         });

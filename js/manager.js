@@ -22,14 +22,27 @@ Promise.all([
     return null;
   }
 
+  function isCountableMatch(match) {
+    return (
+      match &&
+      match.home_score !== "?" &&
+      match.away_score !== "?" &&
+      !Number.isNaN(Number(match.home_score)) &&
+      !Number.isNaN(Number(match.away_score))
+    );
+  }
+
   function teamName(teamId) {
     const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
     return team ? team.name : teamId;
   }
 
   const mgrMatches = matches.filter(m =>
-    String(m.home_manager_id || "").trim() === String(manager.id).trim() ||
-    String(m.away_manager_id || "").trim() === String(manager.id).trim()
+    (
+      String(m.home_manager_id || "").trim() === String(manager.id).trim() ||
+      String(m.away_manager_id || "").trim() === String(manager.id).trim()
+    ) &&
+    isCountableMatch(m)
   );
 
   const sortedMatches = [...mgrMatches].sort((a, b) => parseDate(a.date) - parseDate(b.date));

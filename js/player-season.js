@@ -23,13 +23,33 @@ Promise.all([
     return;
   }
 
+  function isCountableMatch(match) {
+    return (
+      match &&
+      match.home_score !== "?" &&
+      match.away_score !== "?" &&
+      !Number.isNaN(Number(match.home_score)) &&
+      !Number.isNaN(Number(match.away_score))
+    );
+  }
+
+  function teamName(teamId) {
+    const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
+    return team ? team.name : teamId;
+  }
+
   titleEl.textContent = `${player.name} — ${season.name}`;
 
-  const seasonMatches = matches.filter(m => String(m.season_id).trim() === String(seasonId).trim());
+  const seasonMatches = matches.filter(m =>
+    String(m.season_id).trim() === String(seasonId).trim() &&
+    isCountableMatch(m)
+  );
+
+  const seasonMatchIds = new Set(seasonMatches.map(m => String(m.id).trim()));
 
   const playerApps = apps.filter(a =>
     String(a.player_id).trim() === String(playerId).trim() &&
-    seasonMatches.some(m => String(m.id).trim() === String(a.match_id).trim())
+    seasonMatchIds.has(String(a.match_id).trim())
   );
 
   const starts = playerApps.filter(a => Number(a.is_starting) === 1).length;
@@ -38,10 +58,23 @@ Promise.all([
 
   const totalGoals = playerApps.reduce((sum, a) => sum + Number(a.goals || 0), 0);
   const totalMinutes = playerApps.reduce((sum, a) => {
-    const minIn = Number(a.minute_in || 0);
-    const minOut = Number(a.minute_out || 0);
-    return sum + Math.max(0, minOut - minIn);
+    const isStarting = Number(a.is_starting) === 1;
+    const minuteIn = Number(a.minute_in || 0);
+    const minuteOutRaw = Number(a.minute_out || 0);
+
+    if (isStarting) {
+      const minuteOut = minuteOutRaw > 0 ? minuteOutRaw : 90;
+      return sum + Math.max(0, minuteOut);
+    }
+
+    if (minuteIn > 0) {
+      const minuteOut = minuteOutRaw > 0 ? minuteOutRaw : 90;
+      return sum + Math.max(0, minuteOut - minuteIn);
+    }
+
+    return sum;
   }, 0);
+
   const totalYellows = playerApps.reduce((sum, a) => sum + Number(a.yellow || 0), 0);
   const totalReds = playerApps.reduce((sum, a) => sum + Number(a.red || 0), 0);
 
@@ -53,35 +86,54 @@ Promise.all([
     <p><strong>Red cards:</strong> ${totalReds}</p>
   `;
 
-  function teamName(teamId) {
-    const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
-    return team ? team.name : teamId;
-  }
-
   if (playerApps.length === 0) {
     matchesEl.innerHTML = "<div>No matches recorded for this player in this season.</div>";
     return;
   }
 
-  playerApps.forEach(a => {
-    const m = matches.find(x => String(x.id).trim() === String(a.match_id).trim());
-    if (!m) return;
+  const rows = playerApps
+    .map(a => {
+      const m = matches.find(x => String(x.id).trim() === String(a.match_id).trim());
+      if (!m || !isCountableMatch(m)) return null;
 
-    const appearanceType = Number(a.is_starting) === 1 ? "Start" : "Sub";
-    const minuteInfo = Number(a.is_starting) === 1
-      ? (Number(a.minute_out || 0) > 0 && Number(a.minute_out || 0) < 90 ? ` (off ${a.minute_out}')` : "")
-      : (Number(a.minute_in || 0) > 0 ? ` (on ${a.minute_in}')` : "");
+      const appearanceType = Number(a.is_starting) === 1 ? "Start" : "Sub";
 
-    matchesEl.innerHTML += `
-      <div>
-        <a href="match.html?id=${m.id}">
-          ${m.date} ${teamName(m.home_team)} ${m.home_score}-${m.away_score} ${teamName(m.away_team)}
-        </a>
-        — ${appearanceType}${minuteInfo}
-        ${Number(a.goals || 0) > 0 ? ` — Goals: ${a.goals}` : ""}
-      </div>
-    `;
-  });
+      let minuteInfo = "";
+      if (Number(a.is_starting) === 1) {
+        if (Number(a.minute_out || 0) > 0 && Number(a.minute_out || 0) < 90) {
+          minuteInfo = ` (off ${a.minute_out}')`;
+        }
+      } else {
+        if (Number(a.minute_in || 0) > 0) {
+          minuteInfo = ` (on ${a.minute_in}')`;
+        }
+      }
+
+      return {
+        date: m.date || "",
+        id: m.id,
+        matchText: `${teamName(m.home_team)} ${m.home_score}-${m.away_score} ${teamName(m.away_team)}`,
+        appearanceType,
+        minuteInfo,
+        goals: Number(a.goals || 0)
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => {
+      const da = new Date(a.date.split("/").reverse().join("-"));
+      const db = new Date(b.date.split("/").reverse().join("-"));
+      return da - db;
+    });
+
+  matchesEl.innerHTML = rows.map(row => `
+    <div>
+      <a href="match.html?id=${row.id}">
+        ${row.date} ${row.matchText}
+      </a>
+      — ${row.appearanceType}${row.minuteInfo}
+      ${row.goals > 0 ? ` — Goals: ${row.goals}` : ""}
+    </div>
+  `).join("");
 }).catch(err => {
   document.getElementById("title").textContent = "Error loading player season";
   document.getElementById("stats").innerHTML = `<p>${err.message}</p>`;

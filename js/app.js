@@ -1,5 +1,6 @@
 let players = [];
 let appearances = [];
+let matches = [];
 
 let sortColumn = "default";
 let sortAsc = true;
@@ -12,15 +13,21 @@ Promise.all([
   fetch("data/appearances.json").then(r => {
     if (!r.ok) throw new Error(`HTTP ${r.status} loading appearances.json`);
     return r.json();
+  }),
+  fetch("data/matches.json").then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status} loading matches.json`);
+    return r.json();
   })
-]).then(([playerData, appearanceData]) => {
+]).then(([playerData, appearanceData, matchData]) => {
   players = playerData;
   appearances = appearanceData;
+  matches = matchData;
   render(players);
   attachSortHandlers();
   updateSortHeaders();
 }).catch(err => {
   console.error(err);
+
   const table = document.getElementById("playerTable");
   const countEl = document.getElementById("playerCount");
 
@@ -33,8 +40,23 @@ Promise.all([
   }
 });
 
+function isCountableMatch(match) {
+  return (
+    match &&
+    match.home_score !== "?" &&
+    match.away_score !== "?" &&
+    !Number.isNaN(Number(match.home_score)) &&
+    !Number.isNaN(Number(match.away_score))
+  );
+}
+
 function getPlayerStats(playerId) {
-  const pa = appearances.filter(a => String(a.player_id).trim() === String(playerId).trim());
+  const pa = appearances.filter(a => {
+    if (String(a.player_id).trim() !== String(playerId).trim()) return false;
+
+    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+    return isCountableMatch(match);
+  });
 
   const starts = pa.filter(a => Number(a.is_starting) === 1).length;
   const subs = pa.filter(a => Number(a.is_starting) !== 1).length;
