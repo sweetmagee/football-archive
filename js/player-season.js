@@ -33,12 +33,30 @@ Promise.all([
     );
   }
 
+  function isFriendlyCompetition(competition) {
+    const value = String(competition || "").trim().toLowerCase();
+    return value === "fr" || value === "friendly" || value === "friendlies";
+  }
+
   function teamName(teamValue) {
     const team = teams.find(t =>
       String(t.id).trim() === String(teamValue).trim() ||
       String(t.name).trim() === String(teamValue).trim()
     );
     return team ? team.name : teamValue;
+  }
+
+  function buildStatBlock(appRows) {
+    const starts = appRows.filter(a => Number(a.is_starting) === 1).length;
+    const subs = appRows.filter(a => Number(a.is_starting) !== 1).length;
+    const goals = appRows.reduce((sum, a) => sum + Number(a.goals || 0), 0);
+
+    return {
+      starts,
+      subs,
+      goals,
+      appsDisplay: subs > 0 ? `${starts}+${subs}` : `${starts}`
+    };
   }
 
   titleEl.textContent = `${player.name} — ${season.name}`;
@@ -55,11 +73,20 @@ Promise.all([
     seasonMatchIds.has(String(a.match_id).trim())
   );
 
-  const starts = playerApps.filter(a => Number(a.is_starting) === 1).length;
-  const subs = playerApps.filter(a => Number(a.is_starting) !== 1).length;
-  const appsDisplay = subs > 0 ? `${starts}+${subs}` : `${starts}`;
+  const competitiveApps = playerApps.filter(a => {
+    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+    return match && !isFriendlyCompetition(match.competition);
+  });
 
-  const totalGoals = playerApps.reduce((sum, a) => sum + Number(a.goals || 0), 0);
+  const friendlyApps = playerApps.filter(a => {
+    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+    return match && isFriendlyCompetition(match.competition);
+  });
+
+  const competitiveStats = buildStatBlock(competitiveApps);
+  const friendlyStats = buildStatBlock(friendlyApps);
+  const totalStats = buildStatBlock(playerApps);
+
   const totalMinutes = playerApps.reduce((sum, a) => {
     const isStarting = Number(a.is_starting) === 1;
     const minuteIn = Number(a.minute_in || 0);
@@ -82,8 +109,26 @@ Promise.all([
   const totalReds = playerApps.reduce((sum, a) => sum + Number(a.red || 0), 0);
 
   statsEl.innerHTML = `
-    <p><strong>Appearances:</strong> ${appsDisplay}</p>
-    <p><strong>Goals:</strong> ${totalGoals}</p>
+    <div class="player-stats-grid">
+      <div class="player-stat-box">
+        <div class="player-stat-title">Competitive</div>
+        <p>Appearances: <strong>${competitiveStats.appsDisplay}</strong></p>
+        <p>Goals: <strong>${competitiveStats.goals}</strong></p>
+      </div>
+
+      <div class="player-stat-box">
+        <div class="player-stat-title">Friendly</div>
+        <p>Appearances: <strong>${friendlyStats.appsDisplay}</strong></p>
+        <p>Goals: <strong>${friendlyStats.goals}</strong></p>
+      </div>
+
+      <div class="player-stat-box">
+        <div class="player-stat-title">Total</div>
+        <p>Appearances: <strong>${totalStats.appsDisplay}</strong></p>
+        <p>Goals: <strong>${totalStats.goals}</strong></p>
+      </div>
+    </div>
+
     <p><strong>Minutes:</strong> ${totalMinutes}</p>
     <p><strong>Yellow cards:</strong> ${totalYellows}</p>
     <p><strong>Red cards:</strong> ${totalReds}</p>
@@ -115,6 +160,7 @@ Promise.all([
       return {
         date: m.date || "",
         id: m.id,
+        competition: m.competition || "",
         matchText: `${teamName(m.home_team)} ${m.home_score}-${m.away_score} ${teamName(m.away_team)}`,
         appearanceType,
         minuteInfo,
@@ -133,6 +179,7 @@ Promise.all([
       <a href="match.html?id=${row.id}">
         ${row.date} ${row.matchText}
       </a>
+      — ${row.competition}
       — ${row.appearanceType}${row.minuteInfo}
       ${row.goals > 0 ? ` — Goals: ${row.goals}` : ""}
     </div>
