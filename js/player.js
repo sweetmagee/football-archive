@@ -61,9 +61,19 @@ Promise.all([
 
   const seasonStats = {};
 
-  pa.forEach(a => {
-    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
-    if (!match || !match.season_id) return;
+  function isCountableMatch(match) {
+  return (
+    match &&
+    match.home_score !== "?" &&
+    match.away_score !== "?" &&
+    !Number.isNaN(Number(match.home_score)) &&
+    !Number.isNaN(Number(match.away_score))
+  );
+}
+
+pa.forEach(a => {
+  const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+  if (!match || !match.season_id || !isCountableMatch(match)) return;
 
     if (!seasonStats[match.season_id]) {
       seasonStats[match.season_id] = { starts: 0, subs: 0, goals: 0 };
