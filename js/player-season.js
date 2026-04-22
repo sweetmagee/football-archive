@@ -33,9 +33,12 @@ Promise.all([
     );
   }
 
-  function teamName(teamId) {
-    const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
-    return team ? team.name : teamId;
+  function teamName(teamValue) {
+    const team = teams.find(t =>
+      String(t.id).trim() === String(teamValue).trim() ||
+      String(t.name).trim() === String(teamValue).trim()
+    );
+    return team ? team.name : teamValue;
   }
 
   titleEl.textContent = `${player.name} — ${season.name}`;

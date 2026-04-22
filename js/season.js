@@ -48,9 +48,27 @@ Promise.all([
     return `<img src="images/competitions/${slug}.png" alt="${competition}" title="${competition}" style="width:${size}px;height:${size}px;object-fit:contain;" onerror="this.style.display='none'">`;
   }
 
-  function teamName(teamId) {
-    const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
-    return team ? team.name : teamId;
+  function resolveTeam(teamValue) {
+    return teams.find(t =>
+      String(t.id).trim() === String(teamValue).trim() ||
+      String(t.name).trim() === String(teamValue).trim()
+    );
+  }
+
+  function teamName(teamValue) {
+    const team = resolveTeam(teamValue);
+    return team ? team.name : teamValue;
+  }
+
+  function teamLink(teamValue) {
+    const team = resolveTeam(teamValue);
+    if (!team) return teamName(teamValue);
+    return `
+      <span class="team-inline">
+        <img class="team-badge-small" src="images/teams/${team.id}.png" alt="" onerror="this.style.display='none'">
+        <a href="team.html?id=${encodeURIComponent(team.id)}">${team.name}</a>
+      </span>
+    `;
   }
 
   function playerName(playerId) {
@@ -153,12 +171,7 @@ Promise.all([
 
       tr.innerHTML = `
         <td>${index + 1}</td>
-        <td class="team-col">
-          <span class="team-inline">
-            <img class="team-badge-small" src="images/teams/${row.teamId}.png" alt="" onerror="this.style.display='none'">
-            <a href="team.html?id=${row.teamId}">${teamName(row.teamId)}</a>
-          </span>
-        </td>
+        <td class="team-col">${teamLink(row.teamId)}</td>
         <td>${row.P}</td>
         <td>${row.W}</td>
         <td>${row.D}</td>
@@ -187,6 +200,9 @@ Promise.all([
     });
 
     sorted.forEach(m => {
+      const homeTeam = resolveTeam(m.home_team);
+      const awayTeam = resolveTeam(m.away_team);
+
       const div = document.createElement("div");
       div.className = "match-row";
       div.innerHTML = `
@@ -194,12 +210,12 @@ Promise.all([
         <div class="match-scoreline">
           <a href="match.html?id=${m.id}">
             <span class="team-inline">
-              <img class="team-badge-small" src="images/teams/${m.home_team}.png" alt="" onerror="this.style.display='none'">
+              ${homeTeam ? `<img class="team-badge-small" src="images/teams/${homeTeam.id}.png" alt="" onerror="this.style.display='none'">` : ""}
               <span>${teamName(m.home_team)}</span>
             </span>
             ${m.home_score}-${m.away_score}
             <span class="team-inline">
-              <img class="team-badge-small" src="images/teams/${m.away_team}.png" alt="" onerror="this.style.display='none'">
+              ${awayTeam ? `<img class="team-badge-small" src="images/teams/${awayTeam.id}.png" alt="" onerror="this.style.display='none'">` : ""}
               <span>${teamName(m.away_team)}</span>
             </span>
           </a>
@@ -332,7 +348,7 @@ Promise.all([
         .forEach(c => {
           seasonCaptainsTable.innerHTML += `
             <tr>
-              <td><a href="team.html?id=${c.team_id}">${teamName(c.team_id)}</a></td>
+              <td>${teamLink(c.team_id)}</td>
               <td><a href="player.html?id=${c.player_id}">${playerName(c.player_id)}</a></td>
             </tr>
           `;
@@ -347,7 +363,7 @@ Promise.all([
         .forEach(row => {
           seasonManagersTable.innerHTML += `
             <tr>
-              <td><a href="team.html?id=${row.team_id}">${teamName(row.team_id)}</a></td>
+              <td>${teamLink(row.team_id)}</td>
               <td>${formatManager(row.manager)}</td>
             </tr>
           `;

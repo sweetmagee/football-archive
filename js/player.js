@@ -15,18 +15,41 @@ Promise.all([
     return;
   }
 
-  function teamName(teamId) {
-    const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
-    return team ? team.name : teamId;
+  function isCountableMatch(match) {
+    return (
+      match &&
+      match.home_score !== '?' &&
+      match.away_score !== '?' &&
+      !Number.isNaN(Number(match.home_score)) &&
+      !Number.isNaN(Number(match.away_score))
+    );
+  }
+
+  function resolveTeam(teamValue) {
+    return teams.find(t =>
+      String(t.id).trim() === String(teamValue).trim() ||
+      String(t.name).trim() === String(teamValue).trim()
+    );
+  }
+
+  function teamName(teamValue) {
+    const team = resolveTeam(teamValue);
+    return team ? team.name : teamValue;
+  }
+
+  function teamLink(teamValue) {
+    const team = resolveTeam(teamValue);
+    if (!team) return teamName(teamValue);
+    return `<a href="team.html?id=${encodeURIComponent(team.id)}">${team.name}</a>`;
   }
 
   const photo = p.photo && p.photo.trim() !== '' ? p.photo.trim() : 'default.png';
 
   const pa = apps.filter(a => {
-  if (String(a.player_id).trim() !== String(id).trim()) return false;
-  const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
-  return isCountableMatch(match);
-});
+    if (String(a.player_id).trim() !== String(id).trim()) return false;
+    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+    return isCountableMatch(match);
+  });
 
   const starts = pa.filter(a => Number(a.is_starting) === 1).length;
   const subApps = pa.filter(a => Number(a.is_starting) !== 1).length;
@@ -45,7 +68,7 @@ Promise.all([
           <p><strong>Position:</strong> ${p.position || ''}</p>
           <p><strong>Date of birth:</strong> ${p.dob || ''}</p>
           <p><strong>Nationality:</strong> ${p.nationality || ''}</p>
-          <p><strong>Team:</strong> <a href="team.html?id=${p.team}">${teamName(p.team || '')}</a></p>
+          <p><strong>Team:</strong> ${teamLink(p.team || '')}</p>
           <p><strong>Appearances:</strong> ${appsDisplay}</p>
           <p><strong>Goals:</strong> ${totalGoals}</p>
           <p>${p.bio || ''}</p>
@@ -65,19 +88,9 @@ Promise.all([
 
   const seasonStats = {};
 
-  function isCountableMatch(match) {
-  return (
-    match &&
-    match.home_score !== "?" &&
-    match.away_score !== "?" &&
-    !Number.isNaN(Number(match.home_score)) &&
-    !Number.isNaN(Number(match.away_score))
-  );
-}
-
-pa.forEach(a => {
-  const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
-  if (!match || !match.season_id || !isCountableMatch(match)) return;
+  pa.forEach(a => {
+    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+    if (!match || !match.season_id || !isCountableMatch(match)) return;
 
     if (!seasonStats[match.season_id]) {
       seasonStats[match.season_id] = { starts: 0, subs: 0, goals: 0 };
@@ -91,6 +104,13 @@ pa.forEach(a => {
 
     seasonStats[match.season_id].goals += Number(a.goals || 0);
   });
+
+  function seasonSortValue(seasonId) {
+    const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
+    if (season && season.start_year) return Number(season.start_year);
+    const match = String(seasonId).match(/^(\d{4})/);
+    return match ? Number(match[1]) : 0;
+  }
 
   el.innerHTML += `
     <div class="content-box section-block">
@@ -118,16 +138,16 @@ pa.forEach(a => {
     `;
   } else {
     Object.entries(seasonStats)
-      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .sort((a, b) => seasonSortValue(a[0]) - seasonSortValue(b[0]))
       .forEach(([seasonId, stats]) => {
         const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
-        const seasonName = season ? season.name : `Season ${seasonId}`;
+        const seasonName = season ? season.name : seasonId;
         const seasonAppsDisplay = stats.subs > 0 ? `${stats.starts}+${stats.subs}` : `${stats.starts}`;
 
         seasonStatsTable.innerHTML += `
           <tr>
             <td>
-              <a href="player-season.html?player=${id}&season=${seasonId}">
+              <a href="player-season.html?player=${encodeURIComponent(id)}&season=${encodeURIComponent(seasonId)}">
                 ${seasonName}
               </a>
             </td>
@@ -167,7 +187,7 @@ pa.forEach(a => {
     const rows = pa
       .map(a => {
         const m = matches.find(x => String(x.id).trim() === String(a.match_id).trim());
-        if (!m) return null;
+        if (!m || !isCountableMatch(m)) return null;
 
         return {
           date: m.date || '',
@@ -177,7 +197,12 @@ pa.forEach(a => {
           appearance: Number(a.is_starting) === 1 ? 'Start' : 'Sub'
         };
       })
-      .filter(Boolean);
+      .filter(Boolean)
+      .sort((a, b) => {
+        const da = new Date(a.date.split('/').reverse().join('-'));
+        const db = new Date(b.date.split('/').reverse().join('-'));
+        return da - db;
+      });
 
     rows.forEach(row => {
       matchHistoryTable.innerHTML += `
