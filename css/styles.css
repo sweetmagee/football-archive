@@ -635,3 +635,30 @@ tbody tr:hover {
 .random-player-box p {
   margin-bottom: 8px;
 }
+.player-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 14px 0;
+}
+
+.player-stat-box {
+  border: 1px solid #ddd;
+  background: #fafafa;
+  padding: 10px 12px;
+}
+
+.player-stat-title {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.player-stat-box p {
+  margin: 0 0 6px 0;
+}
+
+@media (max-width: 900px) {
+  .player-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
