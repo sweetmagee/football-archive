@@ -559,5 +559,301 @@
     ],
     "source_sheet": "Friendlies",
     "source_row": 24
+  },
+  {
+    "id": "m23",
+    "date": "09/10/1897",
+    "home_team": "t15",
+    "away_team": "t1",
+    "home_score": "0",
+    "away_score": "6",
+    "season_id": "1897-98",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 3
+  },
+  {
+    "id": "m24",
+    "date": "16/10/1897",
+    "home_team": "t1",
+    "away_team": "t10",
+    "home_score": "2",
+    "away_score": "0",
+    "season_id": "1897-98",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 4
+  },
+  {
+    "id": "m25",
+    "date": "23/10/1897",
+    "home_team": "t14",
+    "away_team": "t1",
+    "home_score": "0",
+    "away_score": "4",
+    "season_id": "1897-98",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 5
+  },
+  {
+    "id": "m26",
+    "date": "13/11/1897",
+    "home_team": "t1",
+    "away_team": "t16",
+    "home_score": "7",
+    "away_score": "0",
+    "season_id": "1897-98",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 6
+  },
+  {
+    "id": "m27",
+    "date": "20/11/1897",
+    "home_team": "t1",
+    "away_team": "t17",
+    "home_score": "5",
+    "away_score": "0",
+    "season_id": "1897-98",
+    "competition": "KJC",
+    "round": "1R",
+    "venue": "",
+    "attendance": "1,000*",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Stockdale (2), Britton, Leetham & Pearce",
+    "scorers": [
+      {
+        "player_id": "p1454",
+        "goals": 2
+      },
+      {
+        "player_id": "p205",
+        "goals": 1
+      },
+      {
+        "player_id": "p922",
+        "goals": 1
+      },
+      {
+        "player_id": "p1171",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 7
+  },
+  {
+    "id": "m28",
+    "date": "04/12/1897",
+    "home_team": "t1",
+    "away_team": "t17",
+    "home_score": "4",
+    "away_score": "1",
+    "season_id": "1897-98",
+    "competition": "KJC",
+    "round": "1R",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Pearce (3) & Stockdale",
+    "scorers": [
+      {
+        "player_id": "p1171",
+        "goals": 3
+      },
+      {
+        "player_id": "p1454",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 8
+  },
+  {
+    "id": "m29",
+    "date": "11/12/1897",
+    "home_team": "t9",
+    "away_team": "t1",
+    "home_score": "2",
+    "away_score": "1",
+    "season_id": "1897-98",
+    "competition": "KJC",
+    "round": "2R",
+    "venue": "",
+    "attendance": "800*",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Pearce (2)",
+    "scorers": [
+      {
+        "player_id": "p1171",
+        "goals": 2
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 9
+  },
+  {
+    "id": "m30",
+    "date": "18/12/1897",
+    "home_team": "t18",
+    "away_team": "t1",
+    "home_score": "2",
+    "away_score": "0",
+    "season_id": "1897-98",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 10
+  },
+  {
+    "id": "m31",
+    "date": "05/02/1898",
+    "home_team": "t1",
+    "away_team": "t9",
+    "home_score": "6",
+    "away_score": "0",
+    "season_id": "1897-98",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Hall (3), Pearce (2) & Johnson",
+    "scorers": [
+      {
+        "player_id": "p1723",
+        "goals": 3
+      },
+      {
+        "player_id": "p1171",
+        "goals": 2
+      },
+      {
+        "player_id": "p1719",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 11
+  },
+  {
+    "id": "m32",
+    "date": "12/02/1898",
+    "home_team": "t10",
+    "away_team": "t1",
+    "home_score": "0",
+    "away_score": "3",
+    "season_id": "1897-98",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 12
+  },
+  {
+    "id": "m33",
+    "date": "26/02/1898",
+    "home_team": "t1",
+    "away_team": "t19",
+    "home_score": "?",
+    "away_score": "?",
+    "season_id": "1897-98",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "score unknown",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 13
+  },
+  {
+    "id": "m34",
+    "date": "19/03/1898",
+    "home_team": "t20",
+    "away_team": "t1",
+    "home_score": "1",
+    "away_score": "4",
+    "season_id": "1897-98",
+    "competition": "KJC",
+    "round": "SF",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Stockdale",
+    "scorers": [
+      {
+        "player_id": "p1454",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 14
+  },
+  {
+    "id": "m35",
+    "date": "02/04/1898",
+    "home_team": "t1",
+    "away_team": "t21",
+    "home_score": "7",
+    "away_score": "0",
+    "season_id": "1897-98",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "700*",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 15
   }
 ]

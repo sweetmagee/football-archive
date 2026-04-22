@@ -54,5 +54,33 @@
   {
     "id": "t14",
     "name": "Whitstable Town"
+  },
+  {
+    "id": "t15",
+    "name": "Royal Marines Depot (Deal)"
+  },
+  {
+    "id": "t16",
+    "name": "Deal Town"
+  },
+  {
+    "id": "t17",
+    "name": "Folkestone Post Office"
+  },
+  {
+    "id": "t18",
+    "name": "Ramsgate Town"
+  },
+  {
+    "id": "t19",
+    "name": "Sheppey United 'A'"
+  },
+  {
+    "id": "t20",
+    "name": "Luton Wanderers"
+  },
+  {
+    "id": "t21",
+    "name": "Margate Athletic"
   }
 ]
