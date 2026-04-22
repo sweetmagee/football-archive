@@ -22,7 +22,11 @@ Promise.all([
 
   const photo = p.photo && p.photo.trim() !== '' ? p.photo.trim() : 'default.png';
 
-  const pa = apps.filter(a => String(a.player_id).trim() === String(id).trim());
+  const pa = apps.filter(a => {
+  if (String(a.player_id).trim() !== String(id).trim()) return false;
+  const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+  return isCountableMatch(match);
+});
 
   const starts = pa.filter(a => Number(a.is_starting) === 1).length;
   const subApps = pa.filter(a => Number(a.is_starting) !== 1).length;
