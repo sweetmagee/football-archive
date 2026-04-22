@@ -25,6 +25,11 @@ Promise.all([
     );
   }
 
+  function isFriendlyCompetition(competition) {
+    const value = String(competition || '').trim().toLowerCase();
+    return value === 'fr' || value === 'friendly' || value === 'friendlies';
+  }
+
   function resolveTeam(teamValue) {
     return teams.find(t =>
       String(t.id).trim() === String(teamValue).trim() ||
@@ -43,19 +48,47 @@ Promise.all([
     return `<a href="team.html?id=${encodeURIComponent(team.id)}">${team.name}</a>`;
   }
 
+  function seasonSortValue(seasonId) {
+    const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
+    if (season && season.start_year) return Number(season.start_year);
+    const match = String(seasonId).match(/^(\d{4})/);
+    return match ? Number(match[1]) : 0;
+  }
+
   const photo = p.photo && p.photo.trim() !== '' ? p.photo.trim() : 'default.png';
 
-  const pa = apps.filter(a => {
+  const countedApps = apps.filter(a => {
     if (String(a.player_id).trim() !== String(id).trim()) return false;
     const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
     return isCountableMatch(match);
   });
 
-  const starts = pa.filter(a => Number(a.is_starting) === 1).length;
-  const subApps = pa.filter(a => Number(a.is_starting) !== 1).length;
-  const totalGoals = pa.reduce((sum, a) => sum + Number(a.goals || 0), 0);
+  const competitiveApps = countedApps.filter(a => {
+    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+    return match && !isFriendlyCompetition(match.competition);
+  });
 
-  const appsDisplay = subApps > 0 ? `${starts}+${subApps}` : `${starts}`;
+  const friendlyApps = countedApps.filter(a => {
+    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+    return match && isFriendlyCompetition(match.competition);
+  });
+
+  function buildStatBlock(appRows) {
+    const starts = appRows.filter(a => Number(a.is_starting) === 1).length;
+    const subs = appRows.filter(a => Number(a.is_starting) !== 1).length;
+    const goals = appRows.reduce((sum, a) => sum + Number(a.goals || 0), 0);
+
+    return {
+      starts,
+      subs,
+      appsDisplay: subs > 0 ? `${starts}+${subs}` : `${starts}`,
+      goals
+    };
+  }
+
+  const competitiveStats = buildStatBlock(competitiveApps);
+  const friendlyStats = buildStatBlock(friendlyApps);
+  const totalStats = buildStatBlock(countedApps);
 
   el.innerHTML = `
     <div class="content-box">
@@ -69,8 +102,27 @@ Promise.all([
           <p><strong>Date of birth:</strong> ${p.dob || ''}</p>
           <p><strong>Nationality:</strong> ${p.nationality || ''}</p>
           <p><strong>Team:</strong> ${teamLink(p.team || '')}</p>
-          <p><strong>Appearances:</strong> ${appsDisplay}</p>
-          <p><strong>Goals:</strong> ${totalGoals}</p>
+
+          <div class="player-stats-grid">
+            <div class="player-stat-box">
+              <div class="player-stat-title">Competitive</div>
+              <p>Appearances: <strong>${competitiveStats.appsDisplay}</strong></p>
+              <p>Goals: <strong>${competitiveStats.goals}</strong></p>
+            </div>
+
+            <div class="player-stat-box">
+              <div class="player-stat-title">Friendly</div>
+              <p>Appearances: <strong>${friendlyStats.appsDisplay}</strong></p>
+              <p>Goals: <strong>${friendlyStats.goals}</strong></p>
+            </div>
+
+            <div class="player-stat-box">
+              <div class="player-stat-title">Total</div>
+              <p>Appearances: <strong>${totalStats.appsDisplay}</strong></p>
+              <p>Goals: <strong>${totalStats.goals}</strong></p>
+            </div>
+          </div>
+
           <p>${p.bio || ''}</p>
         </div>
       </div>
@@ -88,7 +140,7 @@ Promise.all([
 
   const seasonStats = {};
 
-  pa.forEach(a => {
+  countedApps.forEach(a => {
     const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
     if (!match || !match.season_id || !isCountableMatch(match)) return;
 
@@ -104,13 +156,6 @@ Promise.all([
 
     seasonStats[match.season_id].goals += Number(a.goals || 0);
   });
-
-  function seasonSortValue(seasonId) {
-    const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
-    if (season && season.start_year) return Number(season.start_year);
-    const match = String(seasonId).match(/^(\d{4})/);
-    return match ? Number(match[1]) : 0;
-  }
 
   el.innerHTML += `
     <div class="content-box section-block">
@@ -177,14 +222,14 @@ Promise.all([
 
   const matchHistoryTable = document.getElementById('matchHistoryTable');
 
-  if (pa.length === 0) {
+  if (countedApps.length === 0) {
     matchHistoryTable.innerHTML = `
       <tr>
         <td colspan="4">No matches available.</td>
       </tr>
     `;
   } else {
-    const rows = pa
+    const rows = countedApps
       .map(a => {
         const m = matches.find(x => String(x.id).trim() === String(a.match_id).trim());
         if (!m || !isCountableMatch(m)) return null;
