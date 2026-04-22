@@ -1,398 +1,563 @@
 [
   {
     "id": "m1",
-    "date": "24.10.96",
-    "kickoff_time": "",
-    "home_team": "t10",
+    "date": "24/10/1896",
+    "home_team": "t2",
     "away_team": "t1",
     "home_score": "?",
     "away_score": "?",
-    "season_id": "1",
-    "competition": "Friendly",
+    "season_id": "1896-97",
+    "competition": "FR",
     "round": "",
     "venue": "",
     "attendance": "",
     "referee": "",
-    "notes": "Listed as a fixture in the local press but may not have been played.",
-    "home_manager_id": "",
-    "away_manager_id": "mgr1"
+    "notes": "listed as fixture in EK Times but nothing else",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Friendlies",
+    "source_row": 3
   },
   {
     "id": "m2",
-    "date": "28.10.96",
-    "kickoff_time": "",
+    "date": "28/10/1896",
     "home_team": "t1",
-    "away_team": "t13",
+    "away_team": "t3",
     "home_score": "5",
     "away_score": "1",
-    "season_id": "1",
-    "competition": "Friendly",
+    "season_id": "1896-97",
+    "competition": "FR",
     "round": "",
-    "venue": "Clare House",
+    "venue": "",
     "attendance": "",
     "referee": "",
-    "notes": "First ever confirmed match for Margate.",
-    "home_manager_id": "mgr2",
-    "away_manager_id": ""
+    "notes": "",
+    "scorers_text": "E.Taylor-Jones (3), Cheatle & Farnfield",
+    "scorers": [
+      {
+        "player_id": "p1485",
+        "goals": 3
+      },
+      {
+        "player_id": "p287",
+        "goals": 1
+      },
+      {
+        "player_id": "p1714",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 4
   },
   {
     "id": "m3",
-    "date": "31.10.96",
-    "kickoff_time": "",
+    "date": "31/10/1896",
+    "home_team": "t1",
+    "away_team": "t4",
+    "home_score": "?",
+    "away_score": "?",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "listed as fixture in EK Times but nothing else",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Friendlies",
+    "source_row": 5
+  },
+  {
+    "id": "m4",
+    "date": "07/11/1896",
+    "home_team": "t1",
+    "away_team": "t5",
+    "home_score": "5",
+    "away_score": "1",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Bird (2), Wells (2) & E.Taylor-Jones",
+    "scorers": [
+      {
+        "player_id": "p142",
+        "goals": 2
+      },
+      {
+        "player_id": "p1614",
+        "goals": 2
+      },
+      {
+        "player_id": "p1485",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 6
+  },
+  {
+    "id": "m5",
+    "date": "14/11/1896",
+    "home_team": "t5",
+    "away_team": "t1",
+    "home_score": "3",
+    "away_score": "0",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Friendlies",
+    "source_row": 7
+  },
+  {
+    "id": "m6",
+    "date": "21/11/1896",
+    "home_team": "t4",
+    "away_team": "t1",
+    "home_score": "1",
+    "away_score": "1",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "E.Taylor-Jones",
+    "scorers": [
+      {
+        "player_id": "p1485",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 8
+  },
+  {
+    "id": "m7",
+    "date": "28/11/1896",
+    "home_team": "t1",
+    "away_team": "t6",
+    "home_score": "2",
+    "away_score": "1",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Farnfield & Pearce",
+    "scorers": [
+      {
+        "player_id": "p1714",
+        "goals": 1
+      },
+      {
+        "player_id": "p1171",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 9
+  },
+  {
+    "id": "m8",
+    "date": "02/12/1896",
+    "home_team": "t1",
+    "away_team": "t7",
+    "home_score": "?",
+    "away_score": "?",
+    "season_id": "1896-97",
+    "competition": "",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "listed as fixture in EK Times but nothing else",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Friendlies",
+    "source_row": 10
+  },
+  {
+    "id": "m9",
+    "date": "05/12/1896",
+    "home_team": "t8",
+    "away_team": "t1",
+    "home_score": "3",
+    "away_score": "1",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Kelly",
+    "scorers": [
+      {
+        "player_id": "p861",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 11
+  },
+  {
+    "id": "m10",
+    "date": "12/12/1896",
+    "home_team": "t1",
+    "away_team": "t2",
+    "home_score": "5",
+    "away_score": "0",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Farnfield (3) & Kelly (2)",
+    "scorers": [
+      {
+        "player_id": "p1714",
+        "goals": 3
+      },
+      {
+        "player_id": "p861",
+        "goals": 2
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 12
+  },
+  {
+    "id": "m11",
+    "date": "26/12/1896",
+    "home_team": "t9",
+    "away_team": "t1",
+    "home_score": "3",
+    "away_score": "1",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Kelly",
+    "scorers": [
+      {
+        "player_id": "p861",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 13
+  },
+  {
+    "id": "m12",
+    "date": "07/01/1897",
+    "home_team": "t10",
+    "away_team": "t1",
+    "home_score": "8",
+    "away_score": "1",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "?",
+    "scorers": [],
+    "source_sheet": "Friendlies",
+    "source_row": 14
+  },
+  {
+    "id": "m13",
+    "date": "09/01/1897",
     "home_team": "t1",
     "away_team": "t9",
     "home_score": "?",
     "away_score": "?",
-    "season_id": "1",
-    "competition": "Friendly",
+    "season_id": "1896-97",
+    "competition": "",
     "round": "",
     "venue": "",
     "attendance": "",
     "referee": "",
-    "notes": "Listed as a fixture in the local press but may not have been played.",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m4",
-    "date": "07.11.96",
-    "kickoff_time": "",
-    "home_team": "t1",
-    "away_team": "t4",
-    "home_score": "5",
-    "away_score": "1",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "Arthur House",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m5",
-    "date": "14.11.96",
-    "kickoff_time": "",
-    "home_team": "t4",
-    "away_team": "t1",
-    "home_score": "3",
-    "away_score": "0",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m6",
-    "date": "21.11.96",
-    "kickoff_time": "",
-    "home_team": "t9",
-    "away_team": "t1",
-    "home_score": "1",
-    "away_score": "1",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m7",
-    "date": "28.11.96",
-    "kickoff_time": "",
-    "home_team": "t1",
-    "away_team": "t11",
-    "home_score": "2",
-    "away_score": "1",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "Clare House",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m8",
-    "date": "02.12.96",
-    "kickoff_time": "",
-    "home_team": "t1",
-    "away_team": "t14",
-    "home_score": "?",
-    "away_score": "?",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "",
-    "attendance": "",
-    "referee": "",
-    "notes": "Listed as a fixture in the local press but may not have been played.",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m9",
-    "date": "05.12.96",
-    "kickoff_time": "",
-    "home_team": "t3",
-    "away_team": "t1",
-    "home_score": "3",
-    "away_score": "1",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m10",
-    "date": "12.12.96",
-    "kickoff_time": "",
-    "home_team": "t1",
-    "away_team": "t10",
-    "home_score": "5",
-    "away_score": "0",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "Clare House",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m11",
-    "date": "26.12.96",
-    "kickoff_time": "",
-    "home_team": "t8",
-    "away_team": "t1",
-    "home_score": "3",
-    "away_score": "1",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m12",
-    "date": "07.01.97",
-    "kickoff_time": "",
-    "home_team": "t6",
-    "away_team": "t1",
-    "home_score": "8",
-    "away_score": "1",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m13",
-    "date": "09.01.97",
-    "kickoff_time": "",
-    "home_team": "t1",
-    "away_team": "t8",
-    "home_score": "?",
-    "away_score": "?",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "",
-    "attendance": "",
-    "referee": "",
-    "notes": "Listed as a fixture in the local press but may not have been played.",
-    "home_manager_id": "",
-    "away_manager_id": ""
+    "notes": "listed as fixture in EK Times but nothing else",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Friendlies",
+    "source_row": 15
   },
   {
     "id": "m14",
-    "date": "16.01.97",
-    "kickoff_time": "",
+    "date": "16/01/1897",
     "home_team": "t1",
-    "away_team": "t3",
+    "away_team": "t8",
     "home_score": "2",
     "away_score": "2",
-    "season_id": "1",
-    "competition": "Friendly",
+    "season_id": "1896-97",
+    "competition": "FR",
     "round": "",
-    "venue": "Arthur House",
+    "venue": "",
     "attendance": "",
     "referee": "",
     "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
+    "scorers_text": "H.Emptage & Kelly",
+    "scorers": [
+      {
+        "player_id": "p1713",
+        "goals": 1
+      },
+      {
+        "player_id": "p861",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 16
   },
   {
     "id": "m15",
-    "date": "06.02.97",
-    "kickoff_time": "",
+    "date": "06/02/1897",
     "home_team": "t1",
-    "away_team": "t4",
+    "away_team": "t5",
     "home_score": "1",
     "away_score": "2",
-    "season_id": "1",
-    "competition": "Friendly",
+    "season_id": "1896-97",
+    "competition": "FR",
     "round": "",
     "venue": "",
     "attendance": "",
     "referee": "",
     "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
+    "scorers_text": "?",
+    "scorers": [],
+    "source_sheet": "Friendlies",
+    "source_row": 17
   },
   {
     "id": "m16",
-    "date": "20.02.97",
-    "kickoff_time": "",
-    "home_team": "t2",
+    "date": "20/02/1897",
+    "home_team": "t11",
     "away_team": "t1",
     "home_score": "1",
     "away_score": "7",
-    "season_id": "1",
-    "competition": "Friendly",
+    "season_id": "1896-97",
+    "competition": "FR",
     "round": "",
     "venue": "",
     "attendance": "",
     "referee": "",
     "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
+    "scorers_text": "E.Taylor-Jones (4), Bird, Leetham & Stickels",
+    "scorers": [
+      {
+        "player_id": "p1485",
+        "goals": 4
+      },
+      {
+        "player_id": "p142",
+        "goals": 1
+      },
+      {
+        "player_id": "p922",
+        "goals": 1
+      },
+      {
+        "player_id": "p1451",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 18
   },
   {
     "id": "m17",
-    "date": "27.02.97",
-    "kickoff_time": "",
-    "home_team": "t5",
+    "date": "27/02/1897",
+    "home_team": "t12",
     "away_team": "t1",
     "home_score": "1",
     "away_score": "5",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "Walmer",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m18",
-    "date": "13.03.97",
-    "kickoff_time": "",
-    "home_team": "t1",
-    "away_team": "t8",
-    "home_score": "3",
-    "away_score": "3",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "Margate College (Blowfield)",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m19",
-    "date": "20.03.97",
-    "kickoff_time": "",
-    "home_team": "t8",
-    "away_team": "t1",
-    "home_score": "2",
-    "away_score": "2",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "Southwood",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m20",
-    "date": "27.03.97",
-    "kickoff_time": "",
-    "home_team": "t1",
-    "away_team": "t7",
-    "home_score": "3",
-    "away_score": "0",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "Margate College (Blowfield)",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m21",
-    "date": "03.04.97",
-    "kickoff_time": "",
-    "home_team": "t1",
-    "away_team": "t12",
-    "home_score": "3",
-    "away_score": "2",
-    "season_id": "1",
-    "competition": "Friendly",
-    "round": "",
-    "venue": "Margate College (Blowfield)",
-    "attendance": "",
-    "referee": "",
-    "notes": "",
-    "home_manager_id": "",
-    "away_manager_id": ""
-  },
-  {
-    "id": "m22",
-    "date": "10.04.97",
-    "kickoff_time": "",
-    "home_team": "t12",
-    "away_team": "t1",
-    "home_score": "2",
-    "away_score": "2",
-    "season_id": "1",
-    "competition": "Friendly",
+    "season_id": "1896-97",
+    "competition": "FR",
     "round": "",
     "venue": "",
     "attendance": "",
     "referee": "",
-    "notes": "Margate played with 10 men.",
-    "home_manager_id": "",
-    "away_manager_id": ""
+    "notes": "",
+    "scorers_text": "Farnfield (2), E.Taylor-Jones (2) & Read",
+    "scorers": [
+      {
+        "player_id": "p1714",
+        "goals": 2
+      },
+      {
+        "player_id": "p1485",
+        "goals": 2
+      },
+      {
+        "player_id": "p1263",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 19
+  },
+  {
+    "id": "m18",
+    "date": "13/03/1897",
+    "home_team": "t1",
+    "away_team": "t9",
+    "home_score": "3",
+    "away_score": "3",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "500*",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Cheatle, King & E.Taylor-Jones",
+    "scorers": [
+      {
+        "player_id": "p287",
+        "goals": 1
+      },
+      {
+        "player_id": "p876",
+        "goals": 1
+      },
+      {
+        "player_id": "p1485",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 20
+  },
+  {
+    "id": "m19",
+    "date": "20/03/1897",
+    "home_team": "t9",
+    "away_team": "t1",
+    "home_score": "2",
+    "away_score": "2",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "500*",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Farnfield & Pearce",
+    "scorers": [
+      {
+        "player_id": "p1714",
+        "goals": 1
+      },
+      {
+        "player_id": "p1171",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 21
+  },
+  {
+    "id": "m20",
+    "date": "27/03/1897",
+    "home_team": "t1",
+    "away_team": "t13",
+    "home_score": "3",
+    "away_score": "0",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "E.Taylor-Jones (2) & Farnfield",
+    "scorers": [
+      {
+        "player_id": "p1485",
+        "goals": 2
+      },
+      {
+        "player_id": "p1714",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 22
+  },
+  {
+    "id": "m21",
+    "date": "03/04/1897",
+    "home_team": "t1",
+    "away_team": "t14",
+    "home_score": "3",
+    "away_score": "2",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Farnfield (2) & Wells",
+    "scorers": [
+      {
+        "player_id": "p1714",
+        "goals": 2
+      },
+      {
+        "player_id": "p1614",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 23
+  },
+  {
+    "id": "m22",
+    "date": "10/04/1897",
+    "home_team": "t14",
+    "away_team": "t1",
+    "home_score": "2",
+    "away_score": "2",
+    "season_id": "1896-97",
+    "competition": "FR",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "E.Taylor-Jones (2)",
+    "scorers": [
+      {
+        "player_id": "p1485",
+        "goals": 2
+      }
+    ],
+    "source_sheet": "Friendlies",
+    "source_row": 24
   }
 ]

@@ -1,14 +1,58 @@
 [
   {
     "id": "t1",
-    "name": "Margate"
+    "name": "Margate Town"
   },
   {
     "id": "t2",
-    "name": "Dover Athletic"
+    "name": "The Buffs Depot (Canterbury)"
   },
   {
     "id": "t3",
-    "name": "Ramsgate"
+    "name": "Wye"
+  },
+  {
+    "id": "t4",
+    "name": "Thanet College"
+  },
+  {
+    "id": "t5",
+    "name": "Dover"
+  },
+  {
+    "id": "t6",
+    "name": "Westgate-on-Sea"
+  },
+  {
+    "id": "t7",
+    "name": "Thanet Wanderers"
+  },
+  {
+    "id": "t8",
+    "name": "Cavalry Depot (Canterbury)"
+  },
+  {
+    "id": "t9",
+    "name": "Ramsgate St.George's"
+  },
+  {
+    "id": "t10",
+    "name": "Herne Bay"
+  },
+  {
+    "id": "t11",
+    "name": "Broadstairs & St.Peters"
+  },
+  {
+    "id": "t12",
+    "name": "Downs FC"
+  },
+  {
+    "id": "t13",
+    "name": "Margate Swifts"
+  },
+  {
+    "id": "t14",
+    "name": "Whitstable Town"
   }
 ]
