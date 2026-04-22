@@ -55,6 +55,19 @@ Promise.all([
     return match ? Number(match[1]) : 0;
   }
 
+  function buildStatBlock(appRows) {
+    const starts = appRows.filter(a => Number(a.is_starting) === 1).length;
+    const subs = appRows.filter(a => Number(a.is_starting) !== 1).length;
+    const goals = appRows.reduce((sum, a) => sum + Number(a.goals || 0), 0);
+
+    return {
+      starts,
+      subs,
+      appsDisplay: subs > 0 ? `${starts}+${subs}` : `${starts}`,
+      goals
+    };
+  }
+
   const photo = p.photo && p.photo.trim() !== '' ? p.photo.trim() : 'default.png';
 
   const countedApps = apps.filter(a => {
@@ -72,19 +85,6 @@ Promise.all([
     const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
     return match && isFriendlyCompetition(match.competition);
   });
-
-  function buildStatBlock(appRows) {
-    const starts = appRows.filter(a => Number(a.is_starting) === 1).length;
-    const subs = appRows.filter(a => Number(a.is_starting) !== 1).length;
-    const goals = appRows.reduce((sum, a) => sum + Number(a.goals || 0), 0);
-
-    return {
-      starts,
-      subs,
-      appsDisplay: subs > 0 ? `${starts}+${subs}` : `${starts}`,
-      goals
-    };
-  }
 
   const competitiveStats = buildStatBlock(competitiveApps);
   const friendlyStats = buildStatBlock(friendlyApps);
@@ -145,16 +145,45 @@ Promise.all([
     if (!match || !match.season_id || !isCountableMatch(match)) return;
 
     if (!seasonStats[match.season_id]) {
-      seasonStats[match.season_id] = { starts: 0, subs: 0, goals: 0 };
+      seasonStats[match.season_id] = {
+        compStarts: 0,
+        compSubs: 0,
+        compGoals: 0,
+        frStarts: 0,
+        frSubs: 0,
+        frGoals: 0,
+        totalStarts: 0,
+        totalSubs: 0,
+        totalGoals: 0
+      };
     }
 
-    if (Number(a.is_starting) === 1) {
-      seasonStats[match.season_id].starts += 1;
+    const friendly = isFriendlyCompetition(match.competition);
+    const starter = Number(a.is_starting) === 1;
+    const goals = Number(a.goals || 0);
+
+    if (friendly) {
+      if (starter) {
+        seasonStats[match.season_id].frStarts += 1;
+      } else {
+        seasonStats[match.season_id].frSubs += 1;
+      }
+      seasonStats[match.season_id].frGoals += goals;
     } else {
-      seasonStats[match.season_id].subs += 1;
+      if (starter) {
+        seasonStats[match.season_id].compStarts += 1;
+      } else {
+        seasonStats[match.season_id].compSubs += 1;
+      }
+      seasonStats[match.season_id].compGoals += goals;
     }
 
-    seasonStats[match.season_id].goals += Number(a.goals || 0);
+    if (starter) {
+      seasonStats[match.season_id].totalStarts += 1;
+    } else {
+      seasonStats[match.season_id].totalSubs += 1;
+    }
+    seasonStats[match.season_id].totalGoals += goals;
   });
 
   el.innerHTML += `
@@ -164,8 +193,12 @@ Promise.all([
         <thead>
           <tr>
             <th>Season</th>
-            <th>Apps</th>
-            <th>Goals</th>
+            <th>Comp Apps</th>
+            <th>Comp Goals</th>
+            <th>Fr Apps</th>
+            <th>Fr Goals</th>
+            <th>Total Apps</th>
+            <th>Total Goals</th>
           </tr>
         </thead>
         <tbody id="seasonStatsTable"></tbody>
@@ -178,7 +211,7 @@ Promise.all([
   if (Object.keys(seasonStats).length === 0) {
     seasonStatsTable.innerHTML = `
       <tr>
-        <td colspan="3">No season stats available.</td>
+        <td colspan="7">No season stats available.</td>
       </tr>
     `;
   } else {
@@ -187,7 +220,10 @@ Promise.all([
       .forEach(([seasonId, stats]) => {
         const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
         const seasonName = season ? season.name : seasonId;
-        const seasonAppsDisplay = stats.subs > 0 ? `${stats.starts}+${stats.subs}` : `${stats.starts}`;
+
+        const compApps = stats.compSubs > 0 ? `${stats.compStarts}+${stats.compSubs}` : `${stats.compStarts}`;
+        const frApps = stats.frSubs > 0 ? `${stats.frStarts}+${stats.frSubs}` : `${stats.frStarts}`;
+        const totalApps = stats.totalSubs > 0 ? `${stats.totalStarts}+${stats.totalSubs}` : `${stats.totalStarts}`;
 
         seasonStatsTable.innerHTML += `
           <tr>
@@ -196,8 +232,12 @@ Promise.all([
                 ${seasonName}
               </a>
             </td>
-            <td>${seasonAppsDisplay}</td>
-            <td>${stats.goals}</td>
+            <td>${compApps}</td>
+            <td>${stats.compGoals}</td>
+            <td>${frApps}</td>
+            <td>${stats.frGoals}</td>
+            <td>${totalApps}</td>
+            <td>${stats.totalGoals}</td>
           </tr>
         `;
       });
