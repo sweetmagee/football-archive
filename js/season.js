@@ -89,7 +89,7 @@ Promise.all([
     isCountableMatch(m)
   );
 
-  titleEl.textContent = `${season.name} — ${teamName("t1")}`;
+  titleEl.textContent = `${season.name} ${teamName("t1")}`;
 
   const leagueMatches = seasonMatches.filter(m =>
     !m.competition || String(m.competition).toLowerCase() === "league"
@@ -297,57 +297,31 @@ Promise.all([
   }
 
   function renderManagers() {
-    const seasonTeams = new Set();
-    seasonMatches.forEach(m => {
-      seasonTeams.add(String(m.home_team).trim());
-      seasonTeams.add(String(m.away_team).trim());
-    });
+    const t1Matches = seasonMatches.filter(m =>
+      String(m.home_team).trim() === "t1" || String(m.away_team).trim() === "t1"
+    );
 
-    const seasonManagers = [];
+    let managerRecord = null;
 
-    seasonTeams.forEach(teamId => {
-      const teamSeasonMatches = seasonMatches.filter(m =>
-        String(m.home_team).trim() === teamId || String(m.away_team).trim() === teamId
-      );
+    for (const m of t1Matches) {
+      const managerId =
+        String(m.home_team).trim() === "t1"
+          ? String(m.home_manager_id || "").trim()
+          : String(m.away_manager_id || "").trim();
 
-      let managerRecord = null;
-
-      for (const m of teamSeasonMatches) {
-        const managerId =
-          String(m.home_team).trim() === teamId
-            ? String(m.home_manager_id || "").trim()
-            : String(m.away_manager_id || "").trim();
-
-        if (managerId) {
-          const manager = managers.find(x => String(x.id).trim() === managerId);
-          managerRecord = manager || { id: managerId, name: managerId };
-          break;
-        }
+      if (managerId) {
+        const manager = managers.find(x => String(x.id).trim() === managerId);
+        managerRecord = manager || { id: managerId, name: managerId };
+        break;
       }
-
-      seasonManagers.push({
-        team_id: teamId,
-        manager: managerRecord
-      });
-    });
-
-    seasonManagersTable.innerHTML = "";
-
-    if (seasonManagers.length === 0) {
-      seasonManagersTable.innerHTML = `<tr><td colspan="2">No managers recorded for this season.</td></tr>`;
-      return;
     }
 
-    seasonManagers
-      .sort((a, b) => teamName(a.team_id).localeCompare(teamName(b.team_id)))
-      .forEach(row => {
-        seasonManagersTable.innerHTML += `
-          <tr>
-            <td>${teamLink(row.team_id)}</td>
-            <td>${formatManager(row.manager)}</td>
-          </tr>
-        `;
-      });
+    seasonManagersTable.innerHTML = `
+      <tr>
+        <td>${teamLink("t1")}</td>
+        <td>${formatManager(managerRecord)}</td>
+      </tr>
+    `;
   }
 
   function renderPlayerOfSeason() {
