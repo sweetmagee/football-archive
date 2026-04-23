@@ -354,20 +354,31 @@ Promise.all([
       }
     });
 
-    const managerRows = Array.from(managerMap.values()).map(entry => {
-      const sortedMatches = [...entry.matches].sort((a, b) => {
-        const da = parseUkDate(a.date);
-        const db = parseUkDate(b.date);
+    const managerRows = Array.from(managerMap.values())
+      .map(entry => {
+        const sortedMatches = [...entry.matches].sort((a, b) => {
+          const da = parseUkDate(a.date);
+          const db = parseUkDate(b.date);
+          return da - db;
+        });
+
+        const firstDate = sortedMatches[0]?.date || "";
+        const lastDate = sortedMatches[sortedMatches.length - 1]?.date || "";
+        const firstDateSort = parseUkDate(firstDate);
+
+        return {
+          manager: entry.manager,
+          firstDate,
+          lastDate,
+          firstDateSort,
+          count: sortedMatches.length
+        };
+      })
+      .sort((a, b) => {
+        const da = a.firstDateSort ? a.firstDateSort.getTime() : Infinity;
+        const db = b.firstDateSort ? b.firstDateSort.getTime() : Infinity;
         return da - db;
       });
-
-      return {
-        manager: entry.manager,
-        firstDate: sortedMatches[0]?.date || "",
-        lastDate: sortedMatches[sortedMatches.length - 1]?.date || "",
-        count: sortedMatches.length
-      };
-    });
 
     managerHeading.textContent =
       managerRows.length > 1 ? "Managers" : "Manager";
