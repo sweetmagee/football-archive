@@ -1,16 +1,16 @@
 [
   {
     "id": "mgr1",
-    "name": "Steve Bowtell",
-    "dob": "10/06/1995",
-    "photo": "steve-bowtell.jpg",
-    "bio": "Keeper born in London, later played for Dulwich."
+    "name": "Arthur Stickels",
+    "dob": "",
+    "photo": "",
+    "bio": "Honorary Secretary"
   },
   {
     "id": "mgr2",
-    "name": "Chris Kinnear",
-    "dob": "01/01/1960",
-    "photo": "chris-kinnear.jpg",
-    "bio": "Smashing fellow."
+    "name": "Johnny Hall",
+    "dob": "",
+    "photo": "",
+    "bio": "Honorary Secretary"
   }
 ]
