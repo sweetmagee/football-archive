@@ -16,8 +16,26 @@ Promise.all([
     return;
   }
 
-  const homeTeam = teams.find(t => String(t.id).trim() === String(match.home_team).trim());
-  const awayTeam = teams.find(t => String(t.id).trim() === String(match.away_team).trim());
+  function resolveTeam(teamValue) {
+    return teams.find(t =>
+      String(t.id).trim() === String(teamValue).trim() ||
+      String(t.name).trim() === String(teamValue).trim()
+    );
+  }
+
+  function teamName(teamValue) {
+    const team = resolveTeam(teamValue);
+    return team ? team.name : teamValue;
+  }
+
+  function teamBadgeHtml(teamValue, sizeClass = "team-badge-small") {
+    const team = resolveTeam(teamValue);
+    if (!team) return "";
+    return `<img class="${sizeClass}" src="images/teams/${team.id}.png" alt="" onerror="this.style.display='none'">`;
+  }
+
+  const homeTeam = resolveTeam(match.home_team);
+  const awayTeam = resolveTeam(match.away_team);
 
   const homeName = homeTeam ? homeTeam.name : match.home_team;
   const awayName = awayTeam ? awayTeam.name : match.away_team;
@@ -52,6 +70,41 @@ Promise.all([
       String(c.team_id).trim() === String(teamId).trim() &&
       inSeasonRange(c, seasonId)
     );
+  }
+
+  function joinScorers(parts) {
+    if (!parts.length) return "";
+    if (parts.length === 1) return parts[0];
+    if (parts.length === 2) return `${parts[0]} & ${parts[1]}`;
+    return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+  }
+
+  function buildMargateScorerText(matchRecord, appearancesList) {
+    const isMargateHome = String(matchRecord.home_team).trim() === "t1";
+    const isMargateAway = String(matchRecord.away_team).trim() === "t1";
+
+    if (!isMargateHome && !isMargateAway) return "";
+
+    const margateApps = appearancesList.filter(a =>
+      String(a.match_id).trim() === String(matchRecord.id).trim() &&
+      String(a.team).trim() === "t1" &&
+      Number(a.goals || 0) > 0
+    );
+
+    if (!margateApps.length) return "";
+
+    const scorerRows = margateApps
+      .map(a => ({
+        name: playerName(a.player_id),
+        goals: Number(a.goals || 0)
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const formatted = scorerRows.map(row =>
+      row.goals > 1 ? `${row.name} (${row.goals})` : row.name
+    );
+
+    return ` (${joinScorers(formatted)})`;
   }
 
   const homeCaptain = getCaptain(match.home_team, match.season_id);
@@ -95,13 +148,26 @@ Promise.all([
   let homeResultClass = "match-team-draw";
   let awayResultClass = "match-team-draw";
 
-  if (homeScoreNum > awayScoreNum) {
-    homeResultClass = "match-team-winner";
-    awayResultClass = "match-team-loser";
-  } else if (awayScoreNum > homeScoreNum) {
-    homeResultClass = "match-team-loser";
-    awayResultClass = "match-team-winner";
+  if (!Number.isNaN(homeScoreNum) && !Number.isNaN(awayScoreNum)) {
+    if (homeScoreNum > awayScoreNum) {
+      homeResultClass = "match-team-winner";
+      awayResultClass = "match-team-loser";
+    } else if (awayScoreNum > homeScoreNum) {
+      homeResultClass = "match-team-loser";
+      awayResultClass = "match-team-winner";
+    }
   }
+
+  const margateScorerText = buildMargateScorerText(match, apps);
+  const homeScoreDisplay =
+    String(match.home_team).trim() === "t1"
+      ? `${match.home_score}${margateScorerText}`
+      : `${match.home_score}`;
+
+  const awayScoreDisplay =
+    String(match.away_team).trim() === "t1"
+      ? `${match.away_score}${margateScorerText}`
+      : `${match.away_score}`;
 
   el.innerHTML = `
     <div class="content-box">
@@ -111,18 +177,18 @@ Promise.all([
           <div class="match-score-header">
             <div class="match-team-line ${homeResultClass}">
               <span class="team-inline">
-                <img class="team-badge-medium" src="images/teams/${match.home_team}.png" alt="" onerror="this.style.display='none'">
+                ${teamBadgeHtml(match.home_team, "team-badge-medium")}
                 <span>${homeName}</span>
               </span>
-              <span class="team-line-score">${match.home_score}</span>
+              <span class="team-line-score">${homeScoreDisplay}</span>
             </div>
 
             <div class="match-team-line ${awayResultClass}">
               <span class="team-inline">
-                <img class="team-badge-medium" src="images/teams/${match.away_team}.png" alt="" onerror="this.style.display='none'">
+                ${teamBadgeHtml(match.away_team, "team-badge-medium")}
                 <span>${awayName}</span>
               </span>
-              <span class="team-line-score">${match.away_score}</span>
+              <span class="team-line-score">${awayScoreDisplay}</span>
             </div>
           </div>
 
@@ -154,8 +220,8 @@ Promise.all([
           <tr>
             <td>
               <span class="team-inline">
-                <img class="team-badge-small" src="images/teams/${match.home_team}.png" alt="" onerror="this.style.display='none'">
-                <a href="team.html?id=${match.home_team}">${homeName}</a>
+                ${teamBadgeHtml(match.home_team, "team-badge-small")}
+                <a href="team.html?id=${encodeURIComponent(homeTeam ? homeTeam.id : match.home_team)}">${homeName}</a>
               </span>
             </td>
             <td>${homeCaptainHtml}</td>
@@ -164,8 +230,8 @@ Promise.all([
           <tr>
             <td>
               <span class="team-inline">
-                <img class="team-badge-small" src="images/teams/${match.away_team}.png" alt="" onerror="this.style.display='none'">
-                <a href="team.html?id=${match.away_team}">${awayName}</a>
+                ${teamBadgeHtml(match.away_team, "team-badge-small")}
+                <a href="team.html?id=${encodeURIComponent(awayTeam ? awayTeam.id : match.away_team)}">${awayName}</a>
               </span>
             </td>
             <td>${awayCaptainHtml}</td>
