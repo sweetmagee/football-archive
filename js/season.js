@@ -12,11 +12,12 @@ Promise.all([
 ]).then(([matches, teams, seasons, appearances, players, managers, playerOfSeason]) => {
   const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
   const titleEl = document.getElementById("seasonTitle");
-  const tableBody = document.getElementById("tableBody");
-  const matchesEl = document.getElementById("matches");
-  const scorersEl = document.getElementById("scorers");
-  const seasonManagersTable = document.getElementById("seasonManagersTable");
-  const playerOfSeasonBox = document.getElementById("playerOfSeasonBox");
+const tableBody = document.getElementById("tableBody");
+const matchesEl = document.getElementById("matches");
+const scorersEl = document.getElementById("scorers");
+const seasonManagersTable = document.getElementById("seasonManagersTable");
+const playerOfSeasonBox = document.getElementById("playerOfSeasonBox");
+const managerHeading = document.getElementById("managerHeading");
 
   if (!season) {
     titleEl.textContent = "Season not found";
