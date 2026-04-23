@@ -18,6 +18,8 @@ Promise.all([
     return;
   }
 
+  const isMargatePage = String(id).trim() === "t1";
+
   function isCountableMatch(match) {
     return (
       match &&
@@ -90,17 +92,32 @@ Promise.all([
     );
   }
 
-  const squad = players
-    .filter(p => String(p.team).trim() === String(id).trim())
-    .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+  let squad = [];
+  let teamMatches = [];
 
-  const teamMatches = matches.filter(m =>
-    (
-      String(m.home_team).trim() === String(id).trim() ||
-      String(m.away_team).trim() === String(id).trim()
-    ) &&
-    isCountableMatch(m)
-  );
+  if (isMargatePage) {
+    squad = players
+      .filter(p => String(p.team).trim() === String(id).trim())
+      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+
+    teamMatches = matches.filter(m =>
+      (
+        String(m.home_team).trim() === String(id).trim() ||
+        String(m.away_team).trim() === String(id).trim()
+      ) &&
+      isCountableMatch(m)
+    );
+  } else {
+    squad = [];
+
+    teamMatches = matches.filter(m =>
+      (
+        (String(m.home_team).trim() === "t1" && String(m.away_team).trim() === String(id).trim()) ||
+        (String(m.away_team).trim() === "t1" && String(m.home_team).trim() === String(id).trim())
+      ) &&
+      isCountableMatch(m)
+    );
+  }
 
   const teamCaptains = captains
     .filter(c => String(c.team_id).trim() === String(id).trim())
@@ -123,9 +140,18 @@ Promise.all([
     let GA = 0;
 
     matchList.forEach(m => {
-      const isHome = String(m.home_team).trim() === String(id).trim();
-      const goalsFor = isHome ? Number(m.home_score || 0) : Number(m.away_score || 0);
-      const goalsAgainst = isHome ? Number(m.away_score || 0) : Number(m.home_score || 0);
+      let goalsFor = 0;
+      let goalsAgainst = 0;
+
+      if (isMargatePage) {
+        const isHome = String(m.home_team).trim() === String(id).trim();
+        goalsFor = isHome ? Number(m.home_score || 0) : Number(m.away_score || 0);
+        goalsAgainst = isHome ? Number(m.away_score || 0) : Number(m.home_score || 0);
+      } else {
+        const margateHome = String(m.home_team).trim() === "t1";
+        goalsFor = margateHome ? Number(m.home_score || 0) : Number(m.away_score || 0);
+        goalsAgainst = margateHome ? Number(m.away_score || 0) : Number(m.home_score || 0);
+      }
 
       P++;
       GF += goalsFor;
@@ -169,113 +195,115 @@ Promise.all([
     </div>
   `;
 
-  el.innerHTML += `
-    <div class="content-box section-block">
-      <h3>Club History</h3>
-      <div class="season-grid">
-        <div class="season-main">
-          <h4>Captains</h4>
-          <table class="archive-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>From</th>
-                <th>To</th>
-              </tr>
-            </thead>
-            <tbody id="captainsTable"></tbody>
-          </table>
+  if (isMargatePage) {
+    el.innerHTML += `
+      <div class="content-box section-block">
+        <h3>Club History</h3>
+        <div class="season-grid">
+          <div class="season-main">
+            <h4>Captains</h4>
+            <table class="archive-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>From</th>
+                  <th>To</th>
+                </tr>
+              </thead>
+              <tbody id="captainsTable"></tbody>
+            </table>
 
-          <h4>Managers</h4>
-          <table class="archive-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>From</th>
-                <th>To</th>
-              </tr>
-            </thead>
-            <tbody id="managersTable"></tbody>
-          </table>
-        </div>
+            <h4>Managers</h4>
+            <table class="archive-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>From</th>
+                  <th>To</th>
+                </tr>
+              </thead>
+              <tbody id="managersTable"></tbody>
+            </table>
+          </div>
 
-        <div class="season-side">
-          <h4>Honours</h4>
-          <table class="archive-table">
-            <thead>
-              <tr>
-                <th>Competition</th>
-                <th>Season</th>
-                <th>Result</th>
-              </tr>
-            </thead>
-            <tbody id="honoursTable"></tbody>
-          </table>
+          <div class="season-side">
+            <h4>Honours</h4>
+            <table class="archive-table">
+              <thead>
+                <tr>
+                  <th>Competition</th>
+                  <th>Season</th>
+                  <th>Result</th>
+                </tr>
+              </thead>
+              <tbody id="honoursTable"></tbody>
+            </table>
+          </div>
         </div>
       </div>
-    </div>
-  `;
+    `;
 
-  const captainsTable = document.getElementById('captainsTable');
-  const managersTable = document.getElementById('managersTable');
-  const honoursTable = document.getElementById('honoursTable');
+    const captainsTable = document.getElementById('captainsTable');
+    const managersTable = document.getElementById('managersTable');
+    const honoursTable = document.getElementById('honoursTable');
 
-  if (teamCaptains.length === 0) {
-    captainsTable.innerHTML = `<tr><td colspan="3">No captains recorded.</td></tr>`;
-  } else {
-    teamCaptains.forEach(c => {
-      const player = players.find(p => String(p.id).trim() === String(c.player_id).trim());
-      const playerDisplay = player
-        ? `<a href="player.html?id=${player.id}">${player.name}</a>`
-        : c.player_id;
-
-      captainsTable.innerHTML += `
-        <tr>
-          <td>${playerDisplay}</td>
-          <td>${seasonName(c.start_season)}</td>
-          <td>${seasonName(c.end_season)}</td>
-        </tr>
-      `;
-    });
-  }
-
-  if (teamManagers.length === 0) {
-    managersTable.innerHTML = `<tr><td colspan="3">No managers recorded.</td></tr>`;
-  } else {
-    teamManagers.forEach(m => {
-      let managerDisplay = m.name || '';
-
-      if (m.player_id) {
-        const player = players.find(p => String(p.id).trim() === String(m.player_id).trim());
-        managerDisplay = player
+    if (teamCaptains.length === 0) {
+      captainsTable.innerHTML = `<tr><td colspan="3">No captains recorded.</td></tr>`;
+    } else {
+      teamCaptains.forEach(c => {
+        const player = players.find(p => String(p.id).trim() === String(c.player_id).trim());
+        const playerDisplay = player
           ? `<a href="player.html?id=${player.id}">${player.name}</a>`
-          : m.player_id;
-      } else if (m.id) {
-        managerDisplay = `<a href="manager.html?id=${m.id}">${m.name || m.id}</a>`;
-      }
+          : c.player_id;
 
-      managersTable.innerHTML += `
-        <tr>
-          <td>${managerDisplay || 'Not recorded'}</td>
-          <td>${seasonName(m.start_season)}</td>
-          <td>${seasonName(m.end_season)}</td>
-        </tr>
-      `;
-    });
-  }
+        captainsTable.innerHTML += `
+          <tr>
+            <td>${playerDisplay}</td>
+            <td>${seasonName(c.start_season)}</td>
+            <td>${seasonName(c.end_season)}</td>
+          </tr>
+        `;
+      });
+    }
 
-  if (teamHonours.length === 0) {
-    honoursTable.innerHTML = `<tr><td colspan="3">No honours recorded.</td></tr>`;
-  } else {
-    teamHonours.forEach(h => {
-      honoursTable.innerHTML += `
-        <tr>
-          <td>${h.competition}</td>
-          <td>${seasonName(h.season)}</td>
-          <td>${h.result}</td>
-        </tr>
-      `;
-    });
+    if (teamManagers.length === 0) {
+      managersTable.innerHTML = `<tr><td colspan="3">No managers recorded.</td></tr>`;
+    } else {
+      teamManagers.forEach(m => {
+        let managerDisplay = m.name || '';
+
+        if (m.player_id) {
+          const player = players.find(p => String(p.id).trim() === String(m.player_id).trim());
+          managerDisplay = player
+            ? `<a href="player.html?id=${player.id}">${player.name}</a>`
+            : m.player_id;
+        } else if (m.id) {
+          managerDisplay = `<a href="manager.html?id=${m.id}">${m.name || m.id}</a>`;
+        }
+
+        managersTable.innerHTML += `
+          <tr>
+            <td>${managerDisplay || 'Not recorded'}</td>
+            <td>${seasonName(m.start_season)}</td>
+            <td>${seasonName(m.end_season)}</td>
+          </tr>
+        `;
+      });
+    }
+
+    if (teamHonours.length === 0) {
+      honoursTable.innerHTML = `<tr><td colspan="3">No honours recorded.</td></tr>`;
+    } else {
+      teamHonours.forEach(h => {
+        honoursTable.innerHTML += `
+          <tr>
+            <td>${h.competition}</td>
+            <td>${seasonName(h.season)}</td>
+            <td>${h.result}</td>
+          </tr>
+        `;
+      });
+    }
   }
 
   el.innerHTML += `
@@ -310,7 +338,7 @@ Promise.all([
   });
 
   Object.entries(groupedBySeason)
-    .sort((a, b) => Number(a[0]) - Number(b[0]))
+    .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
     .forEach(([seasonId, matchList]) => {
       const record = getRecord(matchList);
 
@@ -329,48 +357,169 @@ Promise.all([
       `;
     });
 
-  const leaderboardRows = squad
-    .map(p => {
-      const stats = getPlayerStats(p.id, id);
-      return {
-        playerId: p.id,
-        name: p.name,
-        starts: stats.starts,
-        subs: stats.subs,
-        apps: stats.totalApps,
-        appsDisplay: stats.appsDisplay,
-        goals: stats.goals
-      };
-    })
-    .sort(sortByStartsThenSubsThenGoalsThenName);
+  if (isMargatePage) {
+    const leaderboardRows = squad
+      .map(p => {
+        const stats = getPlayerStats(p.id, id);
+        return {
+          playerId: p.id,
+          name: p.name,
+          starts: stats.starts,
+          subs: stats.subs,
+          apps: stats.totalApps,
+          appsDisplay: stats.appsDisplay,
+          goals: stats.goals
+        };
+      })
+      .sort(sortByStartsThenSubsThenGoalsThenName);
 
-  const topAppearanceRows = [...leaderboardRows]
-    .sort(sortByStartsThenSubsThenGoalsThenName)
-    .slice(0, 15);
+    const topAppearanceRows = [...leaderboardRows]
+      .sort(sortByStartsThenSubsThenGoalsThenName)
+      .slice(0, 15);
 
-  const topScorerRows = [...leaderboardRows]
-    .sort(sortByGoalsThenStartsThenSubsThenName)
-    .slice(0, 15);
+    const topScorerRows = [...leaderboardRows]
+      .sort(sortByGoalsThenStartsThenSubsThenName)
+      .slice(0, 15);
 
-  el.innerHTML += `
-    <div class="content-box section-block">
-      <h3>Team Legends</h3>
-      <div class="season-grid">
-        <div class="season-main">
-          <h4>All-Time Top Appearances</h4>
-          <table class="archive-table">
-            <thead>
-              <tr>
-                <th>Player</th>
-                <th>Apps</th>
-              </tr>
-            </thead>
-            <tbody id="topAppearancesTable"></tbody>
-          </table>
+    el.innerHTML += `
+      <div class="content-box section-block">
+        <h3>Team Legends</h3>
+        <div class="season-grid">
+          <div class="season-main">
+            <h4>All-Time Top Appearances</h4>
+            <table class="archive-table">
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th>Apps</th>
+                </tr>
+              </thead>
+              <tbody id="topAppearancesTable"></tbody>
+            </table>
+          </div>
+
+          <div class="season-side">
+            <h4>All-Time Top Scorers</h4>
+            <table class="archive-table">
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th>Goals</th>
+                </tr>
+              </thead>
+              <tbody id="topScorersTable"></tbody>
+            </table>
+          </div>
         </div>
+      </div>
+    `;
 
-        <div class="season-side">
-          <h4>All-Time Top Scorers</h4>
+    const topAppearancesTable = document.getElementById('topAppearancesTable');
+    const topScorersTable = document.getElementById('topScorersTable');
+
+    if (topAppearanceRows.length === 0) {
+      topAppearancesTable.innerHTML = `<tr><td colspan="2">No appearance data available.</td></tr>`;
+    } else {
+      topAppearanceRows.forEach(row => {
+        topAppearancesTable.innerHTML += `
+          <tr>
+            <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
+            <td>${row.appsDisplay}</td>
+          </tr>
+        `;
+      });
+    }
+
+    if (topScorerRows.length === 0) {
+      topScorersTable.innerHTML = `<tr><td colspan="2">No goals data available.</td></tr>`;
+    } else {
+      topScorerRows.forEach(row => {
+        topScorersTable.innerHTML += `
+          <tr>
+            <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
+            <td>${row.goals}</td>
+          </tr>
+        `;
+      });
+    }
+
+    el.innerHTML += `
+      <div class="content-box section-block">
+        <h3>Player Leaderboard</h3>
+        <table class="archive-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Apps</th>
+              <th>Goals</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardTable"></tbody>
+        </table>
+      </div>
+    `;
+
+    const leaderboardTable = document.getElementById('leaderboardTable');
+
+    if (leaderboardRows.length === 0) {
+      leaderboardTable.innerHTML = `<tr><td colspan="3">No appearance data available.</td></tr>`;
+    } else {
+      leaderboardRows.forEach(row => {
+        leaderboardTable.innerHTML += `
+          <tr>
+            <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
+            <td>${row.appsDisplay}</td>
+            <td>${row.goals}</td>
+          </tr>
+        `;
+      });
+    }
+
+    el.innerHTML += `
+      <div class="content-box section-block">
+        <h3>Top Scorers by Season</h3>
+        <div id="topScorersBySeason"></div>
+      </div>
+    `;
+
+    const topScorersWrap = document.getElementById('topScorersBySeason');
+
+    Object.entries(groupedBySeason)
+      .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
+      .forEach(([seasonId, seasonMatchList]) => {
+        const seasonMatchIds = new Set(seasonMatchList.map(m => String(m.id).trim()));
+        const seasonScorers = {};
+
+        appearances.forEach(a => {
+          if (String(a.team).trim() !== String(id).trim()) return;
+          if (!seasonMatchIds.has(String(a.match_id).trim())) return;
+
+          const playerId = String(a.player_id).trim();
+          const goals = Number(a.goals || 0);
+
+          if (!seasonScorers[playerId]) {
+            seasonScorers[playerId] = 0;
+          }
+
+          seasonScorers[playerId] += goals;
+        });
+
+        const rows = Object.entries(seasonScorers)
+          .map(([playerId, goals]) => {
+            const stats = getPlayerStats(playerId, id);
+            return {
+              playerId,
+              name: playerName(playerId),
+              goals,
+              starts: stats.starts,
+              subs: stats.subs
+            };
+          })
+          .filter(row => row.goals > 0)
+          .sort(sortByGoalsThenStartsThenSubsThenName);
+
+        topScorersWrap.innerHTML += `
+          <h4>${seasonName(seasonId)}</h4>
           <table class="archive-table">
             <thead>
               <tr>
@@ -378,180 +527,61 @@ Promise.all([
                 <th>Goals</th>
               </tr>
             </thead>
-            <tbody id="topScorersTable"></tbody>
+            <tbody id="scorers-${seasonId}"></tbody>
           </table>
-        </div>
-      </div>
-    </div>
-  `;
+        `;
 
-  const topAppearancesTable = document.getElementById('topAppearancesTable');
-  const topScorersTable = document.getElementById('topScorersTable');
+        const scorerTable = document.getElementById(`scorers-${seasonId}`);
 
-  if (topAppearanceRows.length === 0) {
-    topAppearancesTable.innerHTML = `<tr><td colspan="2">No appearance data available.</td></tr>`;
-  } else {
-    topAppearanceRows.forEach(row => {
-      topAppearancesTable.innerHTML += `
-        <tr>
-          <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
-          <td>${row.appsDisplay}</td>
-        </tr>
-      `;
-    });
-  }
-
-  if (topScorerRows.length === 0) {
-    topScorersTable.innerHTML = `<tr><td colspan="2">No goals data available.</td></tr>`;
-  } else {
-    topScorerRows.forEach(row => {
-      topScorersTable.innerHTML += `
-        <tr>
-          <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
-          <td>${row.goals}</td>
-        </tr>
-      `;
-    });
-  }
-
-  el.innerHTML += `
-    <div class="content-box section-block">
-      <h3>Player Leaderboard</h3>
-      <table class="archive-table">
-        <thead>
-          <tr>
-            <th>Player</th>
-            <th>Apps</th>
-            <th>Goals</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboardTable"></tbody>
-      </table>
-    </div>
-  `;
-
-  const leaderboardTable = document.getElementById('leaderboardTable');
-
-  if (leaderboardRows.length === 0) {
-    leaderboardTable.innerHTML = `<tr><td colspan="3">No appearance data available.</td></tr>`;
-  } else {
-    leaderboardRows.forEach(row => {
-      leaderboardTable.innerHTML += `
-        <tr>
-          <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
-          <td>${row.appsDisplay}</td>
-          <td>${row.goals}</td>
-        </tr>
-      `;
-    });
-  }
-
-  el.innerHTML += `
-    <div class="content-box section-block">
-      <h3>Top Scorers by Season</h3>
-      <div id="topScorersBySeason"></div>
-    </div>
-  `;
-
-  const topScorersWrap = document.getElementById('topScorersBySeason');
-
-  Object.entries(groupedBySeason)
-    .sort((a, b) => Number(a[0]) - Number(b[0]))
-    .forEach(([seasonId, seasonMatchList]) => {
-      const seasonMatchIds = new Set(seasonMatchList.map(m => String(m.id).trim()));
-      const seasonScorers = {};
-
-      appearances.forEach(a => {
-        if (String(a.team).trim() !== String(id).trim()) return;
-        if (!seasonMatchIds.has(String(a.match_id).trim())) return;
-
-        const playerId = String(a.player_id).trim();
-        const goals = Number(a.goals || 0);
-
-        if (!seasonScorers[playerId]) {
-          seasonScorers[playerId] = 0;
+        if (rows.length === 0) {
+          scorerTable.innerHTML = `<tr><td colspan="2">No goals recorded.</td></tr>`;
+        } else {
+          rows.forEach(row => {
+            scorerTable.innerHTML += `
+              <tr>
+                <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
+                <td>${row.goals}</td>
+              </tr>
+            `;
+          });
         }
-
-        seasonScorers[playerId] += goals;
       });
 
-      const rows = Object.entries(seasonScorers)
-        .map(([playerId, goals]) => {
-          const stats = getPlayerStats(playerId, id);
-          return {
-            playerId,
-            name: playerName(playerId),
-            goals,
-            starts: stats.starts,
-            subs: stats.subs
-          };
-        })
-        .filter(row => row.goals > 0)
-        .sort(sortByGoalsThenStartsThenSubsThenName);
-
-      topScorersWrap.innerHTML += `
-        <h4>${seasonName(seasonId)}</h4>
+    el.innerHTML += `
+      <div class="content-box section-block">
+        <h3>Squad</h3>
         <table class="archive-table">
           <thead>
             <tr>
-              <th>Player</th>
+              <th>Name</th>
+              <th>Position</th>
+              <th>Apps</th>
               <th>Goals</th>
             </tr>
           </thead>
-          <tbody id="scorers-${seasonId}"></tbody>
+          <tbody id="teamSquadTable"></tbody>
         </table>
-      `;
+      </div>
+    `;
 
-      const scorerTable = document.getElementById(`scorers-${seasonId}`);
+    const squadTable = document.getElementById('teamSquadTable');
 
-      if (rows.length === 0) {
-        scorerTable.innerHTML = `<tr><td colspan="2">No goals recorded.</td></tr>`;
-      } else {
-        rows.forEach(row => {
-          scorerTable.innerHTML += `
-            <tr>
-              <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
-              <td>${row.goals}</td>
-            </tr>
-          `;
-        });
-      }
-    });
+    if (squad.length === 0) {
+      squadTable.innerHTML = `<tr><td colspan="4">No players found for this team.</td></tr>`;
+    } else {
+      squad.forEach(p => {
+        const stats = getPlayerStats(p.id, id);
 
-  el.innerHTML += `
-    <div class="content-box section-block">
-      <h3>Squad</h3>
-      <table class="archive-table">
-        <thead>
+        squadTable.innerHTML += `
           <tr>
-            <th>Name</th>
-            <th>Position</th>
-            <th>Apps</th>
-            <th>Goals</th>
+            <td><a href="player.html?id=${p.id}">${p.name}</a></td>
+            <td>${p.position || ''}</td>
+            <td>${stats.appsDisplay}</td>
+            <td>${stats.goals}</td>
           </tr>
-        </thead>
-        <tbody id="teamSquadTable"></tbody>
-      </table>
-    </div>
-  `;
-
-  const squadTable = document.getElementById('teamSquadTable');
-
-  if (squad.length === 0) {
-    squadTable.innerHTML = `<tr><td colspan="4">No players found for this team.</td></tr>`;
-  } else {
-    squad.forEach(p => {
-      const stats = getPlayerStats(p.id, id);
-
-      squadTable.innerHTML += `
-        <tr>
-          <td><a href="player.html?id=${p.id}">${p.name}</a></td>
-          <td>${p.position || ''}</td>
-          <td>${stats.appsDisplay}</td>
-          <td>${stats.goals}</td>
-        </tr>
-      `;
-    });
+        `;
+      });
+    }
   }
 
   el.innerHTML += `
@@ -567,7 +597,7 @@ Promise.all([
     matchesWrap.innerHTML = `<div>No matches found for this team.</div>`;
   } else {
     Object.entries(groupedBySeason)
-      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
       .forEach(([seasonId, seasonMatches]) => {
         seasonMatches.sort((a, b) => {
           const da = new Date((a.date || '').split('/').reverse().join('-'));
