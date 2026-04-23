@@ -646,3 +646,42 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
 }
+.match-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 14px 0;
+  padding: 8px 0;
+}
+
+.match-nav-left,
+.match-nav-right {
+  flex: 1;
+}
+
+.match-nav-left {
+  text-align: left;
+}
+
+.match-nav-right {
+  text-align: right;
+}
+
+.match-nav a {
+  display: inline-block;
+  background: #f3f3f3;
+  border: 1px solid #bdbdbd;
+  padding: 8px 12px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #111;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.match-nav a:hover {
+  background: #e7eefc;
+  border-color: #8aa7e8;
+  text-decoration: none;
+}
