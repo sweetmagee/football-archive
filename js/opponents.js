@@ -27,7 +27,7 @@ fetch("data/teams.json")
                   <img class="team-badge-small"
                        src="images/teams/${team.id}.png"
                        alt=""
-                       onerror="this.style.display='none'">
+                       onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
                   <a href="team.html?id=${team.id}">${team.name}</a>
                 </span>
               </td>

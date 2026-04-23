@@ -46,7 +46,7 @@ Promise.all([
   }
 
   function teamBadgeHtml(teamId, sizeClass = 'team-badge-small') {
-    return `<img class="${sizeClass}" src="images/teams/${teamId}.png" alt="" onerror="this.style.display='none'">`;
+    return `<img class="${sizeClass}" src="images/teams/${teamId}.png" alt="" onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">`;
   }
 
   function getPlayerStats(playerId, teamId = null) {
@@ -179,7 +179,7 @@ Promise.all([
   el.innerHTML = `
     <div class="content-box">
       <div class="team-header">
-        <img class="team-badge-large" src="images/teams/${team.id}.png" alt="${team.name}" onerror="this.style.display='none'">
+        <img class="team-badge-large" src="images/teams/${team.id}.png" alt="${team.name}" onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
         <div class="team-header-text">
           <h2>${team.name}</h2>
           <p><strong>Played:</strong> ${overall.P}</p>

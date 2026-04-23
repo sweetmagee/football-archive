@@ -46,8 +46,8 @@ Promise.all([
 
   function teamBadgeHtml(teamValue, sizeClass = "team-badge-small") {
     const team = resolveTeam(teamValue);
-    if (!team) return "";
-    return `<img class="${sizeClass}" src="images/teams/${team.id}.png" alt="" onerror="this.style.display='none'">`;
+    const teamId = team ? team.id : teamValue;
+    return `<img class="${sizeClass}" src="images/teams/${teamId}.png" alt="" onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">`;
   }
 
   function getPlayer(playerId) {

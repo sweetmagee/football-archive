@@ -98,7 +98,7 @@ Promise.all([
           class="team-badge-small"
           src="images/teams/${team.id}.png"
           alt=""
-          onerror="this.style.display='none'"
+          onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';"
         >
         <a href="team.html?id=${encodeURIComponent(team.id)}">${team.name}</a>
       </span>
@@ -240,14 +240,14 @@ Promise.all([
           <div class="match-scoreline">
             <a href="match.html?id=${m.id}">
               <span class="team-inline">
-                ${home ? `<img class="team-badge-small" src="images/teams/${home.id}.png" onerror="this.style.display='none'">` : ""}
+                <img class="team-badge-small" src="images/teams/${home ? home.id : m.home_team}.png" alt="" onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
                 <span>${teamName(m.home_team)}</span>
               </span>
 
               ${m.home_score}-${m.away_score}
 
               <span class="team-inline">
-                ${away ? `<img class="team-badge-small" src="images/teams/${away.id}.png" onerror="this.style.display='none'">` : ""}
+                <img class="team-badge-small" src="images/teams/${away ? away.id : m.away_team}.png" alt="" onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
                 <span>${teamName(m.away_team)}</span>
               </span>
             </a>
