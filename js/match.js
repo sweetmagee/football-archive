@@ -5,9 +5,8 @@ Promise.all([
   fetch("data/appearances.json").then(r => r.json()),
   fetch("data/players.json").then(r => r.json()),
   fetch("data/teams.json").then(r => r.json()),
-  fetch("data/captains.json").then(r => r.json()).catch(() => []),
   fetch("data/managers.json").then(r => r.json()).catch(() => [])
-]).then(([matches, apps, players, teams, captains, managers]) => {
+]).then(([matches, apps, players, teams, managers]) => {
   const match = matches.find(m => String(m.id).trim() === String(id).trim());
   const el = document.getElementById("match");
 
@@ -101,12 +100,12 @@ Promise.all([
     const scorerPlayerIds = margateApps.map(a => String(a.player_id).trim());
 
     const scorerRows = margateApps.map(a => {
-      const id = String(a.player_id).trim();
-      const displayName = playerDisplayNameForScorers(id, scorerPlayerIds);
-      const surname = splitPlayerName(playerName(id)).last || displayName;
+      const pid = String(a.player_id).trim();
+      const displayName = playerDisplayNameForScorers(pid, scorerPlayerIds);
+      const surname = splitPlayerName(playerName(pid)).last || displayName;
 
       return {
-        id,
+        id: pid,
         displayName,
         surname,
         goals: Number(a.goals || 0)
@@ -141,51 +140,26 @@ Promise.all([
     return `<img class="competition-badge" src="images/competitions/${slug}.png" alt="${competition}" title="${competition}" onerror="this.style.display='none'">`;
   }
 
-  function inSeasonRange(item, seasonId) {
-    return Number(item.start_season || 0) <= Number(seasonId) &&
-           Number(item.end_season || 0) >= Number(seasonId);
+  function margateManagerForMatch(matchRecord) {
+    const managerId =
+      String(matchRecord.home_team).trim() === "t1"
+        ? String(matchRecord.home_manager_id || "").trim()
+        : String(matchRecord.away_team).trim() === "t1"
+          ? String(matchRecord.away_manager_id || "").trim()
+          : "";
+
+    if (!managerId) return null;
+
+    return managers.find(m => String(m.id).trim() === managerId) || null;
   }
-
-  function getCaptain(teamId, seasonId) {
-    return captains.find(c =>
-      String(c.team_id).trim() === String(teamId).trim() &&
-      inSeasonRange(c, seasonId)
-    );
-  }
-
-  const homeCaptain = getCaptain(match.home_team, match.season_id);
-  const awayCaptain = getCaptain(match.away_team, match.season_id);
-
-  const homeManager = managers.find(m =>
-    String(m.id).trim() === String(match.home_manager_id || "").trim()
-  );
-  const awayManager = managers.find(m =>
-    String(m.id).trim() === String(match.away_manager_id || "").trim()
-  );
-
-  const homeCaptainHtml = homeCaptain
-    ? `<a href="player.html?id=${homeCaptain.player_id}">${playerName(homeCaptain.player_id)}</a>`
-    : "Not recorded";
-
-  const awayCaptainHtml = awayCaptain
-    ? `<a href="player.html?id=${awayCaptain.player_id}">${playerName(awayCaptain.player_id)}</a>`
-    : "Not recorded";
-
-  const homeManagerHtml = homeManager
-    ? `<a href="manager.html?id=${homeManager.id}">${homeManager.name}</a>`
-    : "Not recorded";
-
-  const awayManagerHtml = awayManager
-    ? `<a href="manager.html?id=${awayManager.id}">${awayManager.name}</a>`
-    : "Not recorded";
 
   const notesHtml = match.notes && String(match.notes).trim() !== ""
-    ? `
-      <div class="content-box section-block">
-        <h3>Notes</h3>
-        <p>${match.notes}</p>
-      </div>
-    `
+    ? `<p class="stat-line"><strong>Notes:</strong> ${match.notes}</p>`
+    : "";
+
+  const margateManager = margateManagerForMatch(match);
+  const managerHtml = margateManager
+    ? `<p class="stat-line"><strong>Manager:</strong> <a href="manager.html?id=${margateManager.id}">${margateManager.name}</a></p>`
     : "";
 
   const homeScoreNum = Number(match.home_score || 0);
@@ -219,14 +193,14 @@ Promise.all([
     <div class="content-box">
       <div class="competition-header">
         ${competitionBadgeHtml(match.competition)}
-        <div>
+        <div class="match-header-main">
           <div class="match-score-header">
             <div class="match-team-line ${homeResultClass}">
               <span class="team-inline">
                 ${teamBadgeHtml(match.home_team, "team-badge-medium")}
                 <span>${homeName}</span>
               </span>
-              <span class="team-line-score">${homeScoreDisplay}</span>
+              <span class="team-line-score"> ${homeScoreDisplay}</span>
             </div>
 
             <div class="match-team-line ${awayResultClass}">
@@ -234,60 +208,23 @@ Promise.all([
                 ${teamBadgeHtml(match.away_team, "team-badge-medium")}
                 <span>${awayName}</span>
               </span>
-              <span class="team-line-score">${awayScoreDisplay}</span>
+              <span class="team-line-score"> ${awayScoreDisplay}</span>
             </div>
           </div>
 
+          ${notesHtml}
+          ${managerHtml}
           <p class="stat-line"><strong>Competition:</strong> ${match.competition || ""}</p>
         </div>
       </div>
 
       <p class="stat-line"><strong>Date:</strong> ${match.date || ""}</p>
-      <p class="stat-line"><strong>Kick-off:</strong> ${match.kickoff_time || "Not recorded"}</p>
       ${match.round && String(match.round).trim() !== ""
         ? `<p class="stat-line"><strong>Round:</strong> ${match.round}</p>`
         : ""}
       <p class="stat-line"><strong>Venue:</strong> ${match.venue || "Not recorded"}</p>
       <p class="stat-line"><strong>Attendance:</strong> ${match.attendance || "Not recorded"}</p>
-      <p class="stat-line"><strong>Referee:</strong> ${match.referee || "Not recorded"}</p>
     </div>
-
-    <div class="content-box section-block">
-      <h3>Captains & Managers</h3>
-      <table class="archive-table">
-        <thead>
-          <tr>
-            <th>Team</th>
-            <th>Captain</th>
-            <th>Manager</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <span class="team-inline">
-                ${teamBadgeHtml(match.home_team, "team-badge-small")}
-                <a href="team.html?id=${encodeURIComponent(homeTeam ? homeTeam.id : match.home_team)}">${homeName}</a>
-              </span>
-            </td>
-            <td>${homeCaptainHtml}</td>
-            <td>${homeManagerHtml}</td>
-          </tr>
-          <tr>
-            <td>
-              <span class="team-inline">
-                ${teamBadgeHtml(match.away_team, "team-badge-small")}
-                <a href="team.html?id=${encodeURIComponent(awayTeam ? awayTeam.id : match.away_team)}">${awayName}</a>
-              </span>
-            </td>
-            <td>${awayCaptainHtml}</td>
-            <td>${awayManagerHtml}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    ${notesHtml}
   `;
 
   const matchApps = apps.filter(a => String(a.match_id).trim() === String(id).trim());
