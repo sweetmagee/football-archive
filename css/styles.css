@@ -340,14 +340,13 @@ tbody tr:hover {
 
 .team-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
 }
 
 .team-header-text h2 {
   margin-bottom: 8px;
 }
-
 .match-header-main {
   width: 100%;
 }
