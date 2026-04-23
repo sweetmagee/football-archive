@@ -13,89 +13,156 @@ Promise.all([
     return;
   }
 
-  function parseDate(value) {
-    if (!value) return null;
-    const parts = String(value).split("/");
-    if (parts.length === 3) {
-      return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+  function parseDateUK(str) {
+    if (!str) return null;
+    const clean = String(str).replace(/\./g, "/").replace(/-/g, "/").trim();
+    const parts = clean.split("/");
+    if (parts.length !== 3) return null;
+
+    let [d, m, y] = parts;
+    if (y.length === 2) {
+      y = Number(y) >= 50 ? `18${y}` : `19${y}`;
     }
-    return null;
+
+    const dt = new Date(`${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`);
+    return Number.isNaN(dt.getTime()) ? null : dt;
   }
 
-  function isCountableMatch(match) {
-    return (
-      match &&
-      match.home_score !== "?" &&
-      match.away_score !== "?" &&
-      !Number.isNaN(Number(match.home_score)) &&
-      !Number.isNaN(Number(match.away_score))
+  function resolveTeam(teamValue) {
+    return teams.find(t =>
+      String(t.id).trim() === String(teamValue).trim() ||
+      String(t.name).trim() === String(teamValue).trim()
     );
   }
 
-  function teamName(teamId) {
-    const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
-    return team ? team.name : teamId;
+  function teamName(teamValue) {
+    const team = resolveTeam(teamValue);
+    return team ? team.name : teamValue;
   }
 
-  const mgrMatches = matches.filter(m =>
-    (
-      String(m.home_manager_id || "").trim() === String(manager.id).trim() ||
-      String(m.away_manager_id || "").trim() === String(manager.id).trim()
-    ) &&
-    isCountableMatch(m)
-  );
+  function isManagedByThisMatch(match) {
+    return (
+      String(match.home_manager_id || "").trim() === String(manager.id).trim() ||
+      String(match.away_manager_id || "").trim() === String(manager.id).trim()
+    );
+  }
 
-  const sortedMatches = [...mgrMatches].sort((a, b) => parseDate(a.date) - parseDate(b.date));
+  function managedTeamId(match) {
+    if (String(match.home_manager_id || "").trim() === String(manager.id).trim()) {
+      return match.home_team;
+    }
+    if (String(match.away_manager_id || "").trim() === String(manager.id).trim()) {
+      return match.away_team;
+    }
+    return "";
+  }
+
+  function isCountableScore(value) {
+    return value !== "?" && !Number.isNaN(Number(value));
+  }
+
+  const managerMatches = matches
+    .filter(isManagedByThisMatch)
+    .sort((a, b) => parseDateUK(a.date) - parseDateUK(b.date));
+
+  const countedMatches = managerMatches.filter(m =>
+    isCountableScore(m.home_score) && isCountableScore(m.away_score)
+  );
 
   let played = 0;
   let won = 0;
   let drawn = 0;
   let lost = 0;
-  let goalsFor = 0;
-  let goalsAgainst = 0;
+  let gf = 0;
+  let ga = 0;
 
-  sortedMatches.forEach(m => {
-    const isHomeManager = String(m.home_manager_id || "").trim() === String(manager.id).trim();
-    const gf = isHomeManager ? Number(m.home_score || 0) : Number(m.away_score || 0);
-    const ga = isHomeManager ? Number(m.away_score || 0) : Number(m.home_score || 0);
+  countedMatches.forEach(match => {
+    const teamId = managedTeamId(match);
 
-    played += 1;
-    goalsFor += gf;
-    goalsAgainst += ga;
+    const isHome = String(match.home_team).trim() === String(teamId).trim();
 
-    if (gf > ga) won += 1;
-    else if (gf < ga) lost += 1;
-    else drawn += 1;
+    const teamGoals = isHome ? Number(match.home_score) : Number(match.away_score);
+    const oppGoals = isHome ? Number(match.away_score) : Number(match.home_score);
+
+    played++;
+    gf += teamGoals;
+    ga += oppGoals;
+
+    if (teamGoals > oppGoals) won++;
+    else if (teamGoals < oppGoals) lost++;
+    else drawn++;
   });
 
-  const firstMatch = sortedMatches[0];
-  const lastMatch = sortedMatches[sortedMatches.length - 1];
-  const photo = manager.photo && manager.photo.trim() !== "" ? manager.photo.trim() : "default.png";
+  const firstMatch = managerMatches[0];
+  const lastMatch = managerMatches[managerMatches.length - 1];
+
+  const firstDate = firstMatch ? firstMatch.date : "Unknown";
+  const lastDate = lastMatch ? lastMatch.date : "Unknown";
+
+  const managedClub = firstMatch ? teamName(managedTeamId(firstMatch)) : "Unknown";
+
+  const photoFile = manager.photo && String(manager.photo).trim() !== ""
+    ? manager.photo
+    : "defaultmanager.png";
+
+  const photoHtml = `
+    <img
+      src="images/managers/${photoFile}"
+      alt="${manager.name}"
+      onerror="this.onerror=null;this.src='images/managers/defaultmanager.png';"
+    >
+  `;
 
   el.innerHTML = `
     <div class="content-box">
       <div class="player-card">
         <div>
-          <img src="images/managers/${photo}" alt="${manager.name}" onerror="this.src='images/managers/default.png'">
+          ${photoHtml}
         </div>
+
         <div class="player-meta">
           <h2>${manager.name}</h2>
-          <p><strong>Date of birth:</strong> ${manager.dob || "Not recorded"}</p>
-          <p><strong>First match:</strong> ${firstMatch ? firstMatch.date : "Not recorded"}</p>
-          <p><strong>Last match:</strong> ${lastMatch ? lastMatch.date : "Not recorded"}</p>
-          <p><strong>Played:</strong> ${played}</p>
-          <p><strong>Won:</strong> ${won}</p>
-          <p><strong>Drawn:</strong> ${drawn}</p>
-          <p><strong>Lost:</strong> ${lost}</p>
-          <p><strong>Goals For:</strong> ${goalsFor}</p>
-          <p><strong>Goals Against:</strong> ${goalsAgainst}</p>
-          <p>${manager.bio || ""}</p>
+
+          <p><strong>Club:</strong> ${managedClub}</p>
+          <p><strong>Date of Birth:</strong> ${manager.dob || "Unknown"}</p>
+          <p><strong>First Match:</strong> ${firstDate}</p>
+          <p><strong>Last Match:</strong> ${lastDate}</p>
         </div>
       </div>
     </div>
 
-    <div class="content-box section-block">
-      <h3>Matches as Manager</h3>
+    <div class="content-box">
+      <h3>Managerial Record</h3>
+
+      <div class="player-stats-grid">
+        <div class="player-stat-box">
+          <div class="player-stat-title">Matches</div>
+          <p><strong>${played}</strong></p>
+        </div>
+
+        <div class="player-stat-box">
+          <div class="player-stat-title">Record</div>
+          <p>W ${won}</p>
+          <p>D ${drawn}</p>
+          <p>L ${lost}</p>
+        </div>
+
+        <div class="player-stat-box">
+          <div class="player-stat-title">Goals</div>
+          <p>For ${gf}</p>
+          <p>Against ${ga}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-box">
+      <h3>Biography</h3>
+      <p>${manager.bio || "No biography available."}</p>
+    </div>
+
+    <div class="content-box">
+      <h3>Matches Managed</h3>
+
       <table class="archive-table">
         <thead>
           <tr>
@@ -105,22 +172,28 @@ Promise.all([
           </tr>
         </thead>
         <tbody>
-          ${sortedMatches.map(m => `
-            <tr>
-              <td>${m.date || ""}</td>
-              <td>
-                <a href="match.html?id=${m.id}">
-                  ${teamName(m.home_team)} ${m.home_score}-${m.away_score} ${teamName(m.away_team)}
-                </a>
-              </td>
-              <td>${m.competition || ""}</td>
-            </tr>
-          `).join("")}
+          ${managerMatches.map(match => {
+            const home = teamName(match.home_team);
+            const away = teamName(match.away_team);
+
+            return `
+              <tr>
+                <td>${match.date}</td>
+                <td>
+                  <a href="match.html?id=${match.id}">
+                    ${home} ${match.home_score} - ${match.away_score} ${away}
+                  </a>
+                </td>
+                <td>${match.competition || ""}</td>
+              </tr>
+            `;
+          }).join("")}
         </tbody>
       </table>
     </div>
   `;
 }).catch(err => {
-  document.getElementById("managerPage").innerHTML = `<div class="content-box"><p>Error loading manager page: ${err.message}</p></div>`;
+  document.getElementById("managerPage").innerHTML =
+    `<div class="content-box"><p>Error loading manager page: ${err.message}</p></div>`;
   console.error(err);
 });
