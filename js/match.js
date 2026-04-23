@@ -40,9 +40,90 @@ Promise.all([
   const homeName = homeTeam ? homeTeam.name : match.home_team;
   const awayName = awayTeam ? awayTeam.name : match.away_team;
 
+  function getPlayer(playerId) {
+    return players.find(x => String(x.id).trim() === String(playerId).trim());
+  }
+
   function playerName(playerId) {
-    const p = players.find(x => String(x.id).trim() === String(playerId).trim());
+    const p = getPlayer(playerId);
     return p ? p.name : playerId;
+  }
+
+  function splitPlayerName(fullName) {
+    const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return { first: "", last: "" };
+    if (parts.length === 1) return { first: "", last: parts[0] };
+    const last = parts.pop();
+    return { first: parts.join(" "), last };
+  }
+
+  function playerDisplayNameForScorers(playerId, scorerPlayerIds) {
+    const current = getPlayer(playerId);
+    const fullName = current ? current.name : playerId;
+    const { first, last } = splitPlayerName(fullName);
+
+    if (!last) return fullName;
+
+    const sameSurnamePlayers = scorerPlayerIds
+      .map(id => getPlayer(id))
+      .filter(Boolean)
+      .filter(p => splitPlayerName(p.name).last.toLowerCase() === last.toLowerCase());
+
+    if (sameSurnamePlayers.length <= 1) {
+      return last;
+    }
+
+    const initial = first ? `${first.trim().charAt(0)}.` : "";
+    return initial ? `${initial}${last}` : last;
+  }
+
+  function joinScorers(parts) {
+    if (!parts.length) return "";
+    if (parts.length === 1) return parts[0];
+    if (parts.length === 2) return `${parts[0]} & ${parts[1]}`;
+    return `${parts.slice(0, -1).join(", ")} & ${parts[parts.length - 1]}`;
+  }
+
+  function buildMargateScorerText(matchRecord, appearancesList) {
+    const isMargateHome = String(matchRecord.home_team).trim() === "t1";
+    const isMargateAway = String(matchRecord.away_team).trim() === "t1";
+
+    if (!isMargateHome && !isMargateAway) return "";
+
+    const margateApps = appearancesList.filter(a =>
+      String(a.match_id).trim() === String(matchRecord.id).trim() &&
+      String(a.team).trim() === "t1" &&
+      Number(a.goals || 0) > 0
+    );
+
+    if (!margateApps.length) return "";
+
+    const scorerPlayerIds = margateApps.map(a => String(a.player_id).trim());
+
+    const scorerRows = margateApps.map(a => {
+      const id = String(a.player_id).trim();
+      const displayName = playerDisplayNameForScorers(id, scorerPlayerIds);
+      const surname = splitPlayerName(playerName(id)).last || displayName;
+
+      return {
+        id,
+        displayName,
+        surname,
+        goals: Number(a.goals || 0)
+      };
+    });
+
+    scorerRows.sort((a, b) =>
+      b.goals - a.goals ||
+      a.surname.localeCompare(b.surname) ||
+      a.displayName.localeCompare(b.displayName)
+    );
+
+    const formatted = scorerRows.map(row =>
+      row.goals > 1 ? `${row.displayName} (${row.goals})` : row.displayName
+    );
+
+    return `<span class="margate-scorers"> (${joinScorers(formatted)})</span>`;
   }
 
   function slugifyCompetition(name) {
@@ -70,41 +151,6 @@ Promise.all([
       String(c.team_id).trim() === String(teamId).trim() &&
       inSeasonRange(c, seasonId)
     );
-  }
-
-  function joinScorers(parts) {
-    if (!parts.length) return "";
-    if (parts.length === 1) return parts[0];
-    if (parts.length === 2) return `${parts[0]} & ${parts[1]}`;
-    return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
-  }
-
-  function buildMargateScorerText(matchRecord, appearancesList) {
-    const isMargateHome = String(matchRecord.home_team).trim() === "t1";
-    const isMargateAway = String(matchRecord.away_team).trim() === "t1";
-
-    if (!isMargateHome && !isMargateAway) return "";
-
-    const margateApps = appearancesList.filter(a =>
-      String(a.match_id).trim() === String(matchRecord.id).trim() &&
-      String(a.team).trim() === "t1" &&
-      Number(a.goals || 0) > 0
-    );
-
-    if (!margateApps.length) return "";
-
-    const scorerRows = margateApps
-      .map(a => ({
-        name: playerName(a.player_id),
-        goals: Number(a.goals || 0)
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-
-    const formatted = scorerRows.map(row =>
-      row.goals > 1 ? `${row.name} (${row.goals})` : row.name
-    );
-
-    return ` (${joinScorers(formatted)})`;
   }
 
   const homeCaptain = getCaptain(match.home_team, match.season_id);
