@@ -317,9 +317,14 @@ tbody tr:hover {
 .team-badge-small {
   width: 20px;
   height: 20px;
+  min-width: 20px;
+  min-height: 20px;
   object-fit: contain;
   vertical-align: middle;
+  display: inline-block;
+  flex-shrink: 0;
 }
+
 
 .team-badge-medium {
   width: 32px;
@@ -683,4 +688,9 @@ tbody tr:hover {
   background: #e7eefc;
   border-color: #8aa7e8;
   text-decoration: none;
+}
+.match-scoreline .team-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
