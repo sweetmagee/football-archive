@@ -33,12 +33,6 @@ Promise.all([
     return `<img class="${sizeClass}" src="images/teams/${team.id}.png" alt="" onerror="this.style.display='none'">`;
   }
 
-  const homeTeam = resolveTeam(match.home_team);
-  const awayTeam = resolveTeam(match.away_team);
-
-  const homeName = homeTeam ? homeTeam.name : match.home_team;
-  const awayName = awayTeam ? awayTeam.name : match.away_team;
-
   function getPlayer(playerId) {
     return players.find(x => String(x.id).trim() === String(playerId).trim());
   }
@@ -56,15 +50,15 @@ Promise.all([
     return { first: parts.join(" "), last };
   }
 
-  function playerDisplayNameForScorers(playerId, scorerPlayerIds) {
+  function playerDisplayNameForScorers(playerId, teamPlayerIds) {
     const current = getPlayer(playerId);
     const fullName = current ? current.name : playerId;
     const { first, last } = splitPlayerName(fullName);
 
     if (!last) return fullName;
 
-    const sameSurnamePlayers = scorerPlayerIds
-      .map(id => getPlayer(id))
+    const sameSurnamePlayers = teamPlayerIds
+      .map(pid => getPlayer(pid))
       .filter(Boolean)
       .filter(p => splitPlayerName(p.name).last.toLowerCase() === last.toLowerCase());
 
@@ -89,19 +83,20 @@ Promise.all([
 
     if (!isMargateHome && !isMargateAway) return "";
 
-    const margateApps = appearancesList.filter(a =>
+    const margateTeamApps = appearancesList.filter(a =>
       String(a.match_id).trim() === String(matchRecord.id).trim() &&
-      String(a.team).trim() === "t1" &&
-      Number(a.goals || 0) > 0
+      String(a.team).trim() === "t1"
     );
+
+    const margateApps = margateTeamApps.filter(a => Number(a.goals || 0) > 0);
 
     if (!margateApps.length) return "";
 
-    const scorerPlayerIds = margateApps.map(a => String(a.player_id).trim());
+    const allMargatePlayerIdsInMatch = margateTeamApps.map(a => String(a.player_id).trim());
 
     const scorerRows = margateApps.map(a => {
       const pid = String(a.player_id).trim();
-      const displayName = playerDisplayNameForScorers(pid, scorerPlayerIds);
+      const displayName = playerDisplayNameForScorers(pid, allMargatePlayerIdsInMatch);
       const surname = splitPlayerName(playerName(pid)).last || displayName;
 
       return {
@@ -153,6 +148,11 @@ Promise.all([
     return managers.find(m => String(m.id).trim() === managerId) || null;
   }
 
+  const homeTeam = resolveTeam(match.home_team);
+  const awayTeam = resolveTeam(match.away_team);
+  const homeName = homeTeam ? homeTeam.name : match.home_team;
+  const awayName = awayTeam ? awayTeam.name : match.away_team;
+
   const notesHtml = match.notes && String(match.notes).trim() !== ""
     ? `<p class="stat-line"><strong>Notes:</strong> ${match.notes}</p>`
     : "";
@@ -179,15 +179,16 @@ Promise.all([
   }
 
   const margateScorerText = buildMargateScorerText(match, apps);
-  const homeScoreDisplay =
-    String(match.home_team).trim() === "t1"
-      ? `${match.home_score}${margateScorerText}`
-      : `${match.home_score}`;
 
-  const awayScoreDisplay =
+  const homeLine =
+    String(match.home_team).trim() === "t1"
+      ? `${homeName} ${match.home_score}${margateScorerText}`
+      : `${homeName} ${match.home_score}`;
+
+  const awayLine =
     String(match.away_team).trim() === "t1"
-      ? `${match.away_score}${margateScorerText}`
-      : `${match.away_score}`;
+      ? `${awayName} ${match.away_score}${margateScorerText}`
+      : `${awayName} ${match.away_score}`;
 
   el.innerHTML = `
     <div class="content-box">
@@ -196,19 +197,13 @@ Promise.all([
         <div class="match-header-main">
           <div class="match-score-header">
             <div class="match-team-line ${homeResultClass}">
-              <span class="team-inline">
-                ${teamBadgeHtml(match.home_team, "team-badge-medium")}
-                <span>${homeName}</span>
-              </span>
-              <span class="team-line-score"> ${homeScoreDisplay}</span>
+              ${teamBadgeHtml(match.home_team, "team-badge-medium")}
+              <span class="match-line-text">${homeLine}</span>
             </div>
 
             <div class="match-team-line ${awayResultClass}">
-              <span class="team-inline">
-                ${teamBadgeHtml(match.away_team, "team-badge-medium")}
-                <span>${awayName}</span>
-              </span>
-              <span class="team-line-score"> ${awayScoreDisplay}</span>
+              ${teamBadgeHtml(match.away_team, "team-badge-medium")}
+              <span class="match-line-text">${awayLine}</span>
             </div>
           </div>
 
@@ -223,7 +218,7 @@ Promise.all([
         ? `<p class="stat-line"><strong>Round:</strong> ${match.round}</p>`
         : ""}
       <p class="stat-line"><strong>Venue:</strong> ${match.venue || "Not recorded"}</p>
-      <p class="stat-line"><strong>Attendance:</strong> ${match.attendance || "Not recorded"}</p>
+      <p class="stat-line"><strong>Attendance:</strong> ${match.attendance || "Unknown"}</p>
     </div>
   `;
 
@@ -235,9 +230,10 @@ Promise.all([
     const goals = "⚽".repeat(Number(a.goals || 0));
     const yellows = "🟨".repeat(Number(a.yellow || 0));
     const reds = "🟥".repeat(Number(a.red || 0));
+    const captain = Number(a.captain || 0) === 1 ? `<span class="captain-icon" title="Captain">Ⓒ</span>` : "";
 
-    return (goals || yellows || reds)
-      ? `<span class="player-icons">${goals}${yellows}${reds}</span>`
+    return (goals || yellows || reds || captain)
+      ? `<span class="player-icons">${captain}${goals}${yellows}${reds}</span>`
       : "";
   }
 
@@ -266,8 +262,6 @@ Promise.all([
     const starters = teamApps.filter(a => Number(a.is_starting) === 1);
     const subs = teamApps.filter(a => Number(a.is_starting) !== 1);
 
-    html += `<h4 class="lineup-heading">Starting XI</h4>`;
-
     if (starters.length === 0) {
       html += `<div>None listed</div>`;
     } else {
@@ -284,12 +278,10 @@ Promise.all([
       });
     }
 
-    html += `<div class="lineup-gap"></div>`;
-    html += `<h4 class="lineup-heading">Substitutes Used</h4>`;
+    if (subs.length > 0) {
+      html += `<div class="lineup-gap"></div>`;
+      html += `<h4 class="lineup-heading">Substitutes Used</h4>`;
 
-    if (subs.length === 0) {
-      html += `<div>None listed</div>`;
-    } else {
       subs.forEach(a => {
         html += `
           <div class="lineup-player">
@@ -311,7 +303,7 @@ Promise.all([
   const awayHasInfo = awayApps.length > 0;
 
   if (homeHasInfo || awayHasInfo) {
-    let lineupHtml = `<div class="match-lineups-grid">`;
+    let lineupHtml = `<div class="match-lineups-grid no-top-gap">`;
 
     if (homeHasInfo) {
       lineupHtml += renderTeamSection(homeName, homeApps);
