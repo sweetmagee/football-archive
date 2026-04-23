@@ -10,7 +10,6 @@ Promise.all([
   fetch("data/managers.json").then(r => r.json()).catch(() => []),
   fetch("data/player_of_the_season.json").then(r => r.json()).catch(() => [])
 ]).then(([matches, teams, seasons, appearances, players, managers, playerOfSeason]) => {
-
   const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
 
   const titleEl = document.getElementById("seasonTitle");
@@ -34,6 +33,23 @@ Promise.all([
       !Number.isNaN(Number(match.home_score)) &&
       !Number.isNaN(Number(match.away_score))
     );
+  }
+
+  function parseUkDate(value) {
+    if (!value) return null;
+    const cleaned = String(value).trim().replace(/-/g, "/").replace(/\./g, "/");
+    const parts = cleaned.split("/");
+    if (parts.length !== 3) return null;
+
+    let [d, m, y] = parts.map(x => x.trim());
+    if (!d || !m || !y) return null;
+
+    if (y.length === 2) {
+      y = Number(y) >= 50 ? `18${y}` : `19${y}`;
+    }
+
+    const dt = new Date(`${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`);
+    return Number.isNaN(dt.getTime()) ? null : dt;
   }
 
   function slugifyCompetition(name) {
@@ -208,8 +224,8 @@ Promise.all([
     matchesEl.innerHTML = "";
 
     const sorted = [...matchList].sort((a, b) => {
-      const da = new Date(a.date.split("/").reverse().join("-"));
-      const db = new Date(b.date.split("/").reverse().join("-"));
+      const da = parseUkDate(a.date);
+      const db = parseUkDate(b.date);
       return da - db;
     });
 
@@ -303,10 +319,16 @@ Promise.all([
   }
 
   function renderManagers() {
-    const t1Matches = seasonMatches.filter(m =>
-      String(m.home_team).trim() === "t1" ||
-      String(m.away_team).trim() === "t1"
-    );
+    const t1Matches = seasonMatches
+      .filter(m =>
+        String(m.home_team).trim() === "t1" ||
+        String(m.away_team).trim() === "t1"
+      )
+      .sort((a, b) => {
+        const da = parseUkDate(a.date);
+        const db = parseUkDate(b.date);
+        return da - db;
+      });
 
     const managerMap = new Map();
 
@@ -318,35 +340,52 @@ Promise.all([
 
       if (!managerId) return;
 
-      if (!managerMap.has(managerId)) {
+      const existing = managerMap.get(managerId);
+
+      if (existing) {
+        existing.matches.push(m);
+      } else {
         const manager = managers.find(x => String(x.id).trim() === managerId);
 
-        managerMap.set(
-          managerId,
-          manager || { id: managerId, name: managerId }
-        );
+        managerMap.set(managerId, {
+          manager: manager || { id: managerId, name: managerId },
+          matches: [m]
+        });
       }
     });
 
-    const managerList = Array.from(managerMap.values());
+    const managerRows = Array.from(managerMap.values()).map(entry => {
+      const sortedMatches = [...entry.matches].sort((a, b) => {
+        const da = parseUkDate(a.date);
+        const db = parseUkDate(b.date);
+        return da - db;
+      });
+
+      return {
+        manager: entry.manager,
+        firstDate: sortedMatches[0]?.date || "",
+        lastDate: sortedMatches[sortedMatches.length - 1]?.date || "",
+        count: sortedMatches.length
+      };
+    });
 
     managerHeading.textContent =
-      managerList.length > 1 ? "Managers" : "Manager";
+      managerRows.length > 1 ? "Managers" : "Manager";
 
-    if (!managerList.length) {
+    if (!managerRows.length) {
       seasonManagersTable.innerHTML = `
         <tr>
-          <td>${teamLink("t1")}</td>
+          <td>Unknown</td>
           <td>Unknown</td>
         </tr>
       `;
       return;
     }
 
-    seasonManagersTable.innerHTML = managerList.map(mgr => `
+    seasonManagersTable.innerHTML = managerRows.map(row => `
       <tr>
-        <td>${teamLink("t1")}</td>
-        <td>${formatManager(mgr)}</td>
+        <td>${formatManager(row.manager)}</td>
+        <td>${managerRows.length === 1 ? "All matches" : `${row.firstDate} to ${row.lastDate}`}</td>
       </tr>
     `).join("");
   }
