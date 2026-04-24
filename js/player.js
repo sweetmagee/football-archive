@@ -81,7 +81,6 @@ Promise.all([
     }
 
     const day = d.getDate();
-
     return `${days[d.getDay()]} ${day}${suffix(day)} ${months[d.getMonth()]} ${d.getFullYear()}`;
   }
 
@@ -105,6 +104,32 @@ Promise.all([
     const dayText = remainingDays === 1 ? "1 day" : `${remainingDays} days`;
 
     return remainingDays > 0 ? `${yearText} ${dayText}` : yearText;
+  }
+
+  function formatDays(days) {
+    if (days === null || days === undefined) return "Unknown";
+    return days === 1 ? "1 day" : `${days} days`;
+  }
+
+  function longestGapBetweenAppearances(orderedRows) {
+    if (!orderedRows || orderedRows.length < 2) return 0;
+
+    let biggestGap = 0;
+
+    for (let i = 1; i < orderedRows.length; i++) {
+      const prev = parseDate(orderedRows[i - 1].match.date);
+      const current = parseDate(orderedRows[i].match.date);
+
+      if (!prev || !current) continue;
+
+      const gap = Math.round((current.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (gap > biggestGap) {
+        biggestGap = gap;
+      }
+    }
+
+    return biggestGap;
   }
 
   function matchLine(match) {
@@ -175,10 +200,13 @@ Promise.all([
   const competitiveDebutText = firstCompetitiveMatch ? formatLongDate(firstCompetitiveMatch.date) : "Unknown";
   const lastAppearanceText = lastAllMatch ? formatLongDate(lastAllMatch.date) : "Unknown";
   const lastCompetitiveAppearanceText = lastCompetitiveMatch ? formatLongDate(lastCompetitiveMatch.date) : "Unknown";
+
   const appearanceSpanText =
     firstAllMatch && lastAllMatch
       ? formatSpan(firstAllMatch.date, lastAllMatch.date)
       : "Unknown";
+
+  const longestGapText = formatDays(longestGapBetweenAppearances(orderedMatches));
 
   const playerPhoto =
     player.photo && String(player.photo).trim() !== ""
@@ -207,51 +235,56 @@ Promise.all([
   el.innerHTML = `
     <div class="content-box">
       <div class="player-card">
-        ${photoHtml}
+        <div>
+          ${photoHtml}
+
+          <div class="player-photo-meta">
+            ${player.position ? `<p><strong>Position:</strong> ${player.position}</p>` : ""}
+            ${profile.dob ? `<p><strong>Date of Birth:</strong> ${profile.dob}</p>` : ""}
+            ${profile.birth_place ? `<p><strong>Birth Place:</strong> ${profile.birth_place}</p>` : ""}
+
+            <p><strong>Debut:</strong> ${debutText}</p>
+            <p><strong>Competitive Debut:</strong> ${competitiveDebutText}</p>
+            <p><strong>Last Appearance:</strong> ${lastAppearanceText}</p>
+            <p><strong>Last Competitive Appearance:</strong> ${lastCompetitiveAppearanceText}</p>
+            <p><strong>Appearance Span (All matches):</strong> ${appearanceSpanText}</p>
+            <p><strong>Longest Gap Between Appearances:</strong> ${longestGapText}</p>
+
+            ${profile.other_clubs ? `<p><strong>Other Clubs:</strong> ${profile.other_clubs}</p>` : ""}
+          </div>
+        </div>
 
         <div class="player-meta">
           <h2>${player.name}</h2>
 
-          ${player.position ? `<p><strong>Position:</strong> ${player.position}</p>` : ""}
-          ${profile.dob ? `<p><strong>Date of Birth:</strong> ${profile.dob}</p>` : ""}
-          ${profile.birth_place ? `<p><strong>Birth Place:</strong> ${profile.birth_place}</p>` : ""}
+          <div class="player-stats-grid">
+            <div class="player-stat-box">
+              <div class="player-stat-title">Competitive Record</div>
+              <p><strong>Appearances:</strong> ${compStats.displayApps}</p>
+              <p><strong>Goals:</strong> ${compStats.goals}</p>
+            </div>
 
-          <p><strong>Debut:</strong> ${debutText}</p>
-          <p><strong>Competitive Debut:</strong> ${competitiveDebutText}</p>
-          <p><strong>Last Appearance:</strong> ${lastAppearanceText}</p>
-          <p><strong>Last Competitive Appearance:</strong> ${lastCompetitiveAppearanceText}</p>
-          <p><strong>Appearance Span (All matches):</strong> ${appearanceSpanText}</p>
+            <div class="player-stat-box">
+              <div class="player-stat-title">Friendly Record</div>
+              <p><strong>Appearances:</strong> ${frStats.displayApps}</p>
+              <p><strong>Goals:</strong> ${frStats.goals}</p>
+            </div>
 
-          ${profile.other_clubs ? `<p><strong>Other Clubs:</strong> ${profile.other_clubs}</p>` : ""}
+            <div class="player-stat-box">
+              <div class="player-stat-title">Total Record</div>
+              <p><strong>Appearances:</strong> ${totalStats.displayApps}</p>
+              <p><strong>Goals:</strong> ${totalStats.goals}</p>
+            </div>
+          </div>
+
+          ${profile.bio ? `
+            <div class="section-block">
+              <h3>Biography</h3>
+              <p>${profile.bio}</p>
+            </div>
+          ` : ""}
         </div>
       </div>
-
-      <div class="player-stats-grid">
-        <div class="player-stat-box">
-          <div class="player-stat-title">Competitive Record</div>
-          <p><strong>Appearances:</strong> ${compStats.displayApps}</p>
-          <p><strong>Goals:</strong> ${compStats.goals}</p>
-        </div>
-
-        <div class="player-stat-box">
-          <div class="player-stat-title">Friendly Record</div>
-          <p><strong>Appearances:</strong> ${frStats.displayApps}</p>
-          <p><strong>Goals:</strong> ${frStats.goals}</p>
-        </div>
-
-        <div class="player-stat-box">
-          <div class="player-stat-title">Total Record</div>
-          <p><strong>Appearances:</strong> ${totalStats.displayApps}</p>
-          <p><strong>Goals:</strong> ${totalStats.goals}</p>
-        </div>
-      </div>
-
-      ${profile.bio ? `
-        <div class="section-block">
-          <h3>Biography</h3>
-          <p>${profile.bio}</p>
-        </div>
-      ` : ""}
     </div>
 
     <div class="content-box section-block">
