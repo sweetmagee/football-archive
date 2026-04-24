@@ -26,7 +26,7 @@ Promise.all([
 
   function isFriendly(match) {
     const comp = String(match.competition || "").trim().toLowerCase();
-    return comp === "friendly" || comp === "fr";
+    return comp === "friendly" || comp === "fr" || comp === "friendlies";
   }
 
   function validMatch(match) {
@@ -41,7 +41,13 @@ Promise.all([
 
   function parseDate(value) {
     if (!value) return null;
-    const parts = String(value).trim().replace(/\./g, "/").replace(/-/g, "/").split("/");
+
+    const parts = String(value)
+      .trim()
+      .replace(/\./g, "/")
+      .replace(/-/g, "/")
+      .split("/");
+
     if (parts.length !== 3) return null;
 
     let [dd, mm, yyyy] = parts;
@@ -52,6 +58,53 @@ Promise.all([
 
     const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
     return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatLongDate(value) {
+    const d = parseDate(value);
+    if (!d) return "Unknown";
+
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    function suffix(day) {
+      if (day >= 11 && day <= 13) return "th";
+      switch (day % 10) {
+        case 1: return "st";
+        case 2: return "nd";
+        case 3: return "rd";
+        default: return "th";
+      }
+    }
+
+    const day = d.getDate();
+
+    return `${days[d.getDay()]} ${day}${suffix(day)} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function formatSpan(firstDateValue, lastDateValue) {
+    const first = parseDate(firstDateValue);
+    const last = parseDate(lastDateValue);
+
+    if (!first || !last) return "Unknown";
+
+    const diffMs = last.getTime() - first.getTime();
+    const days = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+
+    if (days <= 365) {
+      return days === 1 ? "1 day" : `${days} days`;
+    }
+
+    const years = Math.floor(days / 365);
+    const remainingDays = days % 365;
+
+    const yearText = years === 1 ? "1 year" : `${years} years`;
+    const dayText = remainingDays === 1 ? "1 day" : `${remainingDays} days`;
+
+    return remainingDays > 0 ? `${yearText} ${dayText}` : yearText;
   }
 
   function matchLine(match) {
@@ -101,6 +154,32 @@ Promise.all([
     return da - db;
   });
 
+  const orderedCompetitiveMatches = [...competitive].sort((a, b) => {
+    const da = parseDate(a.match.date);
+    const db = parseDate(b.match.date);
+
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
+
+    return da - db;
+  });
+
+  const firstAllMatch = orderedMatches[0]?.match || null;
+  const lastAllMatch = orderedMatches[orderedMatches.length - 1]?.match || null;
+
+  const firstCompetitiveMatch = orderedCompetitiveMatches[0]?.match || null;
+  const lastCompetitiveMatch = orderedCompetitiveMatches[orderedCompetitiveMatches.length - 1]?.match || null;
+
+  const debutText = firstAllMatch ? formatLongDate(firstAllMatch.date) : "Unknown";
+  const competitiveDebutText = firstCompetitiveMatch ? formatLongDate(firstCompetitiveMatch.date) : "Unknown";
+  const lastAppearanceText = lastAllMatch ? formatLongDate(lastAllMatch.date) : "Unknown";
+  const lastCompetitiveAppearanceText = lastCompetitiveMatch ? formatLongDate(lastCompetitiveMatch.date) : "Unknown";
+  const appearanceSpanText =
+    firstAllMatch && lastAllMatch
+      ? formatSpan(firstAllMatch.date, lastAllMatch.date)
+      : "Unknown";
+
   const playerPhoto =
     player.photo && String(player.photo).trim() !== ""
       ? String(player.photo).trim()
@@ -136,7 +215,13 @@ Promise.all([
           ${player.position ? `<p><strong>Position:</strong> ${player.position}</p>` : ""}
           ${profile.dob ? `<p><strong>Date of Birth:</strong> ${profile.dob}</p>` : ""}
           ${profile.birth_place ? `<p><strong>Birth Place:</strong> ${profile.birth_place}</p>` : ""}
-          ${player.team ? `<p><strong>Club:</strong> <a href="team.html?id=${player.team}">${teamName(player.team)}</a></p>` : ""}
+
+          <p><strong>Debut:</strong> ${debutText}</p>
+          <p><strong>Competitive Debut:</strong> ${competitiveDebutText}</p>
+          <p><strong>Last Appearance:</strong> ${lastAppearanceText}</p>
+          <p><strong>Last Competitive Appearance:</strong> ${lastCompetitiveAppearanceText}</p>
+          <p><strong>Appearance Span (All matches):</strong> ${appearanceSpanText}</p>
+
           ${profile.other_clubs ? `<p><strong>Other Clubs:</strong> ${profile.other_clubs}</p>` : ""}
         </div>
       </div>
