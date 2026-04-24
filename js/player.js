@@ -5,14 +5,12 @@ Promise.all([
   fetch("data/player_profiles.json").then(r => r.json()).catch(() => []),
   fetch("data/matches.json").then(r => r.json()),
   fetch("data/appearances.json").then(r => r.json()),
-  fetch("data/teams.json").then(r => r.json())
-]).then(([players, profiles, matches, appearances, teams]) => {
+  fetch("data/teams.json").then(r => r.json()),
+  fetch("data/seasons.json").then(r => r.json()).catch(() => [])
+]).then(([players, profiles, matches, appearances, teams, seasons]) => {
   const player = players.find(p => String(p.id).trim() === String(id).trim());
   const profile = profiles.find(p => String(p.id).trim() === String(id).trim()) || {};
-
-  const el =
-    document.getElementById("player") ||
-    document.getElementById("playerPage");
+  const el = document.getElementById("player") || document.getElementById("playerPage");
 
   if (!player) {
     el.innerHTML = `<div class="content-box"><p>Player not found.</p></div>`;
@@ -22,6 +20,11 @@ Promise.all([
   function teamName(teamId) {
     const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
     return team ? team.name : teamId;
+  }
+
+  function seasonName(seasonId) {
+    const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
+    return season ? season.name : seasonId;
   }
 
   function isFriendly(match) {
@@ -41,20 +44,11 @@ Promise.all([
 
   function parseDate(value) {
     if (!value) return null;
-
-    const parts = String(value)
-      .trim()
-      .replace(/\./g, "/")
-      .replace(/-/g, "/")
-      .split("/");
-
+    const parts = String(value).trim().replace(/\./g, "/").replace(/-/g, "/").split("/");
     if (parts.length !== 3) return null;
 
     let [dd, mm, yyyy] = parts;
-
-    if (yyyy.length === 2) {
-      yyyy = Number(yyyy) >= 50 ? `18${yyyy}` : `19${yyyy}`;
-    }
+    if (yyyy.length === 2) yyyy = Number(yyyy) >= 50 ? `18${yyyy}` : `19${yyyy}`;
 
     const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
     return Number.isNaN(d.getTime()) ? null : d;
@@ -72,12 +66,10 @@ Promise.all([
 
     function suffix(day) {
       if (day >= 11 && day <= 13) return "th";
-      switch (day % 10) {
-        case 1: return "st";
-        case 2: return "nd";
-        case 3: return "rd";
-        default: return "th";
-      }
+      if (day % 10 === 1) return "st";
+      if (day % 10 === 2) return "nd";
+      if (day % 10 === 3) return "rd";
+      return "th";
     }
 
     const day = d.getDate();
@@ -87,78 +79,102 @@ Promise.all([
   function formatSpan(firstDateValue, lastDateValue) {
     const first = parseDate(firstDateValue);
     const last = parseDate(lastDateValue);
-
     if (!first || !last) return "Unknown";
 
-    const diffMs = last.getTime() - first.getTime();
-    const days = Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+    const days = Math.max(0, Math.round((last - first) / 86400000));
 
-    if (days <= 365) {
-      return days === 1 ? "1 day" : `${days} days`;
-    }
+    if (days <= 365) return days === 1 ? "1 day" : `${days} days`;
 
     const years = Math.floor(days / 365);
     const remainingDays = days % 365;
 
-    const yearText = years === 1 ? "1 year" : `${years} years`;
-    const dayText = remainingDays === 1 ? "1 day" : `${remainingDays} days`;
-
-    return remainingDays > 0 ? `${yearText} ${dayText}` : yearText;
+    return remainingDays
+      ? `${years === 1 ? "1 year" : `${years} years`} ${remainingDays === 1 ? "1 day" : `${remainingDays} days`}`
+      : years === 1 ? "1 year" : `${years} years`;
   }
 
   function formatDays(days) {
-    if (days === null || days === undefined) return "Unknown";
     return days === 1 ? "1 day" : `${days} days`;
   }
 
-  function longestGapBetweenAppearances(orderedRows) {
-    if (!orderedRows || orderedRows.length < 2) return 0;
-
-    let biggestGap = 0;
-
-    for (let i = 1; i < orderedRows.length; i++) {
-      const prev = parseDate(orderedRows[i - 1].match.date);
-      const current = parseDate(orderedRows[i].match.date);
-
-      if (!prev || !current) continue;
-
-      const gap = Math.round((current.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24));
-
-      if (gap > biggestGap) {
-        biggestGap = gap;
-      }
-    }
-
-    return biggestGap;
+  function ordinal(n) {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
   }
 
   function matchLine(match) {
     return `${teamName(match.home_team)} ${match.home_score}-${match.away_score} ${teamName(match.away_team)}`;
   }
 
-  const apps = appearances.filter(a =>
-    String(a.player_id).trim() === String(id).trim()
-  );
-
-  const appsWithMatch = apps
-    .map(app => ({
-      app,
-      match: matches.find(m => String(m.id).trim() === String(app.match_id).trim())
-    }))
-    .filter(row => row.match && validMatch(row.match));
-
-  function calcStats(list) {
-    const starts = list.filter(x => Number(x.app.is_starting) === 1).length;
-    const subs = list.filter(x => Number(x.app.is_starting) !== 1).length;
-    const goals = list.reduce((sum, x) => sum + Number(x.app.goals || 0), 0);
+  function calcStats(rows) {
+    const starts = rows.filter(x => Number(x.app.is_starting) === 1).length;
+    const subs = rows.filter(x => Number(x.app.is_starting) !== 1).length;
+    const goals = rows.reduce((sum, x) => sum + Number(x.app.goals || 0), 0);
 
     return {
       starts,
       subs,
+      apps: starts + subs,
       goals,
       displayApps: subs > 0 ? `${starts}+${subs}` : `${starts}`
     };
   }
+
+  function playerRowsFor(playerId) {
+    return appearances
+      .filter(a => String(a.player_id).trim() === String(playerId).trim())
+      .map(app => ({
+        app,
+        match: matches.find(m => String(m.id).trim() === String(app.match_id).trim())
+      }))
+      .filter(row => row.match && validMatch(row.match));
+  }
+
+  function statSetFor(playerId) {
+    const rows = playerRowsFor(playerId);
+    return {
+      competitive: calcStats(rows.filter(x => !isFriendly(x.match))),
+      friendly: calcStats(rows.filter(x => isFriendly(x.match))),
+      total: calcStats(rows)
+    };
+  }
+
+  function rankFor(category, statName, playerId) {
+    const ranked = players
+      .map(p => {
+        const stats = statSetFor(p.id)[category];
+        return {
+          id: p.id,
+          value: statName === "apps" ? stats.apps : stats.goals
+        };
+      })
+      .filter(r => r.value > 0)
+      .sort((a, b) => b.value - a.value);
+
+    const current = ranked.find(r => String(r.id).trim() === String(playerId).trim());
+    if (!current) return { rank: null, total: ranked.length, isFirst: false };
+
+    const rank = ranked.findIndex(r => r.value === current.value) + 1;
+
+    return {
+      rank,
+      total: ranked.length,
+      isFirst: rank === 1
+    };
+  }
+
+  function rankText(category, statName, playerId) {
+    const r = rankFor(category, statName, playerId);
+    if (!r.rank) return "";
+    return ` (${ordinal(r.rank)} out of ${r.total} players)`;
+  }
+
+  function starIfFirst(category, statName, playerId) {
+    return rankFor(category, statName, playerId).isFirst ? `<span class="gold-star">*</span>` : "";
+  }
+
+  const appsWithMatch = playerRowsFor(id);
 
   const competitive = appsWithMatch.filter(x => !isFriendly(x.match));
   const friendly = appsWithMatch.filter(x => isFriendly(x.match));
@@ -168,44 +184,35 @@ Promise.all([
   const frStats = calcStats(friendly);
   const totalStats = calcStats(total);
 
-  const orderedMatches = [...appsWithMatch].sort((a, b) => {
-    const da = parseDate(a.match.date);
-    const db = parseDate(b.match.date);
-
-    if (!da && !db) return 0;
-    if (!da) return 1;
-    if (!db) return -1;
-
-    return da - db;
-  });
-
-  const orderedCompetitiveMatches = [...competitive].sort((a, b) => {
-    const da = parseDate(a.match.date);
-    const db = parseDate(b.match.date);
-
-    if (!da && !db) return 0;
-    if (!da) return 1;
-    if (!db) return -1;
-
-    return da - db;
-  });
+  const orderedMatches = [...appsWithMatch].sort((a, b) => parseDate(a.match.date) - parseDate(b.match.date));
+  const orderedCompetitiveMatches = [...competitive].sort((a, b) => parseDate(a.match.date) - parseDate(b.match.date));
 
   const firstAllMatch = orderedMatches[0]?.match || null;
   const lastAllMatch = orderedMatches[orderedMatches.length - 1]?.match || null;
-
   const firstCompetitiveMatch = orderedCompetitiveMatches[0]?.match || null;
   const lastCompetitiveMatch = orderedCompetitiveMatches[orderedCompetitiveMatches.length - 1]?.match || null;
+
+  function longestGapBetweenAppearances(rows) {
+    if (!rows || rows.length < 2) return 0;
+    let biggest = 0;
+
+    for (let i = 1; i < rows.length; i++) {
+      const prev = parseDate(rows[i - 1].match.date);
+      const current = parseDate(rows[i].match.date);
+      if (!prev || !current) continue;
+
+      const gap = Math.round((current - prev) / 86400000);
+      if (gap > biggest) biggest = gap;
+    }
+
+    return biggest;
+  }
 
   const debutText = firstAllMatch ? formatLongDate(firstAllMatch.date) : "Unknown";
   const competitiveDebutText = firstCompetitiveMatch ? formatLongDate(firstCompetitiveMatch.date) : "Unknown";
   const lastAppearanceText = lastAllMatch ? formatLongDate(lastAllMatch.date) : "Unknown";
   const lastCompetitiveAppearanceText = lastCompetitiveMatch ? formatLongDate(lastCompetitiveMatch.date) : "Unknown";
-
-  const appearanceSpanText =
-    firstAllMatch && lastAllMatch
-      ? formatSpan(firstAllMatch.date, lastAllMatch.date)
-      : "Unknown";
-
+  const appearanceSpanText = firstAllMatch && lastAllMatch ? formatSpan(firstAllMatch.date, lastAllMatch.date) : "Unknown";
   const longestGapText = formatDays(longestGapBetweenAppearances(orderedMatches));
 
   const playerPhoto =
@@ -232,6 +239,57 @@ Promise.all([
     >
   `;
 
+  function recordBox(title, category, stats) {
+    return `
+      <div class="player-stat-box">
+        <div class="player-stat-title">${title}</div>
+        <p>
+          <strong>Appearances:</strong>
+          ${stats.displayApps}${starIfFirst(category, "apps", id)}${rankText(category, "apps", id)}
+        </p>
+        <p>
+          <strong>Goals:</strong>
+          ${stats.goals}${starIfFirst(category, "goals", id)}${rankText(category, "goals", id)}
+        </p>
+      </div>
+    `;
+  }
+
+  function seasonSummaryRows() {
+    const grouped = {};
+
+    orderedMatches.forEach(row => {
+      const sid = String(row.match.season_id || "unknown").trim();
+      if (!grouped[sid]) grouped[sid] = [];
+      grouped[sid].push(row);
+    });
+
+    return Object.entries(grouped)
+      .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
+      .map(([seasonId, rows]) => {
+        const comp = calcStats(rows.filter(x => !isFriendly(x.match)));
+        const fr = calcStats(rows.filter(x => isFriendly(x.match)));
+        const tot = calcStats(rows);
+
+        return `
+          <tr>
+            <td><a href="season.html?id=${seasonId}">${seasonName(seasonId)}</a></td>
+            <td>${comp.displayApps}</td>
+            <td>${comp.goals}</td>
+            <td>${fr.displayApps}</td>
+            <td>${fr.goals}</td>
+            <td>${tot.displayApps}</td>
+            <td>${tot.goals}</td>
+          </tr>
+        `;
+      }).join("");
+  }
+
+  function milestoneClass(number) {
+    const milestones = [50,100,150,200,250,300,350,400,450,500,550,600,650,700];
+    return milestones.includes(number) ? " milestone-row" : "";
+  }
+
   el.innerHTML = `
     <div class="content-box">
       <div class="player-card">
@@ -240,16 +298,8 @@ Promise.all([
 
           <div class="player-photo-meta">
             ${player.position ? `<p><strong>Position:</strong> ${player.position}</p>` : ""}
-            ${profile.dob ? `<p><strong>Date of Birth:</strong> ${profile.dob}</p>` : ""}
+            ${profile.dob ? `<p class="nowrap"><strong>Date of Birth:</strong> ${profile.dob}</p>` : ""}
             ${profile.birth_place ? `<p><strong>Birth Place:</strong> ${profile.birth_place}</p>` : ""}
-
-            <p><strong>Debut:</strong> ${debutText}</p>
-            <p><strong>Competitive Debut:</strong> ${competitiveDebutText}</p>
-            <p><strong>Last Appearance:</strong> ${lastAppearanceText}</p>
-            <p><strong>Last Competitive Appearance:</strong> ${lastCompetitiveAppearanceText}</p>
-            <p><strong>Appearance Span (All matches):</strong> ${appearanceSpanText}</p>
-            <p><strong>Longest Gap Between Appearances:</strong> ${longestGapText}</p>
-
             ${profile.other_clubs ? `<p><strong>Other Clubs:</strong> ${profile.other_clubs}</p>` : ""}
           </div>
         </div>
@@ -258,72 +308,84 @@ Promise.all([
           <h2>${player.name}</h2>
 
           <div class="player-stats-grid">
-            <div class="player-stat-box">
-              <div class="player-stat-title">Competitive Record</div>
-              <p><strong>Appearances:</strong> ${compStats.displayApps}</p>
-              <p><strong>Goals:</strong> ${compStats.goals}</p>
-            </div>
-
-            <div class="player-stat-box">
-              <div class="player-stat-title">Friendly Record</div>
-              <p><strong>Appearances:</strong> ${frStats.displayApps}</p>
-              <p><strong>Goals:</strong> ${frStats.goals}</p>
-            </div>
-
-            <div class="player-stat-box">
-              <div class="player-stat-title">Total Record</div>
-              <p><strong>Appearances:</strong> ${totalStats.displayApps}</p>
-              <p><strong>Goals:</strong> ${totalStats.goals}</p>
-            </div>
+            ${recordBox("Competitive Record", "competitive", compStats)}
+            ${recordBox("Friendly Record", "friendly", frStats)}
+            ${recordBox("Total Record", "total", totalStats)}
           </div>
 
-          ${profile.bio ? `
-            <div class="section-block">
-              <h3>Biography</h3>
-              <p>${profile.bio}</p>
-            </div>
-          ` : ""}
+          <div class="player-career-fields">
+            <p><strong>Debut:</strong> ${debutText}</p>
+            <p><strong>Competitive Debut:</strong> ${competitiveDebutText}</p>
+            <p><strong>Last Appearance:</strong> ${lastAppearanceText}</p>
+            <p><strong>Last Competitive Appearance:</strong> ${lastCompetitiveAppearanceText}</p>
+            <p><strong>Appearance Span (All matches):</strong> ${appearanceSpanText}</p>
+            <p><strong>Longest Gap Between Appearances:</strong> ${longestGapText}</p>
+          </div>
         </div>
       </div>
     </div>
 
+    ${profile.bio ? `
+      <div class="content-box section-block">
+        <h3>Biography</h3>
+        <div id="bioText" class="bio-collapsed">
+          ${profile.bio}
+        </div>
+        <button id="bioToggle" class="archive-button">Click for full details</button>
+      </div>
+    ` : ""}
+
     <div class="content-box section-block">
       <h3>Match Record</h3>
-      <table class="archive-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Match</th>
-            <th>Competition</th>
-            <th>Apps</th>
-            <th>Goals</th>
-          </tr>
-        </thead>
-        <tbody id="playerMatchRows"></tbody>
-      </table>
+
+      <div id="seasonSummary">
+        <table class="archive-table">
+          <thead>
+            <tr>
+              <th>Season</th>
+              <th>Comp Apps</th>
+              <th>Comp Goals</th>
+              <th>Fr Apps</th>
+              <th>Fr Goals</th>
+              <th>Total Apps</th>
+              <th>Total Goals</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${seasonSummaryRows() || `<tr><td colspan="7">No match records found.</td></tr>`}
+          </tbody>
+        </table>
+        <button id="showFullRecord" class="archive-button">Click for full record</button>
+      </div>
+
+      <div id="fullRecord" style="display:none;">
+        <table class="archive-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Match</th>
+              <th>Competition</th>
+              <th>Apps</th>
+              <th>Goals</th>
+            </tr>
+          </thead>
+          <tbody id="playerMatchRows"></tbody>
+        </table>
+        <button id="hideFullRecord" class="archive-button">Show season summary</button>
+      </div>
     </div>
   `;
 
   const rows = document.getElementById("playerMatchRows");
 
-  if (orderedMatches.length === 0) {
-    rows.innerHTML = `
-      <tr>
-        <td colspan="5">No match records found.</td>
-      </tr>
-    `;
-    return;
-  }
-
-  orderedMatches.forEach(({ app, match }) => {
+  orderedMatches.forEach(({ app, match }, index) => {
+    const num = index + 1;
     rows.innerHTML += `
-      <tr>
+      <tr class="${milestoneClass(num)}">
+        <td>#${String(num).padStart(3, "0")}</td>
         <td>${match.date || ""}</td>
-        <td>
-          <a href="match.html?id=${match.id}">
-            ${matchLine(match)}
-          </a>
-        </td>
+        <td><a href="match.html?id=${match.id}">${matchLine(match)}</a></td>
         <td>${match.competition || ""}</td>
         <td>${Number(app.is_starting) === 1 ? "Start" : "Sub"}</td>
         <td>${Number(app.goals || 0)}</td>
@@ -331,11 +393,36 @@ Promise.all([
     `;
   });
 
-}).catch(err => {
-  const el =
-    document.getElementById("player") ||
-    document.getElementById("playerPage");
+  const bioToggle = document.getElementById("bioToggle");
+  const bioText = document.getElementById("bioText");
 
+  if (bioToggle && bioText) {
+    bioToggle.addEventListener("click", () => {
+      const open = bioText.classList.toggle("bio-expanded");
+      bioText.classList.toggle("bio-collapsed", !open);
+      bioToggle.textContent = open ? "Close full details" : "Click for full details";
+    });
+  }
+
+  const showFullRecord = document.getElementById("showFullRecord");
+  const hideFullRecord = document.getElementById("hideFullRecord");
+  const seasonSummary = document.getElementById("seasonSummary");
+  const fullRecord = document.getElementById("fullRecord");
+
+  if (showFullRecord && hideFullRecord && seasonSummary && fullRecord) {
+    showFullRecord.addEventListener("click", () => {
+      seasonSummary.style.display = "none";
+      fullRecord.style.display = "block";
+    });
+
+    hideFullRecord.addEventListener("click", () => {
+      fullRecord.style.display = "none";
+      seasonSummary.style.display = "block";
+    });
+  }
+
+}).catch(err => {
+  const el = document.getElementById("player") || document.getElementById("playerPage");
   el.innerHTML = `<div class="content-box"><p>Error loading player page: ${err.message}</p></div>`;
   console.error(err);
 });
