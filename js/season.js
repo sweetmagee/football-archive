@@ -244,7 +244,7 @@ Promise.all([
                 <span>${teamName(m.home_team)}</span>
               </span>
 
-              ${m.home_score}-${m.away_score}
+              <span class="score-separator">${m.home_score}-${m.away_score}</span>
 
               <span class="team-inline">
                 <img class="team-badge-small" src="images/teams/${away ? away.id : m.away_team}.png" alt="" onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">

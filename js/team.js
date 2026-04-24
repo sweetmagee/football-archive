@@ -618,7 +618,9 @@ Promise.all([
                     ${teamBadgeHtml(m.home_team)}
                     <span>${teamName(m.home_team)}</span>
                   </span>
-                  ${m.home_score}-${m.away_score}
+
+                  <span class="score-separator">${m.home_score}-${m.away_score}</span>
+
                   <span class="team-inline">
                     ${teamBadgeHtml(m.away_team)}
                     <span>${teamName(m.away_team)}</span>
