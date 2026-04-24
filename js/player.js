@@ -87,11 +87,11 @@ Promise.all([
   el.innerHTML = `
     <div class="content-box">
       <div class="player-card">
-        <img
-          src="images/players/${player.id}.png"
-          alt="${player.name}"
-          onerror="this.onerror=null;this.src='images/players/defaultplayer.png';"
-        >
+       <img
+  src="images/players/${player.id}.png"
+  alt="${player.name}"
+  onerror="this.onerror=null;this.src='images/players/defaultplayer.png';"
+>
 
         <div class="player-meta">
           <h2>${player.name}</h2>
