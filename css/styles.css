@@ -733,3 +733,11 @@ button:hover {
     flex-wrap: wrap;
   }
 }
+.player-photo-meta {
+  margin-top: 14px;
+  font-size: 14px;
+}
+
+.player-photo-meta p {
+  margin: 0 0 8px 0;
+}
