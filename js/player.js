@@ -7,7 +7,7 @@ Promise.all([
   fetch("data/teams.json").then(r => r.json())
 ]).then(([players, matches, appearances, teams]) => {
   const player = players.find(p => String(p.id).trim() === String(id).trim());
-  const el = document.getElementById("playerPage");
+  const el = document.getElementById("player") || document.getElementById("playerPage");
 
   if (!player) {
     el.innerHTML = `<div class="content-box"><p>Player not found.</p></div>`;
@@ -177,7 +177,7 @@ Promise.all([
   });
 
 }).catch(err => {
-  document.getElementById("playerPage").innerHTML =
+  (document.getElementById("player") || document.getElementById("playerPage")).innerHTML =
     `<div class="content-box"><p>Error loading player page: ${err.message}</p></div>`;
   console.error(err);
 });
