@@ -6,38 +6,30 @@ let sortColumn = "default";
 let sortAsc = true;
 
 Promise.all([
-  fetch("data/players.json").then(r => {
-    if (!r.ok) throw new Error(`HTTP ${r.status} loading players.json`);
-    return r.json();
-  }),
-  fetch("data/appearances.json").then(r => {
-    if (!r.ok) throw new Error(`HTTP ${r.status} loading appearances.json`);
-    return r.json();
-  }),
-  fetch("data/matches.json").then(r => {
-    if (!r.ok) throw new Error(`HTTP ${r.status} loading matches.json`);
-    return r.json();
-  })
+  fetch("data/players.json").then(r => r.json()),
+  fetch("data/appearances.json").then(r => r.json()),
+  fetch("data/matches.json").then(r => r.json())
 ]).then(([playerData, appearanceData, matchData]) => {
   players = playerData;
   appearances = appearanceData;
   matches = matchData;
 
-  render(players);
+  render(getFilteredPlayers());
   attachSortHandlers();
   updateSortHeaders();
 }).catch(err => {
   console.error(err);
-
   const table = document.getElementById("playerTable");
   const countEl = document.getElementById("playerCount");
 
   if (countEl) countEl.textContent = "Error loading players";
-
-  if (table) {
-    table.innerHTML = `<tr><td colspan="4">Error loading data: ${err.message}</td></tr>`;
-  }
+  if (table) table.innerHTML = `<tr><td colspan="4">Error loading data: ${err.message}</td></tr>`;
 });
+
+function includeFriendlies() {
+  const box = document.getElementById("includeFriendlies");
+  return box ? box.checked : false;
+}
 
 function isCountableMatch(match) {
   return (
@@ -49,7 +41,14 @@ function isCountableMatch(match) {
   );
 }
 
+function isFriendly(match) {
+  const comp = String(match.competition || "").trim().toLowerCase();
+  return comp === "friendly" || comp === "fr" || comp === "friendlies";
+}
+
 function getPlayerStats(playerId) {
+  const showAll = includeFriendlies();
+
   const pa = appearances.filter(a => {
     if (String(a.player_id).trim() !== String(playerId).trim()) return false;
 
@@ -57,7 +56,10 @@ function getPlayerStats(playerId) {
       String(m.id).trim() === String(a.match_id).trim()
     );
 
-    return isCountableMatch(match);
+    if (!isCountableMatch(match)) return false;
+    if (!showAll && isFriendly(match)) return false;
+
+    return true;
   });
 
   const starts = pa.filter(a => Number(a.is_starting) === 1).length;
@@ -74,13 +76,11 @@ function getPlayerStats(playerId) {
 
 function splitName(fullName) {
   const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
-
   if (parts.length === 0) return { first: "", last: "" };
   if (parts.length === 1) return { first: "", last: parts[0] };
 
   const last = parts.pop();
   const first = parts.join(" ");
-
   return { first, last };
 }
 
@@ -103,7 +103,7 @@ function enrichPlayers(list) {
       firstName: p.firstname || nameParts.first,
       lastName: p.surname || nameParts.last
     };
-  });
+  }).filter(p => p.apps > 0);
 }
 
 function compare(a, b) {
@@ -149,24 +149,18 @@ function render(list) {
 
   if (!el) return;
 
+  const rows = enrichPlayers(list).sort(compare);
   el.innerHTML = "";
 
-  const totalPlayers = players.length;
-  const visiblePlayers = list ? list.length : 0;
-
   if (countEl) {
-    countEl.textContent =
-      visiblePlayers === totalPlayers
-        ? `${totalPlayers} players shown`
-        : `${visiblePlayers} of ${totalPlayers} players shown`;
+    const mode = includeFriendlies() ? "all matches" : "competitive matches";
+    countEl.textContent = `${rows.length} players shown (${mode})`;
   }
 
-  if (!list || list.length === 0) {
+  if (rows.length === 0) {
     el.innerHTML = `<tr><td colspan="4">No players found.</td></tr>`;
     return;
   }
-
-  const rows = enrichPlayers(list).sort(compare);
 
   rows.forEach(p => {
     el.innerHTML += `
@@ -230,6 +224,7 @@ function attachSortHandlers() {
   const sortApps = document.getElementById("sort-apps");
   const sortGoals = document.getElementById("sort-goals");
   const search = document.getElementById("search");
+  const friendlies = document.getElementById("includeFriendlies");
 
   if (sortName) sortName.onclick = () => setSort("name");
   if (sortPosition) sortPosition.onclick = () => setSort("position");
@@ -238,6 +233,12 @@ function attachSortHandlers() {
 
   if (search) {
     search.addEventListener("input", () => {
+      render(getFilteredPlayers());
+    });
+  }
+
+  if (friendlies) {
+    friendlies.addEventListener("change", () => {
       render(getFilteredPlayers());
     });
   }
