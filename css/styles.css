@@ -12,7 +12,10 @@ body {
   padding: 20px;
 }
 
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   margin-top: 0;
   color: #111;
 }
@@ -134,6 +137,29 @@ tbody tr:hover {
   font-size: 15px;
   font-weight: bold;
   margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.match-scoreline a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.match-scoreline .team-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.score-separator {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .match-meta {
@@ -318,6 +344,7 @@ tbody tr:hover {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
 }
 
 .team-badge-small {
@@ -699,5 +726,10 @@ button:hover {
   .match-nav-right {
     flex: 1 1 100%;
     text-align: left;
+  }
+
+  .match-scoreline,
+  .match-scoreline a {
+    flex-wrap: wrap;
   }
 }
