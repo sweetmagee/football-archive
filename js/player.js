@@ -2,11 +2,14 @@ const id = new URLSearchParams(window.location.search).get("id");
 
 Promise.all([
   fetch("data/players.json").then(r => r.json()),
+  fetch("data/player_profiles.json").then(r => r.json()).catch(() => []),
   fetch("data/matches.json").then(r => r.json()),
   fetch("data/appearances.json").then(r => r.json()),
   fetch("data/teams.json").then(r => r.json())
-]).then(([players, matches, appearances, teams]) => {
+]).then(([players, profiles, matches, appearances, teams]) => {
   const player = players.find(p => String(p.id).trim() === String(id).trim());
+  const profile = profiles.find(p => String(p.id).trim() === String(id).trim()) || {};
+
   const el =
     document.getElementById("player") ||
     document.getElementById("playerPage");
@@ -52,9 +55,7 @@ Promise.all([
   }
 
   function matchLine(match) {
-    const home = teamName(match.home_team);
-    const away = teamName(match.away_team);
-    return `${home} ${match.home_score}-${match.away_score} ${away}`;
+    return `${teamName(match.home_team)} ${match.home_score}-${match.away_score} ${teamName(match.away_team)}`;
   }
 
   const apps = appearances.filter(a =>
@@ -77,7 +78,6 @@ Promise.all([
       starts,
       subs,
       goals,
-      totalApps: starts + subs,
       displayApps: subs > 0 ? `${starts}+${subs}` : `${starts}`
     };
   }
@@ -134,10 +134,10 @@ Promise.all([
           <h2>${player.name}</h2>
 
           ${player.position ? `<p><strong>Position:</strong> ${player.position}</p>` : ""}
-          ${player.dob ? `<p><strong>Date of Birth:</strong> ${player.dob}</p>` : ""}
-          ${player.birth_place ? `<p><strong>Birth Place:</strong> ${player.birth_place}</p>` : ""}
+          ${profile.dob ? `<p><strong>Date of Birth:</strong> ${profile.dob}</p>` : ""}
+          ${profile.birth_place ? `<p><strong>Birth Place:</strong> ${profile.birth_place}</p>` : ""}
           ${player.team ? `<p><strong>Club:</strong> <a href="team.html?id=${player.team}">${teamName(player.team)}</a></p>` : ""}
-          ${player.other_clubs ? `<p><strong>Other Clubs:</strong> ${player.other_clubs}</p>` : ""}
+          ${profile.other_clubs ? `<p><strong>Other Clubs:</strong> ${profile.other_clubs}</p>` : ""}
         </div>
       </div>
 
@@ -161,10 +161,10 @@ Promise.all([
         </div>
       </div>
 
-      ${player.bio ? `
+      ${profile.bio ? `
         <div class="section-block">
           <h3>Biography</h3>
-          <p>${player.bio}</p>
+          <p>${profile.bio}</p>
         </div>
       ` : ""}
     </div>
