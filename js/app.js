@@ -22,6 +22,7 @@ Promise.all([
   players = playerData;
   appearances = appearanceData;
   matches = matchData;
+
   render(players);
   attachSortHandlers();
   updateSortHeaders();
@@ -31,9 +32,7 @@ Promise.all([
   const table = document.getElementById("playerTable");
   const countEl = document.getElementById("playerCount");
 
-  if (countEl) {
-    countEl.textContent = "Error loading players";
-  }
+  if (countEl) countEl.textContent = "Error loading players";
 
   if (table) {
     table.innerHTML = `<tr><td colspan="4">Error loading data: ${err.message}</td></tr>`;
@@ -54,7 +53,10 @@ function getPlayerStats(playerId) {
   const pa = appearances.filter(a => {
     if (String(a.player_id).trim() !== String(playerId).trim()) return false;
 
-    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+    const match = matches.find(m =>
+      String(m.id).trim() === String(a.match_id).trim()
+    );
+
     return isCountableMatch(match);
   });
 
@@ -71,15 +73,10 @@ function getPlayerStats(playerId) {
 }
 
 function splitName(fullName) {
-  const parts = String(fullName || "").trim().split(/\s+/);
+  const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
 
-  if (parts.length === 0) {
-    return { first: "", last: "" };
-  }
-
-  if (parts.length === 1) {
-    return { first: "", last: parts[0] };
-  }
+  if (parts.length === 0) return { first: "", last: "" };
+  if (parts.length === 1) return { first: "", last: parts[0] };
 
   const last = parts.pop();
   const first = parts.join(" ");
@@ -93,13 +90,18 @@ function enrichPlayers(list) {
     const nameParts = splitName(p.name);
 
     return {
-      ...p,
+      id: p.id,
+      name: p.name || "",
+      position: p.position || "",
+      team: p.team || "t1",
+      photo: p.photo || "",
+      date_added: p.date_added || "",
       starts: stats.starts,
       subs: stats.subs,
       apps: stats.apps,
       goalsCalc: stats.goals,
-      firstName: nameParts.first,
-      lastName: nameParts.last
+      firstName: p.firstname || nameParts.first,
+      lastName: p.surname || nameParts.last
     };
   });
 }
@@ -107,25 +109,18 @@ function enrichPlayers(list) {
 function compare(a, b) {
   let result = 0;
 
-  if (sortColumn === "default") {
+  if (sortColumn === "default" || sortColumn === "name") {
     result =
-      a.lastName.localeCompare(b.lastName) ||
-      a.firstName.localeCompare(b.firstName) ||
-      b.apps - a.apps;
-  }
-
-  if (sortColumn === "name") {
-    result =
-      a.lastName.localeCompare(b.lastName) ||
-      a.firstName.localeCompare(b.firstName) ||
+      String(a.lastName || "").localeCompare(String(b.lastName || "")) ||
+      String(a.firstName || "").localeCompare(String(b.firstName || "")) ||
       b.apps - a.apps;
   }
 
   if (sortColumn === "position") {
     result =
       String(a.position || "").localeCompare(String(b.position || "")) ||
-      a.lastName.localeCompare(b.lastName) ||
-      a.firstName.localeCompare(b.firstName);
+      String(a.lastName || "").localeCompare(String(b.lastName || "")) ||
+      String(a.firstName || "").localeCompare(String(b.firstName || ""));
   }
 
   if (sortColumn === "apps") {
@@ -133,16 +128,16 @@ function compare(a, b) {
       b.apps - a.apps ||
       b.starts - a.starts ||
       b.subs - a.subs ||
-      a.lastName.localeCompare(b.lastName) ||
-      a.firstName.localeCompare(b.firstName);
+      String(a.lastName || "").localeCompare(String(b.lastName || "")) ||
+      String(a.firstName || "").localeCompare(String(b.firstName || ""));
   }
 
   if (sortColumn === "goals") {
     result =
       b.goalsCalc - a.goalsCalc ||
       b.apps - a.apps ||
-      a.lastName.localeCompare(b.lastName) ||
-      a.firstName.localeCompare(b.firstName);
+      String(a.lastName || "").localeCompare(String(b.lastName || "")) ||
+      String(a.firstName || "").localeCompare(String(b.firstName || ""));
   }
 
   return sortAsc ? result : -result;
@@ -160,15 +155,10 @@ function render(list) {
   const visiblePlayers = list ? list.length : 0;
 
   if (countEl) {
-    if (visiblePlayers === totalPlayers) {
-      countEl.textContent =
-        totalPlayers === 1 ? "1 player shown" : `${totalPlayers} players shown`;
-    } else {
-      countEl.textContent =
-        visiblePlayers === 1
-          ? `1 of ${totalPlayers} players shown`
-          : `${visiblePlayers} of ${totalPlayers} players shown`;
-    }
+    countEl.textContent =
+      visiblePlayers === totalPlayers
+        ? `${totalPlayers} players shown`
+        : `${visiblePlayers} of ${totalPlayers} players shown`;
   }
 
   if (!list || list.length === 0) {
@@ -182,12 +172,24 @@ function render(list) {
     el.innerHTML += `
       <tr>
         <td><a href="player.html?id=${p.id}">${p.name}</a></td>
-        <td>${p.position || ""}</td>
+        <td>${p.position}</td>
         <td>${p.apps}</td>
         <td>${p.goalsCalc}</td>
       </tr>
     `;
   });
+}
+
+function getFilteredPlayers() {
+  const searchEl = document.getElementById("search");
+  const q = searchEl ? searchEl.value.toLowerCase().trim() : "";
+
+  return players.filter(p =>
+    String(p.name || "").toLowerCase().includes(q) ||
+    String(p.firstname || "").toLowerCase().includes(q) ||
+    String(p.surname || "").toLowerCase().includes(q) ||
+    String(p.position || "").toLowerCase().includes(q)
+  );
 }
 
 function setSort(col) {
@@ -199,16 +201,7 @@ function setSort(col) {
   }
 
   updateSortHeaders();
-
-  const searchEl = document.getElementById("search");
-  const q = searchEl ? searchEl.value.toLowerCase().trim() : "";
-
-  const filtered = players.filter(p =>
-    String(p.name || "").toLowerCase().includes(q) ||
-    String(p.position || "").toLowerCase().includes(q)
-  );
-
-  render(filtered);
+  render(getFilteredPlayers());
 }
 
 function updateSortHeaders() {
@@ -244,15 +237,8 @@ function attachSortHandlers() {
   if (sortGoals) sortGoals.onclick = () => setSort("goals");
 
   if (search) {
-    search.addEventListener("input", e => {
-      const q = e.target.value.toLowerCase().trim();
-
-      const filtered = players.filter(p =>
-        String(p.name || "").toLowerCase().includes(q) ||
-        String(p.position || "").toLowerCase().includes(q)
-      );
-
-      render(filtered);
+    search.addEventListener("input", () => {
+      render(getFilteredPlayers());
     });
   }
 }
