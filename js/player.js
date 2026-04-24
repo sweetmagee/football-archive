@@ -1,311 +1,183 @@
-const id = new URLSearchParams(window.location.search).get('id');
+const id = new URLSearchParams(window.location.search).get("id");
 
 Promise.all([
-  fetch('data/players.json').then(r => r.json()),
-  fetch('data/appearances.json').then(r => r.json()),
-  fetch('data/matches.json').then(r => r.json()),
-  fetch('data/seasons.json').then(r => r.json()),
-  fetch('data/teams.json').then(r => r.json())
-]).then(([players, apps, matches, seasons, teams]) => {
-  const p = players.find(x => String(x.id).trim() === String(id).trim());
-  const el = document.getElementById('player');
+  fetch("data/players.json").then(r => r.json()),
+  fetch("data/matches.json").then(r => r.json()),
+  fetch("data/appearances.json").then(r => r.json()),
+  fetch("data/teams.json").then(r => r.json())
+]).then(([players, matches, appearances, teams]) => {
+  const player = players.find(p => String(p.id).trim() === String(id).trim());
+  const el = document.getElementById("playerPage");
 
-  if (!p) {
-    el.innerHTML = '<div class="content-box"><p>Player not found.</p></div>';
+  if (!player) {
+    el.innerHTML = `<div class="content-box"><p>Player not found.</p></div>`;
     return;
   }
 
-  function isCountableMatch(match) {
+  function teamName(teamId) {
+    const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
+    return team ? team.name : teamId;
+  }
+
+  function isFriendly(match) {
+    const comp = String(match.competition || "").trim().toLowerCase();
+    return comp === "friendly" || comp === "fr";
+  }
+
+  function validMatch(match) {
     return (
       match &&
-      match.home_score !== '?' &&
-      match.away_score !== '?' &&
+      match.home_score !== "?" &&
+      match.away_score !== "?" &&
       !Number.isNaN(Number(match.home_score)) &&
       !Number.isNaN(Number(match.away_score))
     );
   }
 
-  function isFriendlyCompetition(competition) {
-    const value = String(competition || '').trim().toLowerCase();
-    return value === 'fr' || value === 'friendly' || value === 'friendlies';
-  }
+  const apps = appearances.filter(a =>
+    String(a.player_id).trim() === String(id).trim()
+  );
 
-  function resolveTeam(teamValue) {
-    return teams.find(t =>
-      String(t.id).trim() === String(teamValue).trim() ||
-      String(t.name).trim() === String(teamValue).trim()
-    );
-  }
+  const appsWithMatch = apps
+    .map(a => ({
+      app: a,
+      match: matches.find(m => String(m.id).trim() === String(a.match_id).trim())
+    }))
+    .filter(x => x.match && validMatch(x.match));
 
-  function teamName(teamValue) {
-    const team = resolveTeam(teamValue);
-    return team ? team.name : teamValue;
-  }
-
-  function teamLink(teamValue) {
-    const team = resolveTeam(teamValue);
-    if (!team) return teamName(teamValue);
-    return `<a href="team.html?id=${encodeURIComponent(team.id)}">${team.name}</a>`;
-  }
-
-  function seasonSortValue(seasonId) {
-    const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
-    if (season && season.start_year) return Number(season.start_year);
-    const match = String(seasonId).match(/^(\d{4})/);
-    return match ? Number(match[1]) : 0;
-  }
-
-  function buildStatBlock(appRows) {
-    const starts = appRows.filter(a => Number(a.is_starting) === 1).length;
-    const subs = appRows.filter(a => Number(a.is_starting) !== 1).length;
-    const goals = appRows.reduce((sum, a) => sum + Number(a.goals || 0), 0);
+  function calcStats(list) {
+    const starts = list.filter(x => Number(x.app.is_starting) === 1).length;
+    const subs = list.filter(x => Number(x.app.is_starting) !== 1).length;
+    const goals = list.reduce((sum, x) => sum + Number(x.app.goals || 0), 0);
 
     return {
       starts,
       subs,
-      appsDisplay: subs > 0 ? `${starts}+${subs}` : `${starts}`,
-      goals
+      goals,
+      apps: starts + subs,
+      displayApps: subs > 0 ? `${starts}+${subs}` : `${starts}`
     };
   }
 
-  const photo = p.photo && p.photo.trim() !== '' ? p.photo.trim() : 'default.png';
+  const competitive = appsWithMatch.filter(x => !isFriendly(x.match));
+  const friendlies = appsWithMatch.filter(x => isFriendly(x.match));
+  const total = appsWithMatch;
 
-  const countedApps = apps.filter(a => {
-    if (String(a.player_id).trim() !== String(id).trim()) return false;
-    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
-    return isCountableMatch(match);
+  const compStats = calcStats(competitive);
+  const frStats = calcStats(friendlies);
+  const totalStats = calcStats(total);
+
+  const orderedMatches = [...appsWithMatch].sort((a, b) => {
+    const pa = String(a.match.date || "").split("/");
+    const pb = String(b.match.date || "").split("/");
+
+    const da = new Date(pa[2], Number(pa[1]) - 1, pa[0]);
+    const db = new Date(pb[2], Number(pb[1]) - 1, pb[0]);
+
+    return da - db;
   });
 
-  const competitiveApps = countedApps.filter(a => {
-    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
-    return match && !isFriendlyCompetition(match.competition);
-  });
+  function matchLine(match) {
+    const home = teamName(match.home_team);
+    const away = teamName(match.away_team);
 
-  const friendlyApps = countedApps.filter(a => {
-    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
-    return match && isFriendlyCompetition(match.competition);
-  });
-
-  const competitiveStats = buildStatBlock(competitiveApps);
-  const friendlyStats = buildStatBlock(friendlyApps);
-  const totalStats = buildStatBlock(countedApps);
+    return `${home} ${match.home_score}-${match.away_score} ${away}`;
+  }
 
   el.innerHTML = `
     <div class="content-box">
       <div class="player-card">
-        <div>
-          <img id="playerPhoto" src="images/players/${photo}" alt="${p.name}">
-        </div>
+        <img
+          src="images/players/${player.id}.png"
+          alt="${player.name}"
+          onerror="this.onerror=null;this.src='images/players/defaultplayer.png';"
+        >
+
         <div class="player-meta">
-          <h2>${p.name}</h2>
-          <p><strong>Position:</strong> ${p.position || ''}</p>
-          <p><strong>Date of birth:</strong> ${p.dob || ''}</p>
-          <p><strong>Nationality:</strong> ${p.nationality || ''}</p>
-          <p><strong>Team:</strong> ${teamLink(p.team || '')}</p>
+          <h2>${player.name}</h2>
 
-          <div class="player-stats-grid">
-            <div class="player-stat-box">
-              <div class="player-stat-title">Competitive</div>
-              <p>Appearances: <strong>${competitiveStats.appsDisplay}</strong></p>
-              <p>Goals: <strong>${competitiveStats.goals}</strong></p>
-            </div>
-
-            <div class="player-stat-box">
-              <div class="player-stat-title">Friendly</div>
-              <p>Appearances: <strong>${friendlyStats.appsDisplay}</strong></p>
-              <p>Goals: <strong>${friendlyStats.goals}</strong></p>
-            </div>
-
-            <div class="player-stat-box">
-              <div class="player-stat-title">Total</div>
-              <p>Appearances: <strong>${totalStats.appsDisplay}</strong></p>
-              <p>Goals: <strong>${totalStats.goals}</strong></p>
-            </div>
-          </div>
-
-          <p>${p.bio || ''}</p>
+          ${player.position ? `<p><strong>Position:</strong> ${player.position}</p>` : ""}
+          ${player.dob ? `<p><strong>Date of Birth:</strong> ${player.dob}</p>` : ""}
+          ${player.birth_place ? `<p><strong>Birth Place:</strong> ${player.birth_place}</p>` : ""}
+          ${player.team ? `<p><strong>Club:</strong> <a href="team.html?id=${player.team}">${teamName(player.team)}</a></p>` : ""}
+          ${player.other_clubs ? `<p><strong>Other Clubs:</strong> ${player.other_clubs}</p>` : ""}
         </div>
       </div>
+
+      <div class="player-stats-grid">
+        <div class="player-stat-box">
+          <div class="player-stat-title">Competitive Record</div>
+          <p><strong>Appearances:</strong> ${compStats.displayApps}</p>
+          <p><strong>Goals:</strong> ${compStats.goals}</p>
+        </div>
+
+        <div class="player-stat-box">
+          <div class="player-stat-title">Friendly Record</div>
+          <p><strong>Appearances:</strong> ${frStats.displayApps}</p>
+          <p><strong>Goals:</strong> ${frStats.goals}</p>
+        </div>
+
+        <div class="player-stat-box">
+          <div class="player-stat-title">Total Record</div>
+          <p><strong>Appearances:</strong> ${totalStats.displayApps}</p>
+          <p><strong>Goals:</strong> ${totalStats.goals}</p>
+        </div>
+      </div>
+
+      ${player.bio ? `
+        <div class="section-block">
+          <h3>Biography</h3>
+          <p>${player.bio}</p>
+        </div>
+      ` : ""}
     </div>
-  `;
 
-  const img = document.getElementById('playerPhoto');
-  img.onerror = function () {
-    if (!this.src.includes('default.png')) {
-      this.src = 'images/players/default.png';
-    } else {
-      this.onerror = null;
-    }
-  };
-
-  const seasonStats = {};
-
-  countedApps.forEach(a => {
-    const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
-    if (!match || !match.season_id || !isCountableMatch(match)) return;
-
-    if (!seasonStats[match.season_id]) {
-      seasonStats[match.season_id] = {
-        compStarts: 0,
-        compSubs: 0,
-        compGoals: 0,
-        frStarts: 0,
-        frSubs: 0,
-        frGoals: 0,
-        totalStarts: 0,
-        totalSubs: 0,
-        totalGoals: 0
-      };
-    }
-
-    const friendly = isFriendlyCompetition(match.competition);
-    const starter = Number(a.is_starting) === 1;
-    const goals = Number(a.goals || 0);
-
-    if (friendly) {
-      if (starter) {
-        seasonStats[match.season_id].frStarts += 1;
-      } else {
-        seasonStats[match.season_id].frSubs += 1;
-      }
-      seasonStats[match.season_id].frGoals += goals;
-    } else {
-      if (starter) {
-        seasonStats[match.season_id].compStarts += 1;
-      } else {
-        seasonStats[match.season_id].compSubs += 1;
-      }
-      seasonStats[match.season_id].compGoals += goals;
-    }
-
-    if (starter) {
-      seasonStats[match.season_id].totalStarts += 1;
-    } else {
-      seasonStats[match.season_id].totalSubs += 1;
-    }
-    seasonStats[match.season_id].totalGoals += goals;
-  });
-
-  el.innerHTML += `
     <div class="content-box section-block">
-      <h3>Season Stats</h3>
-      <table class="archive-table">
-        <thead>
-          <tr>
-            <th>Season</th>
-            <th>Comp Apps</th>
-            <th>Comp Goals</th>
-            <th>Fr Apps</th>
-            <th>Fr Goals</th>
-            <th>Total Apps</th>
-            <th>Total Goals</th>
-          </tr>
-        </thead>
-        <tbody id="seasonStatsTable"></tbody>
-      </table>
-    </div>
-  `;
-
-  const seasonStatsTable = document.getElementById('seasonStatsTable');
-
-  if (Object.keys(seasonStats).length === 0) {
-    seasonStatsTable.innerHTML = `
-      <tr>
-        <td colspan="7">No season stats available.</td>
-      </tr>
-    `;
-  } else {
-    Object.entries(seasonStats)
-      .sort((a, b) => seasonSortValue(a[0]) - seasonSortValue(b[0]))
-      .forEach(([seasonId, stats]) => {
-        const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
-        const seasonName = season ? season.name : seasonId;
-
-        const compApps = stats.compSubs > 0 ? `${stats.compStarts}+${stats.compSubs}` : `${stats.compStarts}`;
-        const frApps = stats.frSubs > 0 ? `${stats.frStarts}+${stats.frSubs}` : `${stats.frStarts}`;
-        const totalApps = stats.totalSubs > 0 ? `${stats.totalStarts}+${stats.totalSubs}` : `${stats.totalStarts}`;
-
-        seasonStatsTable.innerHTML += `
-          <tr>
-            <td>
-              <a href="player-season.html?player=${encodeURIComponent(id)}&season=${encodeURIComponent(seasonId)}">
-                ${seasonName}
-              </a>
-            </td>
-            <td>${compApps}</td>
-            <td>${stats.compGoals}</td>
-            <td>${frApps}</td>
-            <td>${stats.frGoals}</td>
-            <td>${totalApps}</td>
-            <td>${stats.totalGoals}</td>
-          </tr>
-        `;
-      });
-  }
-
-  el.innerHTML += `
-    <div class="content-box section-block">
-      <h3>Match History</h3>
+      <h3>Match Record</h3>
       <table class="archive-table">
         <thead>
           <tr>
             <th>Date</th>
             <th>Match</th>
+            <th>Competition</th>
+            <th>Apps</th>
             <th>Goals</th>
-            <th>Appearance</th>
           </tr>
         </thead>
-        <tbody id="matchHistoryTable"></tbody>
+        <tbody id="matchRows"></tbody>
       </table>
     </div>
   `;
 
-  const matchHistoryTable = document.getElementById('matchHistoryTable');
+  const rows = document.getElementById("matchRows");
 
-  if (countedApps.length === 0) {
-    matchHistoryTable.innerHTML = `
+  if (orderedMatches.length === 0) {
+    rows.innerHTML = `
       <tr>
-        <td colspan="4">No matches available.</td>
+        <td colspan="5">No match records found.</td>
       </tr>
     `;
-  } else {
-    const rows = countedApps
-      .map(a => {
-        const m = matches.find(x => String(x.id).trim() === String(a.match_id).trim());
-        if (!m || !isCountableMatch(m)) return null;
-
-        return {
-          date: m.date || '',
-          id: m.id,
-          match: `${teamName(m.home_team)} ${m.home_score}-${m.away_score} ${teamName(m.away_team)}`,
-          goals: Number(a.goals || 0),
-          appearance: Number(a.is_starting) === 1 ? 'Start' : 'Sub'
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => {
-        const da = new Date(a.date.split('/').reverse().join('-'));
-        const db = new Date(b.date.split('/').reverse().join('-'));
-        return da - db;
-      });
-
-    rows.forEach(row => {
-      matchHistoryTable.innerHTML += `
-        <tr>
-          <td>${row.date}</td>
-          <td>
-            <a href="match.html?id=${row.id}">
-              ${row.match}
-            </a>
-          </td>
-          <td>${row.goals}</td>
-          <td>${row.appearance}</td>
-        </tr>
-      `;
-    });
+    return;
   }
+
+  orderedMatches.forEach(({ app, match }) => {
+    rows.innerHTML += `
+      <tr>
+        <td>${match.date || ""}</td>
+        <td>
+          <a href="match.html?id=${match.id}">
+            ${matchLine(match)}
+          </a>
+        </td>
+        <td>${match.competition || ""}</td>
+        <td>${Number(app.is_starting) === 1 ? "Start" : "Sub"}</td>
+        <td>${app.goals || 0}</td>
+      </tr>
+    `;
+  });
+
 }).catch(err => {
-  document.getElementById('player').innerHTML =
+  document.getElementById("playerPage").innerHTML =
     `<div class="content-box"><p>Error loading player page: ${err.message}</p></div>`;
   console.error(err);
 });
