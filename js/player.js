@@ -7,7 +7,9 @@ Promise.all([
   fetch("data/teams.json").then(r => r.json())
 ]).then(([players, matches, appearances, teams]) => {
   const player = players.find(p => String(p.id).trim() === String(id).trim());
-  const el = document.getElementById("player") || document.getElementById("playerPage");
+  const el =
+    document.getElementById("player") ||
+    document.getElementById("playerPage");
 
   if (!player) {
     el.innerHTML = `<div class="content-box"><p>Player not found.</p></div>`;
@@ -34,16 +36,37 @@ Promise.all([
     );
   }
 
+  function parseDate(value) {
+    if (!value) return null;
+    const parts = String(value).trim().replace(/\./g, "/").replace(/-/g, "/").split("/");
+    if (parts.length !== 3) return null;
+
+    let [dd, mm, yyyy] = parts;
+
+    if (yyyy.length === 2) {
+      yyyy = Number(yyyy) >= 50 ? `18${yyyy}` : `19${yyyy}`;
+    }
+
+    const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function matchLine(match) {
+    const home = teamName(match.home_team);
+    const away = teamName(match.away_team);
+    return `${home} ${match.home_score}-${match.away_score} ${away}`;
+  }
+
   const apps = appearances.filter(a =>
     String(a.player_id).trim() === String(id).trim()
   );
 
   const appsWithMatch = apps
-    .map(a => ({
-      app: a,
-      match: matches.find(m => String(m.id).trim() === String(a.match_id).trim())
+    .map(app => ({
+      app,
+      match: matches.find(m => String(m.id).trim() === String(app.match_id).trim())
     }))
-    .filter(x => x.match && validMatch(x.match));
+    .filter(row => row.match && validMatch(row.match));
 
   function calcStats(list) {
     const starts = list.filter(x => Number(x.app.is_starting) === 1).length;
@@ -54,44 +77,58 @@ Promise.all([
       starts,
       subs,
       goals,
-      apps: starts + subs,
+      totalApps: starts + subs,
       displayApps: subs > 0 ? `${starts}+${subs}` : `${starts}`
     };
   }
 
   const competitive = appsWithMatch.filter(x => !isFriendly(x.match));
-  const friendlies = appsWithMatch.filter(x => isFriendly(x.match));
+  const friendly = appsWithMatch.filter(x => isFriendly(x.match));
   const total = appsWithMatch;
 
   const compStats = calcStats(competitive);
-  const frStats = calcStats(friendlies);
+  const frStats = calcStats(friendly);
   const totalStats = calcStats(total);
 
   const orderedMatches = [...appsWithMatch].sort((a, b) => {
-    const pa = String(a.match.date || "").split("/");
-    const pb = String(b.match.date || "").split("/");
+    const da = parseDate(a.match.date);
+    const db = parseDate(b.match.date);
 
-    const da = new Date(pa[2], Number(pa[1]) - 1, pa[0]);
-    const db = new Date(pb[2], Number(pb[1]) - 1, pb[0]);
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
 
     return da - db;
   });
 
-  function matchLine(match) {
-    const home = teamName(match.home_team);
-    const away = teamName(match.away_team);
+  const playerPhoto =
+    player.photo && String(player.photo).trim() !== ""
+      ? String(player.photo).trim()
+      : `${player.id}.png`;
 
-    return `${home} ${match.home_score}-${match.away_score} ${away}`;
-  }
+  const photoHtml = `
+    <img
+      src="images/players/${playerPhoto}"
+      alt="${player.name}"
+      onerror="
+        if (!this.dataset.triedId) {
+          this.dataset.triedId='1';
+          this.src='images/players/${player.id}.png';
+        } else if (!this.dataset.triedDefaultPlayer) {
+          this.dataset.triedDefaultPlayer='1';
+          this.src='images/players/defaultplayer.png';
+        } else {
+          this.onerror=null;
+          this.src='images/players/default.png';
+        }
+      "
+    >
+  `;
 
   el.innerHTML = `
     <div class="content-box">
       <div class="player-card">
-       <img
-  src="images/players/${player.id}.png"
-  alt="${player.name}"
-  onerror="this.onerror=null;this.src='images/players/defaultplayer.png';"
->
+        ${photoHtml}
 
         <div class="player-meta">
           <h2>${player.name}</h2>
@@ -144,12 +181,12 @@ Promise.all([
             <th>Goals</th>
           </tr>
         </thead>
-        <tbody id="matchRows"></tbody>
+        <tbody id="playerMatchRows"></tbody>
       </table>
     </div>
   `;
 
-  const rows = document.getElementById("matchRows");
+  const rows = document.getElementById("playerMatchRows");
 
   if (orderedMatches.length === 0) {
     rows.innerHTML = `
@@ -171,13 +208,16 @@ Promise.all([
         </td>
         <td>${match.competition || ""}</td>
         <td>${Number(app.is_starting) === 1 ? "Start" : "Sub"}</td>
-        <td>${app.goals || 0}</td>
+        <td>${Number(app.goals || 0)}</td>
       </tr>
     `;
   });
 
 }).catch(err => {
-  (document.getElementById("player") || document.getElementById("playerPage")).innerHTML =
-    `<div class="content-box"><p>Error loading player page: ${err.message}</p></div>`;
+  const el =
+    document.getElementById("player") ||
+    document.getElementById("playerPage");
+
+  el.innerHTML = `<div class="content-box"><p>Error loading player page: ${err.message}</p></div>`;
   console.error(err);
 });
