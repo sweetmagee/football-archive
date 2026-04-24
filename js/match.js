@@ -32,16 +32,47 @@ Promise.all([
     `;
   }
 
+  function formatLongDate(value) {
+    if (!value) return "";
+
+    const parts = String(value).trim().replace(/\./g, "/").replace(/-/g, "/").split("/");
+    if (parts.length !== 3) return value;
+
+    let [dd, mm, yyyy] = parts;
+
+    if (yyyy.length === 2) {
+      yyyy = Number(yyyy) >= 50 ? `18${yyyy}` : `19${yyyy}`;
+    }
+
+    const date = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+
+    if (Number.isNaN(date.getTime())) return value;
+
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    function suffix(day) {
+      if (day >= 11 && day <= 13) return "th";
+      switch (day % 10) {
+        case 1: return "st";
+        case 2: return "nd";
+        case 3: return "rd";
+        default: return "th";
+      }
+    }
+
+    const day = date.getDate();
+    return `${days[date.getDay()]} ${day}${suffix(day)} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  }
+
   function resolveTeam(teamValue) {
     return teams.find(t =>
       String(t.id).trim() === String(teamValue).trim() ||
       String(t.name).trim() === String(teamValue).trim()
     );
-  }
-
-  function teamName(teamValue) {
-    const team = resolveTeam(teamValue);
-    return team ? team.name : teamValue;
   }
 
   function teamBadgeHtml(teamValue, sizeClass = "team-badge-small") {
@@ -340,7 +371,7 @@ Promise.all([
         </div>
       </div>
 
-      <p class="stat-line"><strong>Date:</strong> ${match.date || ""}</p>
+      <p class="stat-line"><strong>Date:</strong> ${formatLongDate(match.date)}</p>
       ${match.round && String(match.round).trim() !== ""
         ? `<p class="stat-line"><strong>Round:</strong> ${match.round}</p>`
         : ""}
