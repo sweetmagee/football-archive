@@ -740,4 +740,43 @@ button:hover {
 
 .player-photo-meta p {
   margin: 0 0 8px 0;
+}.player-photo-meta {
+  margin-top: 14px;
+  font-size: 14px;
+}
+
+.player-photo-meta p {
+  margin: 0 0 8px 0;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.player-career-fields {
+  margin-top: 18px;
+}
+
+.player-career-fields p {
+  margin: 0 0 8px 0;
+}
+
+.bio-collapsed {
+  max-height: 6.2em;
+  overflow: hidden;
+  position: relative;
+}
+
+.bio-expanded {
+  max-height: none;
+}
+
+.milestone-row {
+  background: #fff3bf !important;
+  font-weight: bold;
+}
+
+.gold-star {
+  color: #b8860b;
+  font-weight: bold;
 }
