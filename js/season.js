@@ -19,6 +19,7 @@ Promise.all([
   const seasonManagersTable = document.getElementById("seasonManagersTable");
   const managerHeading = document.getElementById("managerHeading");
   const overallRecordTable = document.getElementById("overallRecordTable");
+  const competitiveOnlyMatches = document.getElementById("competitiveOnlyMatches");
   const excludeUnknownResults = document.getElementById("excludeUnknownResults");
   const includeFriendliesApps = document.getElementById("includeFriendliesApps");
   const includeFriendliesGoals = document.getElementById("includeFriendliesGoals");
@@ -293,6 +294,10 @@ Promise.all([
 
     let shownMatches = [...seasonMatches];
 
+    if (competitiveOnlyMatches && competitiveOnlyMatches.checked) {
+      shownMatches = shownMatches.filter(m => !isFriendly(m));
+    }
+
     if (excludeUnknownResults && excludeUnknownResults.checked) {
       shownMatches = shownMatches.filter(isCountableMatch);
     }
@@ -556,6 +561,10 @@ Promise.all([
   renderMatches();
   renderAppearances(false);
   renderTopScorers(false);
+
+  if (competitiveOnlyMatches) {
+    competitiveOnlyMatches.addEventListener("change", renderMatches);
+  }
 
   if (excludeUnknownResults) {
     excludeUnknownResults.addEventListener("change", renderMatches);
