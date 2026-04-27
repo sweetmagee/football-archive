@@ -151,6 +151,37 @@ Promise.all([
     `;
   }
 
+  function renderManagedMatches(includeFriendlies = false) {
+    const tbody = document.getElementById("matchesManagedTable");
+    if (!tbody) return;
+
+    const shownMatches = managerMatches.filter(match =>
+      includeFriendlies || !isFriendly(match)
+    );
+
+    if (!shownMatches.length) {
+      tbody.innerHTML = `<tr><td colspan="3">No matches found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = shownMatches.map(match => {
+      const home = teamName(match.home_team);
+      const away = teamName(match.away_team);
+
+      return `
+        <tr>
+          <td>${match.date}</td>
+          <td>
+            <a href="match.html?id=${match.id}">
+              ${home} ${match.home_score} - ${match.away_score} ${away}
+            </a>
+          </td>
+          <td>${match.competition || ""}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
   el.innerHTML = `
     <div class="content-box">
       <div class="player-card">
@@ -201,6 +232,11 @@ Promise.all([
     <div class="content-box">
       <h3>Matches Managed</h3>
 
+      <label class="stats-toggle">
+        <input type="checkbox" id="includeFriendliesManaged">
+        Include friendlies
+      </label>
+
       <table class="archive-table">
         <thead>
           <tr>
@@ -209,27 +245,21 @@ Promise.all([
             <th>Competition</th>
           </tr>
         </thead>
-        <tbody>
-          ${managerMatches.map(match => {
-            const home = teamName(match.home_team);
-            const away = teamName(match.away_team);
-
-            return `
-              <tr>
-                <td>${match.date}</td>
-                <td>
-                  <a href="match.html?id=${match.id}">
-                    ${home} ${match.home_score} - ${match.away_score} ${away}
-                  </a>
-                </td>
-                <td>${match.competition || ""}</td>
-              </tr>
-            `;
-          }).join("")}
-        </tbody>
+        <tbody id="matchesManagedTable"></tbody>
       </table>
     </div>
   `;
+
+  renderManagedMatches(false);
+
+  const includeFriendliesManaged = document.getElementById("includeFriendliesManaged");
+
+  if (includeFriendliesManaged) {
+    includeFriendliesManaged.addEventListener("change", () => {
+      renderManagedMatches(includeFriendliesManaged.checked);
+    });
+  }
+
 }).catch(err => {
   document.getElementById("managerPage").innerHTML =
     `<div class="content-box"><p>Error loading manager page: ${err.message}</p></div>`;
