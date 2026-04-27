@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Scoring Runs | Margate FC Archive</title>
+  <base href="/football-archive/">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="header-bar site-header-image">
+  <div class="site-header-overlay">
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="players.html">Players</a>
+      <a href="managers.html">Managers</a>
+      <a href="seasons.html">Seasons</a>
+      <a href="opponents.html">Opponents</a>
+      <a href="statistics.html">Statistics</a>
+      <a href="records.html">Records</a>
+      <a href="honours.html">Honours</a>
+      <a href="history.html">History</a>
+      <a href="interactive.html">Interactive</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <div class="content-box">
+    <h2>Scoring Runs</h2>
+
+    <label class="stats-toggle">
+      <input type="checkbox" id="includeFriendlies">
+      Include friendlies
+    </label>
+
+    <div id="runCount" class="player-count">Loading...</div>
+
+    <table class="archive-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Player</th>
+          <th>Consecutive Scoring Matches</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Goals in Run</th>
+        </tr>
+      </thead>
+      <tbody id="runRows">
+        <tr><td colspan="6">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+Promise.all([
+  fetch("data/players.json").then(r => r.json()),
+  fetch("data/matches.json").then(r => r.json()),
+  fetch("data/appearances.json").then(r => r.json())
+]).then(([players, matches, appearances]) => {
+
+  const includeFriendliesBox = document.getElementById("includeFriendlies");
+  const tbody = document.getElementById("runRows");
+  const countEl = document.getElementById("runCount");
+
+  function isFriendly(match) {
+    const comp = String(match.competition || "").trim().toLowerCase();
+    return comp === "friendly" || comp === "fr" || comp === "friendlies";
+  }
+
+  function validMatch(match) {
+    return (
+      match &&
+      match.home_score !== "?" &&
+      match.away_score !== "?" &&
+      !Number.isNaN(Number(match.home_score)) &&
+      !Number.isNaN(Number(match.away_score))
+    );
+  }
+
+  function parseDate(value) {
+    if (!value) return null;
+
+    const parts = String(value)
+      .trim()
+      .replace(/\./g, "/")
+      .replace(/-/g, "/")
+      .split("/");
+
+    if (parts.length !== 3) return null;
+
+    let [dd, mm, yyyy] = parts;
+
+    if (yyyy.length === 2) {
+      yyyy = Number(yyyy) >= 50 ? `18${yyyy}` : `19${yyyy}`;
+    }
+
+    const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  const playerGoalMap = {};
+
+  appearances.forEach(app => {
+    const playerId = String(app.player_id).trim();
+    const matchId = String(app.match_id).trim();
+    const goals = Number(app.goals || 0);
+
+    if (!playerGoalMap[playerId]) {
+      playerGoalMap[playerId] = {};
+    }
+
+    playerGoalMap[playerId][matchId] = goals;
+  });
+
+  function longestScoringRunForPlayer(playerId, matchList) {
+    const goalsByMatch = playerGoalMap[String(playerId).trim()] || {};
+
+    let current = 0;
+    let currentGoals = 0;
+    let currentStart = null;
+
+    let best = 0;
+    let bestGoals = 0;
+    let bestStart = null;
+    let bestEnd = null;
+
+    matchList.forEach(match => {
+      const goals = Number(goalsByMatch[String(match.id).trim()] || 0);
+      const scored = goals > 0;
+
+      if (scored) {
+        if (current === 0) {
+          currentStart = match;
+          currentGoals = 0;
+        }
+
+        current++;
+        currentGoals += goals;
+
+        if (current > best || (current === best && currentGoals > bestGoals)) {
+          best = current;
+          bestGoals = currentGoals;
+          bestStart = currentStart;
+          bestEnd = match;
+        }
+      } else {
+        current = 0;
+        currentGoals = 0;
+        currentStart = null;
+      }
+    });
+
+    return {
+      run: best,
+      goals: bestGoals,
+      from: bestStart ? bestStart.date : "",
+      to: bestEnd ? bestEnd.date : ""
+    };
+  }
+
+  function rankRows(rows) {
+    let lastRun = null;
+    let lastRank = 0;
+
+    return rows.map((row, index) => {
+      if (row.run !== lastRun) {
+        lastRank = index + 1;
+        lastRun = row.run;
+      }
+
+      return {
+        ...row,
+        rank: lastRank
+      };
+    });
+  }
+
+  function render() {
+    const includeFriendlies = includeFriendliesBox.checked;
+
+    const matchList = matches
+      .filter(validMatch)
+      .filter(match => includeFriendlies || !isFriendly(match))
+      .sort((a, b) => parseDate(a.date) - parseDate(b.date));
+
+    const rows = players
+      .map(player => {
+        const run = longestScoringRunForPlayer(player.id, matchList);
+
+        return {
+          id: player.id,
+          name: player.name,
+          run: run.run,
+          goals: run.goals,
+          from: run.from,
+          to: run.to
+        };
+      })
+      .filter(row => row.run > 0)
+      .sort((a, b) => {
+        if (b.run !== a.run) return b.run - a.run;
+        if (b.goals !== a.goals) return b.goals - a.goals;
+        return a.name.localeCompare(b.name);
+      });
+
+    const rankedRows = rankRows(rows);
+
+    countEl.textContent = includeFriendlies
+      ? `${rankedRows.length} players listed including friendlies`
+      : `${rankedRows.length} players listed, competitive matches only`;
+
+    if (!rankedRows.length) {
+      tbody.innerHTML = `<tr><td colspan="6">No scoring runs found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rankedRows.map(row => `
+      <tr>
+        <td>${row.rank}</td>
+        <td><a href="player.html?id=${row.id}">${row.name}</a></td>
+        <td><strong>${row.run}</strong></td>
+        <td>${row.from}</td>
+        <td>${row.to}</td>
+        <td>${row.goals}</td>
+      </tr>
+    `).join("");
+  }
+
+  includeFriendliesBox.addEventListener("change", render);
+  render();
+
+}).catch(err => {
+  document.getElementById("runRows").innerHTML =
+    `<tr><td colspan="6">Error loading scoring runs: ${err.message}</td></tr>`;
+  console.error(err);
+});
+</script>
+
+</body>
+</html>
