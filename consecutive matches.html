@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consecutive Matches | Margate FC Archive</title>
+  <base href="/football-archive/">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="header-bar site-header-image">
+  <div class="site-header-overlay">
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="players.html">Players</a>
+      <a href="managers.html">Managers</a>
+      <a href="seasons.html">Seasons</a>
+      <a href="opponents.html">Opponents</a>
+      <a href="statistics.html">Statistics</a>
+      <a href="records.html">Records</a>
+      <a href="honours.html">Honours</a>
+      <a href="history.html">History</a>
+      <a href="interactive.html">Interactive</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <div class="content-box">
+    <h2>Consecutive Matches</h2>
+
+    <table class="archive-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Player</th>
+          <th>Consecutive Matches</th>
+          <th>From</th>
+          <th>To</th>
+        </tr>
+      </thead>
+      <tbody id="streakRows">
+        <tr><td colspan="5">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+Promise.all([
+  fetch("data/players.json").then(r => r.json()),
+  fetch("data/matches.json").then(r => r.json()),
+  fetch("data/appearances.json").then(r => r.json())
+]).then(([players, matches, appearances]) => {
+
+  function validMatch(match) {
+    return (
+      match &&
+      match.home_score !== "?" &&
+      match.away_score !== "?" &&
+      !Number.isNaN(Number(match.home_score)) &&
+      !Number.isNaN(Number(match.away_score))
+    );
+  }
+
+  function parseDate(value) {
+    if (!value) return null;
+
+    const parts = String(value)
+      .trim()
+      .replace(/\./g, "/")
+      .replace(/-/g, "/")
+      .split("/");
+
+    if (parts.length !== 3) return null;
+
+    let [dd, mm, yyyy] = parts;
+
+    if (yyyy.length === 2) {
+      yyyy = Number(yyyy) >= 50 ? `18${yyyy}` : `19${yyyy}`;
+    }
+
+    const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function formatDate(value) {
+    return value || "";
+  }
+
+  const validMatches = matches
+    .filter(validMatch)
+    .sort((a, b) => parseDate(a.date) - parseDate(b.date));
+
+  const appearanceMap = {};
+
+  appearances.forEach(app => {
+    const playerId = String(app.player_id).trim();
+    const matchId = String(app.match_id).trim();
+
+    if (!appearanceMap[playerId]) {
+      appearanceMap[playerId] = new Set();
+    }
+
+    appearanceMap[playerId].add(matchId);
+  });
+
+  function longestStreakForPlayer(playerId) {
+    const playerApps = appearanceMap[String(playerId).trim()] || new Set();
+
+    let current = 0;
+    let best = 0;
+
+    let currentStart = null;
+    let bestStart = null;
+    let bestEnd = null;
+
+    validMatches.forEach(match => {
+      const played = playerApps.has(String(match.id).trim());
+
+      if (played) {
+        if (current === 0) {
+          currentStart = match;
+        }
+
+        current++;
+
+        if (current > best) {
+          best = current;
+          bestStart = currentStart;
+          bestEnd = match;
+        }
+      } else {
+        current = 0;
+        currentStart = null;
+      }
+    });
+
+    return {
+      playerId,
+      streak: best,
+      from: bestStart ? bestStart.date : "",
+      to: bestEnd ? bestEnd.date : ""
+    };
+  }
+
+  const rows = players
+    .map(player => {
+      const streak = longestStreakForPlayer(player.id);
+
+      return {
+        id: player.id,
+        name: player.name,
+        streak: streak.streak,
+        from: streak.from,
+        to: streak.to
+      };
+    })
+    .filter(row => row.streak > 0)
+    .sort((a, b) => {
+      if (b.streak !== a.streak) return b.streak - a.streak;
+      return a.name.localeCompare(b.name);
+    });
+
+  const tbody = document.getElementById("streakRows");
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="5">No appearance records found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map((row, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td><a href="player.html?id=${row.id}">${row.name}</a></td>
+      <td><strong>${row.streak}</strong></td>
+      <td>${formatDate(row.from)}</td>
+      <td>${formatDate(row.to)}</td>
+    </tr>
+  `).join("");
+
+}).catch(err => {
+  document.getElementById("streakRows").innerHTML =
+    `<tr><td colspan="5">Error loading consecutive matches: ${err.message}</td></tr>`;
+  console.error(err);
+});
+</script>
+
+</body>
+</html>
