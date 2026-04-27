@@ -1,140 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Season | Margate & Thanet United FC Archive</title>
-  <base href="/football-archive/">
-  <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
+<div class="content-box">
+  <h2>Matches</h2>
 
-<div class="header-bar site-header-image">
-  <div class="site-header-overlay">
-    <div class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="players.html">Players</a>
-      <a href="managers.html">Managers</a>
-      <a href="seasons.html">Seasons</a>
-      <a href="opponents.html">Opponents</a>
-      <a href="statistics.html">Statistics</a>
-      <a href="records.html">Records</a>
-      <a href="honours.html">Honours</a>
-      <a href="history.html">History</a>
-      <a href="interactive.html">Interactive</a>
-    </div>
+  <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+
+    <label class="stats-toggle">
+      <input type="checkbox" id="competitiveOnlyMatches">
+      Competitive Games Only
+    </label>
+
+    <label class="stats-toggle">
+      <input type="checkbox" id="excludeUnknownResults">
+      Exclude Unknown Results
+    </label>
+
   </div>
+
+  <div id="matches" class="match-list"></div>
 </div>
-
-<div class="page-wrap">
-
-  <h1 id="seasonTitle">Season</h1>
-
-  <div class="season-grid">
-    <div class="season-main">
-
-      <div class="content-box">
-        <h2 id="managerHeading">Manager</h2>
-        <table class="archive-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Span of Matches</th>
-            </tr>
-          </thead>
-          <tbody id="seasonManagersTable"></tbody>
-        </table>
-      </div>
-
-      <div class="content-box">
-        <h2>Overall Record</h2>
-        <table class="archive-table">
-          <thead>
-            <tr>
-              <th>Record</th>
-              <th>P</th>
-              <th>W</th>
-              <th>D</th>
-              <th>L</th>
-              <th>GF</th>
-              <th>GA</th>
-              <th>GD</th>
-            </tr>
-          </thead>
-          <tbody id="overallRecordTable"></tbody>
-        </table>
-      </div>
-
-    </div>
-
-    <div class="season-side">
-
-      <div class="content-box">
-        <h2>Appearances</h2>
-
-        <label class="stats-toggle">
-          <input type="checkbox" id="includeFriendliesApps">
-          Include friendlies
-        </label>
-
-        <div id="appearances" class="scorer-list"></div>
-      </div>
-
-      <div class="content-box">
-        <h2>Goalscorers</h2>
-
-        <label class="stats-toggle">
-          <input type="checkbox" id="includeFriendliesGoals">
-          Include friendlies
-        </label>
-
-        <div id="scorers" class="scorer-list"></div>
-      </div>
-
-    </div>
-  </div>
-
-  <div class="season-grid">
-    <div class="season-main">
-
-      <div class="content-box">
-        <h2>Matches</h2>
-
-        <label class="stats-toggle">
-          <input type="checkbox" id="excludeUnknownResults">
-          Exclude unknown results
-        </label>
-
-        <div id="matches" class="match-list"></div>
-      </div>
-
-      <div class="content-box">
-        <h2>League Table</h2>
-        <table class="archive-table">
-          <thead>
-            <tr>
-              <th>Pos</th>
-              <th>Team</th>
-              <th>P</th>
-              <th>W</th>
-              <th>D</th>
-              <th>L</th>
-              <th>GF</th>
-              <th>GA</th>
-              <th>GD</th>
-              <th>Pts</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </div>
-
-    </div>
-
-    <div class="season-side"></div>
-  </div>
-
-</div>
-
-<script src="js/season.js"></script>
-</body>
-</html>
