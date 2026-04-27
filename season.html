@@ -67,10 +67,29 @@
     </div>
 
     <div class="season-side">
+
       <div class="content-box">
-        <h2>Player of the Season</h2>
-        <div id="playerOfSeasonBox">Unknown</div>
+        <h2>Appearances</h2>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="includeFriendliesApps">
+          Include friendlies
+        </label>
+
+        <div id="appearances" class="scorer-list"></div>
       </div>
+
+      <div class="content-box">
+        <h2>Goalscorers</h2>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="includeFriendliesGoals">
+          Include friendlies
+        </label>
+
+        <div id="scorers" class="scorer-list"></div>
+      </div>
+
     </div>
   </div>
 
@@ -79,6 +98,12 @@
 
       <div class="content-box">
         <h2>Matches</h2>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="excludeUnknownResults">
+          Exclude unknown results
+        </label>
+
         <div id="matches" class="match-list"></div>
       </div>
 
@@ -105,10 +130,7 @@
 
     </div>
 
-    <div class="season-side">
-      <h2>Top Scorers</h2>
-      <div id="scorers" class="scorer-list"></div>
-    </div>
+    <div class="season-side"></div>
   </div>
 
 </div>
