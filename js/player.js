@@ -140,39 +140,51 @@ Promise.all([
     };
   }
 
-  function rankFor(category, statName, playerId) {
-    const ranked = players
-      .map(p => {
-        const stats = statSetFor(p.id)[category];
-        return {
-          id: p.id,
-          value: statName === "apps" ? stats.apps : stats.goals
-        };
-      })
-      .filter(r => r.value > 0)
-      .sort((a, b) => b.value - a.value);
+function rankFor(category, statName, playerId) {
+  const ranked = players
+    .map(p => {
+      const stats = statSetFor(p.id)[category];
+      return {
+        id: p.id,
+        value: statName === "apps" ? stats.apps : stats.goals
+      };
+    })
+    .filter(r => r.value > 0)
+    .sort((a, b) => b.value - a.value);
 
-    const current = ranked.find(r => String(r.id).trim() === String(playerId).trim());
-    if (!current) return { rank: null, total: ranked.length, isFirst: false };
+  const current = ranked.find(r => String(r.id).trim() === String(playerId).trim());
+  if (!current) return { rank: null, total: ranked.length, isFirst: false, joint: false };
 
-    const rank = ranked.findIndex(r => r.value === current.value) + 1;
+  const betterPlayers = ranked.filter(r => r.value > current.value).length;
+  const samePlayers = ranked.filter(r => r.value === current.value).length;
 
-    return {
-      rank,
-      total: ranked.length,
-      isFirst: rank === 1
-    };
-  }
+  const rank = betterPlayers + 1;
 
-  function rankText(category, statName, playerId) {
-    const r = rankFor(category, statName, playerId);
-    if (!r.rank) return "";
-    return ` (${ordinal(r.rank)} out of ${r.total} players)`;
-  }
+  return {
+    rank,
+    total: ranked.length,
+    isFirst: rank === 1,
+    joint: samePlayers > 1
+  };
+}
+
+function rankText(category, statName, playerId) {
+  const r = rankFor(category, statName, playerId);
+  if (!r.rank) return "";
+
+  const prefix = r.joint ? "Joint " : "";
+  return ` (${prefix}${ordinal(r.rank)} of ${r.total})`;
+}
 
   function starIfFirst(category, statName, playerId) {
-    return rankFor(category, statName, playerId).isFirst ? `<span class="gold-star">*</span>` : "";
-  }
+  return rankFor(category, statName, playerId).isFirst
+    ? `<span class="gold-star" style="
+        color:#ffcc00;
+        text-shadow:0 0 3px #fff4a3,0 0 8px #ffd700;
+        font-size:1.15em;
+      ">★</span>`
+    : "";
+}
 
   const appsWithMatch = playerRowsFor(id);
 
@@ -209,9 +221,13 @@ Promise.all([
   }
 
   const debutText = firstAllMatch ? formatLongDate(firstAllMatch.date) : "Unknown";
-  const competitiveDebutText = firstCompetitiveMatch ? formatLongDate(firstCompetitiveMatch.date) : "Unknown";
+  const competitiveDebutText = firstCompetitiveMatch
+  ? formatLongDate(firstCompetitiveMatch.date)
+  : "No competitive appearances";
   const lastAppearanceText = lastAllMatch ? formatLongDate(lastAllMatch.date) : "Unknown";
-  const lastCompetitiveAppearanceText = lastCompetitiveMatch ? formatLongDate(lastCompetitiveMatch.date) : "Unknown";
+  const lastCompetitiveAppearanceText = lastCompetitiveMatch
+  ? formatLongDate(lastCompetitiveMatch.date)
+  : "No competitive appearances";
   const appearanceSpanText = firstAllMatch && lastAllMatch ? formatSpan(firstAllMatch.date, lastAllMatch.date) : "Unknown";
   const longestGapText = formatDays(longestGapBetweenAppearances(orderedMatches));
 
@@ -296,7 +312,7 @@ Promise.all([
         <div>
           ${photoHtml}
 
-          <div class="player-photo-meta">
+          <div class="player-photo-meta" style="line-height:1.5;">
             ${player.position ? `<p><strong>Position:</strong> ${player.position}</p>` : ""}
             ${profile.dob ? `<p class="nowrap"><strong>Date of Birth:</strong> ${profile.dob}</p>` : ""}
             ${profile.birth_place ? `<p><strong>Birth Place:</strong> ${profile.birth_place}</p>` : ""}
