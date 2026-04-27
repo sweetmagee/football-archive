@@ -165,7 +165,13 @@ tbody tr:hover {
 }
 
 .nav-links a {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;              /* same width for every button */
+  min-height: 42px;
+  box-sizing: border-box;
+
   background: rgba(45, 30, 15, 0.88);
   color: #f5ead4;
   text-decoration: none;
@@ -175,6 +181,7 @@ tbody tr:hover {
   border-radius: 999px;
   border: 1px solid rgba(245, 234, 212, 0.55);
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.28);
+  text-align: center;
 }
 
 .nav-links a:hover {
@@ -182,7 +189,6 @@ tbody tr:hover {
   color: #fff7dc;
   text-decoration: none;
 }
-
 .content-box {
   border: 1px solid #c5aa78;
   background: #fbf3df;
