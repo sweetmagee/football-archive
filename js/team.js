@@ -231,15 +231,37 @@ Promise.all([
       .sort((a, b) => normalise(a.name).localeCompare(normalise(b.name)));
 
     return `
-      <div class="combine-team-controls">
-        ${[0, 1, 2, 3, 4, 5].map(i => `
-          <select class="also-include-team" data-index="${i}">
-            <option value="">Also Include</option>
-            ${availableTeams.map(t => `
-              <option value="${t.id}">${t.name}</option>
-            `).join("")}
-          </select>
-        `).join("")}
+      <div class="combine-team-controls" style="margin:10px 0 14px;">
+        <div id="combinePromptWrap">
+          <label class="stats-toggle">
+            <input type="checkbox" id="combineTeamsToggle">
+            Combine With Other Club(s)?
+          </label>
+        </div>
+
+        <button id="resetCombinedTeams" class="archive-button" style="display:none; margin-bottom:10px;">
+          Reset
+        </button>
+
+        <div id="combineDropdownWrap" style="display:none;">
+          ${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `
+            <div class="combine-team-row" data-row="${i}" style="display:none; margin-bottom:8px;">
+              <select class="also-include-team" data-index="${i}">
+                <option value="">Also Include</option>
+                ${availableTeams.map(t => `
+                  <option value="${t.id}">${t.name}</option>
+                `).join("")}
+              </select>
+
+              ${i < 7 ? `
+                <label class="stats-toggle add-another-wrap" data-add-for="${i}" style="display:none; margin-left:8px;">
+                  <input type="checkbox" class="add-another-team" data-next="${i + 1}">
+                  Add Another?
+                </label>
+              ` : ""}
+            </div>
+          `).join("")}
+        </div>
       </div>
     `;
   }
@@ -524,6 +546,73 @@ Promise.all([
     }
   }
 
+  function updateIncludedTeamsFromDropdowns() {
+    const selected = [mainTeamId];
+
+    document.querySelectorAll(".also-include-team").forEach(dropdown => {
+      const row = dropdown.closest(".combine-team-row");
+      const value = normalise(dropdown.value);
+
+      if (row && row.style.display !== "none" && value && !selected.includes(value)) {
+        selected.push(value);
+      }
+    });
+
+    includedTeamIds = selected;
+    refreshPageData();
+  }
+
+  function resetCombinedTeams() {
+    includedTeamIds = [mainTeamId];
+
+    const combineToggle = document.getElementById("combineTeamsToggle");
+    const promptWrap = document.getElementById("combinePromptWrap");
+    const resetButton = document.getElementById("resetCombinedTeams");
+    const dropdownWrap = document.getElementById("combineDropdownWrap");
+
+    if (combineToggle) combineToggle.checked = false;
+    if (promptWrap) promptWrap.style.display = "block";
+    if (resetButton) resetButton.style.display = "none";
+    if (dropdownWrap) dropdownWrap.style.display = "none";
+
+    document.querySelectorAll(".combine-team-row").forEach(row => {
+      row.style.display = "none";
+    });
+
+    document.querySelectorAll(".also-include-team").forEach(dropdown => {
+      dropdown.value = "";
+    });
+
+    document.querySelectorAll(".add-another-team").forEach(checkbox => {
+      checkbox.checked = false;
+    });
+
+    document.querySelectorAll(".add-another-wrap").forEach(wrap => {
+      wrap.style.display = "none";
+    });
+
+    refreshPageData();
+  }
+
+  function showCombineRow(index) {
+    const row = document.querySelector(`.combine-team-row[data-row="${index}"]`);
+    if (row) row.style.display = "block";
+  }
+
+  function updateAddAnotherVisibility(index) {
+    const dropdown = document.querySelector(`.also-include-team[data-index="${index}"]`);
+    const addWrap = document.querySelector(`.add-another-wrap[data-add-for="${index}"]`);
+
+    if (!dropdown || !addWrap) return;
+
+    addWrap.style.display = dropdown.value ? "inline-block" : "none";
+
+    if (!dropdown.value) {
+      const addCheckbox = addWrap.querySelector(".add-another-team");
+      if (addCheckbox) addCheckbox.checked = false;
+    }
+  }
+
   el.innerHTML = `
     <div class="content-box">
       <div class="team-header">
@@ -610,19 +699,57 @@ Promise.all([
     </div>
   `;
 
+  const combineToggle = document.getElementById("combineTeamsToggle");
+  const resetButton = document.getElementById("resetCombinedTeams");
+  const promptWrap = document.getElementById("combinePromptWrap");
+  const dropdownWrap = document.getElementById("combineDropdownWrap");
+
+  if (combineToggle) {
+    combineToggle.addEventListener("change", () => {
+      if (combineToggle.checked) {
+        if (promptWrap) promptWrap.style.display = "none";
+        if (resetButton) resetButton.style.display = "inline-block";
+        if (dropdownWrap) dropdownWrap.style.display = "block";
+        showCombineRow(0);
+      } else {
+        resetCombinedTeams();
+      }
+    });
+  }
+
+  if (resetButton) {
+    resetButton.addEventListener("click", resetCombinedTeams);
+  }
+
   document.querySelectorAll(".also-include-team").forEach(select => {
     select.addEventListener("change", () => {
-      const selected = [mainTeamId];
+      const index = Number(select.dataset.index);
+      updateAddAnotherVisibility(index);
+      updateIncludedTeamsFromDropdowns();
+    });
+  });
 
-      document.querySelectorAll(".also-include-team").forEach(dropdown => {
-        const value = normalise(dropdown.value);
-        if (value && !selected.includes(value)) {
-          selected.push(value);
+  document.querySelectorAll(".add-another-team").forEach(checkbox => {
+    checkbox.addEventListener("change", () => {
+      const nextIndex = Number(checkbox.dataset.next);
+
+      if (checkbox.checked) {
+        showCombineRow(nextIndex);
+      } else {
+        for (let i = nextIndex; i < 8; i++) {
+          const row = document.querySelector(`.combine-team-row[data-row="${i}"]`);
+          const dropdown = document.querySelector(`.also-include-team[data-index="${i}"]`);
+          const addWrap = document.querySelector(`.add-another-wrap[data-add-for="${i}"]`);
+          const addCheckbox = document.querySelector(`.add-another-team[data-next="${i + 1}"]`);
+
+          if (row) row.style.display = "none";
+          if (dropdown) dropdown.value = "";
+          if (addWrap) addWrap.style.display = "none";
+          if (addCheckbox) addCheckbox.checked = false;
         }
-      });
 
-      includedTeamIds = selected;
-      refreshPageData();
+        updateIncludedTeamsFromDropdowns();
+      }
     });
   });
 
