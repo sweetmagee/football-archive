@@ -140,51 +140,47 @@ Promise.all([
     };
   }
 
-function rankFor(category, statName, playerId) {
-  const ranked = players
-    .map(p => {
-      const stats = statSetFor(p.id)[category];
-      return {
-        id: p.id,
-        value: statName === "apps" ? stats.apps : stats.goals
-      };
-    })
-    .filter(r => r.value > 0)
-    .sort((a, b) => b.value - a.value);
+  function rankFor(category, statName, playerId) {
+    const ranked = players
+      .map(p => {
+        const stats = statSetFor(p.id)[category];
+        return {
+          id: p.id,
+          value: statName === "apps" ? stats.apps : stats.goals,
+          apps: stats.apps
+        };
+      })
+      .filter(r => r.apps > 0)
+      .sort((a, b) => b.value - a.value);
 
-  const current = ranked.find(r => String(r.id).trim() === String(playerId).trim());
-  if (!current) return { rank: null, total: ranked.length, isFirst: false, joint: false };
+    const current = ranked.find(r => String(r.id).trim() === String(playerId).trim());
+    if (!current) return { rank: null, total: ranked.length, isFirst: false, joint: false };
 
-  const betterPlayers = ranked.filter(r => r.value > current.value).length;
-  const samePlayers = ranked.filter(r => r.value === current.value).length;
+    const betterPlayers = ranked.filter(r => r.value > current.value).length;
+    const samePlayers = ranked.filter(r => r.value === current.value).length;
+    const rank = betterPlayers + 1;
 
-  const rank = betterPlayers + 1;
+    return {
+      rank,
+      total: ranked.length,
+      isFirst: rank === 1,
+      joint: samePlayers > 1
+    };
+  }
 
-  return {
-    rank,
-    total: ranked.length,
-    isFirst: rank === 1,
-    joint: samePlayers > 1
-  };
-}
+  function rankText(category, statName, playerId) {
+    const r = rankFor(category, statName, playerId);
+    if (!r.rank) return "";
 
-function rankText(category, statName, playerId) {
-  const r = rankFor(category, statName, playerId);
-  if (!r.rank) return "";
-
-  const prefix = r.joint ? "Joint " : "";
-  return ` (${prefix}${ordinal(r.rank)} of ${r.total})`;
-}
+    const prefix = r.joint ? "Joint " : "";
+    return ` (${prefix}${ordinal(r.rank)} of ${r.total})`;
+  }
 
   function starIfFirst(category, statName, playerId) {
-  return rankFor(category, statName, playerId).isFirst
-    ? `<span class="gold-star" style="
-        color:#ffcc00;
-        text-shadow:0 0 3px #fff4a3,0 0 8px #ffd700;
-        font-size:1.15em;
-      ">★</span>`
-    : "";
-}
+    return rankFor(category, statName, playerId).isFirst
+      ? `<span class="gold-star">★</span>`
+      : "";
+  }
 
   const appsWithMatch = playerRowsFor(id);
 
@@ -221,13 +217,9 @@ function rankText(category, statName, playerId) {
   }
 
   const debutText = firstAllMatch ? formatLongDate(firstAllMatch.date) : "Unknown";
-  const competitiveDebutText = firstCompetitiveMatch
-  ? formatLongDate(firstCompetitiveMatch.date)
-  : "No competitive appearances";
+  const competitiveDebutText = firstCompetitiveMatch ? formatLongDate(firstCompetitiveMatch.date) : "No competitive appearances";
   const lastAppearanceText = lastAllMatch ? formatLongDate(lastAllMatch.date) : "Unknown";
-  const lastCompetitiveAppearanceText = lastCompetitiveMatch
-  ? formatLongDate(lastCompetitiveMatch.date)
-  : "No competitive appearances";
+  const lastCompetitiveAppearanceText = lastCompetitiveMatch ? formatLongDate(lastCompetitiveMatch.date) : "No competitive appearances";
   const appearanceSpanText = firstAllMatch && lastAllMatch ? formatSpan(firstAllMatch.date, lastAllMatch.date) : "Unknown";
   const longestGapText = formatDays(longestGapBetweenAppearances(orderedMatches));
 
@@ -307,12 +299,82 @@ function rankText(category, statName, playerId) {
   }
 
   el.innerHTML = `
+    <style>
+      .player-card {
+        grid-template-columns: minmax(260px, 300px) 1fr;
+        align-items: start;
+        column-gap: 24px;
+      }
+
+      .player-photo-meta {
+        font-size: 1rem;
+        line-height: 1.55;
+      }
+
+      .player-photo-meta p {
+        font-size: 1rem;
+        margin: 0 0 8px;
+        white-space: normal;
+      }
+
+      .player-photo-meta .nowrap {
+        white-space: nowrap;
+      }
+
+      .player-meta {
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .player-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .player-stat-box {
+        padding: 10px 14px;
+        min-width: 0;
+      }
+
+      .player-stat-box p {
+        margin: 7px 0;
+      }
+
+      .player-career-fields {
+        clear: both;
+      }
+
+      .player-career-fields p {
+        margin: 0 0 10px;
+      }
+
+      .gold-star {
+        color: #ffd700;
+        font-size: 1.25em;
+        font-weight: 900;
+        margin-left: 4px;
+        text-shadow: 0 0 3px #fff6a6, 0 0 8px #ffd700, 0 0 13px #ffb300;
+      }
+
+      @media (max-width: 800px) {
+        .player-card {
+          grid-template-columns: 1fr;
+        }
+
+        .player-stats-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+
     <div class="content-box">
       <div class="player-card">
         <div>
           ${photoHtml}
 
-          <div class="player-photo-meta" style="line-height:1.5;">
+          <div class="player-photo-meta">
             ${player.position ? `<p><strong>Position:</strong> ${player.position}</p>` : ""}
             ${profile.dob ? `<p class="nowrap"><strong>Date of Birth:</strong> ${profile.dob}</p>` : ""}
             ${profile.birth_place ? `<p><strong>Birth Place:</strong> ${profile.birth_place}</p>` : ""}
@@ -334,8 +396,8 @@ function rankText(category, statName, playerId) {
             <p><strong>Competitive Debut:</strong> ${competitiveDebutText}</p>
             <p><strong>Last Appearance:</strong> ${lastAppearanceText}</p>
             <p><strong>Last Competitive Appearance:</strong> ${lastCompetitiveAppearanceText}</p>
-            <p><strong>Appearance Span (All matches):</strong> ${appearanceSpanText}</p>
-            <p><strong>Longest Gap Between Appearances:</strong> ${longestGapText}</p>
+            ${totalStats.apps > 1 ? `<p><strong>Appearance Span (All matches):</strong> ${appearanceSpanText}</p>` : ""}
+            ${totalStats.apps > 1 ? `<p><strong>Longest Gap Between Appearances:</strong> ${longestGapText}</p>` : ""}
           </div>
         </div>
       </div>
