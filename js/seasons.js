@@ -14,11 +14,15 @@ fetch('data/seasons.json')
     );
 
     el.innerHTML = '';
-    picker.innerHTML = '<option value=\"\">Select a season...</option>';
+    el.style.display = 'flex';
+    el.style.flexWrap = 'wrap';
+    el.style.gap = '8px';
+
+    picker.innerHTML = '<option value="">Select a season...</option>';
 
     sorted.forEach(s => {
       el.innerHTML += `
-        <div style="margin:8px 0;">
+        <div style="margin:8px;">
           <a href="season.html?id=${s.id}"
              style="
                display:inline-flex;
