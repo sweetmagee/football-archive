@@ -61,6 +61,11 @@ Promise.all([
     return value !== "?" && !Number.isNaN(Number(value));
   }
 
+  function isFriendly(match) {
+    const comp = String(match.competition || "").trim().toLowerCase();
+    return comp === "friendly" || comp === "fr" || comp === "friendlies";
+  }
+
   const managerMatches = matches
     .filter(isManagedByThisMatch)
     .sort((a, b) => parseDateUK(a.date) - parseDateUK(b.date));
@@ -69,29 +74,47 @@ Promise.all([
     isCountableScore(m.home_score) && isCountableScore(m.away_score)
   );
 
-  let played = 0;
-  let won = 0;
-  let drawn = 0;
-  let lost = 0;
-  let gf = 0;
-  let ga = 0;
+  function buildRecord(matchList) {
+    let played = 0;
+    let won = 0;
+    let drawn = 0;
+    let lost = 0;
+    let gf = 0;
+    let ga = 0;
 
-  countedMatches.forEach(match => {
-    const teamId = managedTeamId(match);
+    matchList.forEach(match => {
+      const teamId = managedTeamId(match);
+      const isHome = String(match.home_team).trim() === String(teamId).trim();
 
-    const isHome = String(match.home_team).trim() === String(teamId).trim();
+      const teamGoals = isHome ? Number(match.home_score) : Number(match.away_score);
+      const oppGoals = isHome ? Number(match.away_score) : Number(match.home_score);
 
-    const teamGoals = isHome ? Number(match.home_score) : Number(match.away_score);
-    const oppGoals = isHome ? Number(match.away_score) : Number(match.home_score);
+      played++;
+      gf += teamGoals;
+      ga += oppGoals;
 
-    played++;
-    gf += teamGoals;
-    ga += oppGoals;
+      if (teamGoals > oppGoals) won++;
+      else if (teamGoals < oppGoals) lost++;
+      else drawn++;
+    });
 
-    if (teamGoals > oppGoals) won++;
-    else if (teamGoals < oppGoals) lost++;
-    else drawn++;
-  });
+    return {
+      played,
+      won,
+      drawn,
+      lost,
+      gf,
+      ga,
+      gd: gf - ga
+    };
+  }
+
+  const competitiveMatches = countedMatches.filter(m => !isFriendly(m));
+  const friendlyMatches = countedMatches.filter(m => isFriendly(m));
+
+  const comp = buildRecord(competitiveMatches);
+  const fr = buildRecord(friendlyMatches);
+  const overall = buildRecord(countedMatches);
 
   const firstMatch = managerMatches[0];
   const lastMatch = managerMatches[managerMatches.length - 1];
@@ -112,6 +135,21 @@ Promise.all([
       onerror="this.onerror=null;this.src='images/managers/defaultmanager.png';"
     >
   `;
+
+  function recordRow(title, r) {
+    return `
+      <tr>
+        <td>${title}</td>
+        <td>${r.played}</td>
+        <td>${r.won}</td>
+        <td>${r.drawn}</td>
+        <td>${r.lost}</td>
+        <td>${r.gf}</td>
+        <td>${r.ga}</td>
+        <td>${r.gd}</td>
+      </tr>
+    `;
+  }
 
   el.innerHTML = `
     <div class="content-box">
@@ -134,25 +172,25 @@ Promise.all([
     <div class="content-box">
       <h3>Managerial Record</h3>
 
-      <div class="player-stats-grid">
-        <div class="player-stat-box">
-          <div class="player-stat-title">Matches</div>
-          <p><strong>${played}</strong></p>
-        </div>
-
-        <div class="player-stat-box">
-          <div class="player-stat-title">Record</div>
-          <p>W ${won}</p>
-          <p>D ${drawn}</p>
-          <p>L ${lost}</p>
-        </div>
-
-        <div class="player-stat-box">
-          <div class="player-stat-title">Goals</div>
-          <p>For ${gf}</p>
-          <p>Against ${ga}</p>
-        </div>
-      </div>
+      <table class="archive-table">
+        <thead>
+          <tr>
+            <th>Record</th>
+            <th>P</th>
+            <th>W</th>
+            <th>D</th>
+            <th>L</th>
+            <th>GF</th>
+            <th>GA</th>
+            <th>GD</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${recordRow("Competitive Record", comp)}
+          ${recordRow("Friendly Record", fr)}
+          ${recordRow("Overall Record", overall)}
+        </tbody>
+      </table>
     </div>
 
     <div class="content-box">
