@@ -49,22 +49,25 @@ Promise.all([
     return t ? t.name : teamId;
   }
 
-  function playerName(playerId) {
-    const p = players.find(x => normalise(x.id) === normalise(playerId));
-    return p ? p.name : playerId;
-  }
-
   function teamBadgeHtml(teamId, sizeClass = "team-badge-small") {
     return `<img class="${sizeClass}" src="images/teams/${teamId}.png" alt="" onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">`;
   }
 
   function parseDate(value) {
     if (!value) return null;
-    const parts = normalise(value).replace(/\./g, "/").replace(/-/g, "/").split("/");
+
+    const parts = normalise(value)
+      .replace(/\./g, "/")
+      .replace(/-/g, "/")
+      .split("/");
+
     if (parts.length !== 3) return null;
 
     let [dd, mm, yyyy] = parts;
-    if (yyyy.length === 2) yyyy = Number(yyyy) >= 50 ? `18${yyyy}` : `19${yyyy}`;
+
+    if (yyyy.length === 2) {
+      yyyy = Number(yyyy) >= 50 ? `18${yyyy}` : `19${yyyy}`;
+    }
 
     const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
     return Number.isNaN(d.getTime()) ? null : d;
@@ -105,10 +108,6 @@ Promise.all([
     return home;
   }
 
-  function getDisplayTeamIds() {
-    return [...includedTeamIds];
-  }
-
   function getTeamMatches() {
     return matches.filter(matchInScope);
   }
@@ -137,6 +136,7 @@ Promise.all([
     }
 
     const margateHome = home === "t1";
+
     return {
       goalsFor: margateHome ? Number(match.home_score || 0) : Number(match.away_score || 0),
       goalsAgainst: margateHome ? Number(match.away_score || 0) : Number(match.home_score || 0)
@@ -222,7 +222,7 @@ Promise.all([
   }
 
   function includedTeamsText() {
-    return getDisplayTeamIds().map(teamName).join(" + ");
+    return includedTeamIds.map(teamName).join(" + ");
   }
 
   function combineDropdownsHtml() {
@@ -266,12 +266,16 @@ Promise.all([
     `;
   }
 
-  function matchLine(m) {
+  function matchLine(m, index = 0) {
+    const matchNumber = `#${String(index + 1).padStart(3, "0")}`;
+
     return `
-      <div class="match-row" data-opponent="${getOpponentId(m)}">
-        <div class="match-date">${m.date || ""}</div>
-        <div class="match-scoreline">
-          <a href="match.html?id=${m.id}">
+      <div class="match-row">
+        <div class="match-scoreline" style="display:block;">
+          <a href="match.html?id=${m.id}" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <strong>${matchNumber}</strong>
+            <span>${m.date || ""}</span>
+
             <span class="team-inline">
               ${teamBadgeHtml(m.home_team)}
               <span>${teamName(m.home_team)}</span>
@@ -283,9 +287,10 @@ Promise.all([
               ${teamBadgeHtml(m.away_team)}
               <span>${teamName(m.away_team)}</span>
             </span>
+
+            <span class="match-meta">${m.competition || ""}${m.round ? ` - ${m.round}` : ""}</span>
           </a>
         </div>
-        <div class="match-meta">${m.competition || ""}${m.round ? ` - ${m.round}` : ""}</div>
       </div>
     `;
   }
@@ -469,6 +474,7 @@ Promise.all([
     if (!opponentFilter) return;
 
     const currentValue = opponentFilter.value;
+
     opponentFilter.innerHTML = `
       <option value="">All opponents</option>
       ${opponentOptions()}
@@ -512,7 +518,7 @@ Promise.all([
         return `
           <h4>${seasonName(seasonId)}</h4>
           <div class="match-list">
-            ${seasonMatches.map(matchLine).join("")}
+            ${seasonMatches.map((m, index) => matchLine(m, index)).join("")}
           </div>
         `;
       }).join("");
@@ -754,6 +760,7 @@ Promise.all([
   });
 
   const opponentFilter = document.getElementById("opponentFilter");
+
   if (opponentFilter) {
     opponentFilter.addEventListener("change", renderMatches);
   }
