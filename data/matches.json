@@ -944,7 +944,7 @@
     "scorers": [],
     "source_sheet": "Combined",
     "source_row": 3,
-    "home_manager_id": "mgr1",
+    "home_manager_id": "mgr2",
     "away_manager_id": ""
   },
   {
@@ -970,7 +970,7 @@
     ],
     "source_sheet": "Combined",
     "source_row": 4,
-    "away_manager_id": "mgr1",
+    "away_manager_id": "mgr2",
     "home_manager_id": ""
   },
   {
@@ -991,7 +991,7 @@
     "scorers": [],
     "source_sheet": "Combined",
     "source_row": 5,
-    "away_manager_id": "mgr1",
+    "away_manager_id": "mgr2",
     "home_manager_id": ""
   },
   {
@@ -1021,7 +1021,7 @@
     ],
     "source_sheet": "Combined",
     "source_row": 6,
-    "home_manager_id": "mgr1",
+    "home_manager_id": "mgr2",
     "away_manager_id": ""
   },
   {
@@ -1051,7 +1051,7 @@
     ],
     "source_sheet": "Combined",
     "source_row": 7,
-    "away_manager_id": "mgr1",
+    "away_manager_id": "mgr2",
     "home_manager_id": ""
   },
   {
@@ -1077,7 +1077,7 @@
     ],
     "source_sheet": "Combined",
     "source_row": 8,
-    "away_manager_id": "mgr1",
+    "away_manager_id": "mgr2",
     "home_manager_id": ""
   },
   {
@@ -1103,7 +1103,7 @@
     ],
     "source_sheet": "Combined",
     "source_row": 9,
-    "home_manager_id": "mgr1",
+    "home_manager_id": "mgr2",
     "away_manager_id": ""
   },
   {
@@ -1124,7 +1124,7 @@
     "scorers": [],
     "source_sheet": "Combined",
     "source_row": 10,
-    "home_manager_id": "mgr1",
+    "home_manager_id": "mgr2",
     "away_manager_id": ""
   },
   {
@@ -1154,7 +1154,7 @@
     ],
     "source_sheet": "Combined",
     "source_row": 11,
-    "away_manager_id": "mgr1",
+    "away_manager_id": "mgr2",
     "home_manager_id": ""
   },
   {
@@ -1175,7 +1175,7 @@
     "scorers": [],
     "source_sheet": "Combined",
     "source_row": 12,
-    "home_manager_id": "mgr1",
+    "home_manager_id": "mgr2",
     "away_manager_id": ""
   },
   {
@@ -1201,7 +1201,7 @@
     ],
     "source_sheet": "Combined",
     "source_row": 13,
-    "home_manager_id": "mgr1",
+    "home_manager_id": "mgr2",
     "away_manager_id": ""
   }
 ]
