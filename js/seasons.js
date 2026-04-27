@@ -16,25 +16,26 @@ fetch('data/seasons.json')
     el.innerHTML = '';
     el.style.display = 'flex';
     el.style.flexWrap = 'wrap';
-    el.style.gap = '8px';
+    el.style.gap = '6px';
 
     picker.innerHTML = '<option value="">Select a season...</option>';
 
     sorted.forEach(s => {
       el.innerHTML += `
-        <div style="margin:8px;">
+        <div style="margin:4px;">
           <a href="season.html?id=${s.id}"
              style="
                display:inline-flex;
                align-items:center;
                justify-content:center;
-               width:220px;
-               min-height:42px;
+               width:110px;
+               min-height:21px;
                background:rgba(45,30,15,0.88);
                color:#f5ead4;
                text-decoration:none;
                font-weight:700;
-               padding:8px 14px;
+               font-size:12px;
+               padding:4px 7px;
                border-radius:999px;
                border:1px solid rgba(245,234,212,0.55);
                box-shadow:0 2px 7px rgba(0,0,0,0.28);
