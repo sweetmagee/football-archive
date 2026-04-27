@@ -15,7 +15,14 @@ Promise.all([
     return;
   }
 
-  const isMargatePage = String(id).trim() === "t1";
+  const mainTeamId = String(id).trim();
+  const isMargatePage = mainTeamId === "t1";
+
+  let includedTeamIds = [mainTeamId];
+
+  function normalise(value) {
+    return String(value || "").trim();
+  }
 
   function isCountableMatch(match) {
     return (
@@ -28,22 +35,22 @@ Promise.all([
   }
 
   function isFriendly(match) {
-    const comp = String(match.competition || "").trim().toLowerCase();
+    const comp = normalise(match.competition).toLowerCase();
     return comp === "friendly" || comp === "fr" || comp === "friendlies";
   }
 
   function seasonName(seasonId) {
-    const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
+    const season = seasons.find(s => normalise(s.id) === normalise(seasonId));
     return season ? season.name : seasonId;
   }
 
   function teamName(teamId) {
-    const t = teams.find(x => String(x.id).trim() === String(teamId).trim());
+    const t = teams.find(x => normalise(x.id) === normalise(teamId));
     return t ? t.name : teamId;
   }
 
   function playerName(playerId) {
-    const p = players.find(x => String(x.id).trim() === String(playerId).trim());
+    const p = players.find(x => normalise(x.id) === normalise(playerId));
     return p ? p.name : playerId;
   }
 
@@ -53,7 +60,7 @@ Promise.all([
 
   function parseDate(value) {
     if (!value) return null;
-    const parts = String(value).trim().replace(/\./g, "/").replace(/-/g, "/").split("/");
+    const parts = normalise(value).replace(/\./g, "/").replace(/-/g, "/").split("/");
     if (parts.length !== 3) return null;
 
     let [dd, mm, yyyy] = parts;
@@ -61,6 +68,180 @@ Promise.all([
 
     const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
     return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function teamIsIncluded(teamId) {
+    return includedTeamIds.includes(normalise(teamId));
+  }
+
+  function matchInScope(match) {
+    if (!isCountableMatch(match)) return false;
+
+    const home = normalise(match.home_team);
+    const away = normalise(match.away_team);
+
+    if (isMargatePage) {
+      return teamIsIncluded(home) || teamIsIncluded(away);
+    }
+
+    return (
+      (home === "t1" && teamIsIncluded(away)) ||
+      (away === "t1" && teamIsIncluded(home))
+    );
+  }
+
+  function getOpponentId(match) {
+    const home = normalise(match.home_team);
+    const away = normalise(match.away_team);
+
+    if (isMargatePage) {
+      if (teamIsIncluded(home)) return away;
+      return home;
+    }
+
+    if (home === "t1") return away;
+    if (away === "t1") return home;
+    if (teamIsIncluded(home)) return away;
+    return home;
+  }
+
+  function getDisplayTeamIds() {
+    return [...includedTeamIds];
+  }
+
+  function getTeamMatches() {
+    return matches.filter(matchInScope);
+  }
+
+  function getGoalsForAgainst(match) {
+    const home = normalise(match.home_team);
+    const away = normalise(match.away_team);
+
+    if (isMargatePage) {
+      const includedHome = teamIsIncluded(home);
+      const includedAway = teamIsIncluded(away);
+
+      if (includedHome && !includedAway) {
+        return {
+          goalsFor: Number(match.home_score || 0),
+          goalsAgainst: Number(match.away_score || 0)
+        };
+      }
+
+      if (includedAway && !includedHome) {
+        return {
+          goalsFor: Number(match.away_score || 0),
+          goalsAgainst: Number(match.home_score || 0)
+        };
+      }
+    }
+
+    const margateHome = home === "t1";
+    return {
+      goalsFor: margateHome ? Number(match.home_score || 0) : Number(match.away_score || 0),
+      goalsAgainst: margateHome ? Number(match.away_score || 0) : Number(match.home_score || 0)
+    };
+  }
+
+  function getRecord(matchList) {
+    let P = 0;
+    let W = 0;
+    let D = 0;
+    let L = 0;
+    let GF = 0;
+    let GA = 0;
+
+    matchList.forEach(m => {
+      const result = getGoalsForAgainst(m);
+      const goalsFor = result.goalsFor;
+      const goalsAgainst = result.goalsAgainst;
+
+      P++;
+      GF += goalsFor;
+      GA += goalsAgainst;
+
+      if (goalsFor > goalsAgainst) W++;
+      else if (goalsFor < goalsAgainst) L++;
+      else D++;
+    });
+
+    return {
+      P,
+      W,
+      D,
+      L,
+      GF,
+      GA,
+      GD: GF - GA
+    };
+  }
+
+  function recordRows(matchList) {
+    const competitive = getRecord(matchList.filter(m => !isFriendly(m)));
+    const friendly = getRecord(matchList.filter(m => isFriendly(m)));
+    const overall = getRecord(matchList);
+
+    return [
+      { label: "Competitive Record", ...competitive },
+      { label: "Friendly Record", ...friendly },
+      { label: "Overall Record", ...overall }
+    ];
+  }
+
+  function recordTableHtml(matchList) {
+    return `
+      <table class="archive-table">
+        <thead>
+          <tr>
+            <th>Record</th>
+            <th>P</th>
+            <th>W</th>
+            <th>D</th>
+            <th>L</th>
+            <th>GF</th>
+            <th>GA</th>
+            <th>GD</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${recordRows(matchList).map(row => `
+            <tr>
+              <td>${row.label}</td>
+              <td>${row.P}</td>
+              <td>${row.W}</td>
+              <td>${row.D}</td>
+              <td>${row.L}</td>
+              <td>${row.GF}</td>
+              <td>${row.GA}</td>
+              <td>${row.GD}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function includedTeamsText() {
+    return getDisplayTeamIds().map(teamName).join(" + ");
+  }
+
+  function combineDropdownsHtml() {
+    const availableTeams = teams
+      .filter(t => normalise(t.id) !== mainTeamId)
+      .sort((a, b) => normalise(a.name).localeCompare(normalise(b.name)));
+
+    return `
+      <div class="combine-team-controls">
+        ${[0, 1, 2, 3, 4, 5].map(i => `
+          <select class="also-include-team" data-index="${i}">
+            <option value="">Also Include</option>
+            ${availableTeams.map(t => `
+              <option value="${t.id}">${t.name}</option>
+            `).join("")}
+          </select>
+        `).join("")}
+      </div>
+    `;
   }
 
   function matchLine(m) {
@@ -87,107 +268,16 @@ Promise.all([
     `;
   }
 
-  function getOpponentId(match) {
-    if (String(match.home_team).trim() === "t1") return String(match.away_team).trim();
-    if (String(match.away_team).trim() === "t1") return String(match.home_team).trim();
-
-    if (String(match.home_team).trim() === String(id).trim()) return String(match.away_team).trim();
-    return String(match.home_team).trim();
-  }
-
-  let teamMatches;
-
-  if (isMargatePage) {
-    teamMatches = matches.filter(m =>
-      (
-        String(m.home_team).trim() === String(id).trim() ||
-        String(m.away_team).trim() === String(id).trim()
-      ) &&
-      isCountableMatch(m)
-    );
-  } else {
-    teamMatches = matches.filter(m =>
-      (
-        (String(m.home_team).trim() === "t1" && String(m.away_team).trim() === String(id).trim()) ||
-        (String(m.away_team).trim() === "t1" && String(m.home_team).trim() === String(id).trim())
-      ) &&
-      isCountableMatch(m)
-    );
-  }
-
-  function getRecord(matchList) {
-    let P = 0;
-    let W = 0;
-    let D = 0;
-    let L = 0;
-    let GF = 0;
-    let GA = 0;
-
-    matchList.forEach(m => {
-      let goalsFor = 0;
-      let goalsAgainst = 0;
-
-      if (isMargatePage) {
-        const isHome = String(m.home_team).trim() === String(id).trim();
-        goalsFor = isHome ? Number(m.home_score || 0) : Number(m.away_score || 0);
-        goalsAgainst = isHome ? Number(m.away_score || 0) : Number(m.home_score || 0);
-      } else {
-        const margateHome = String(m.home_team).trim() === "t1";
-        goalsFor = margateHome ? Number(m.home_score || 0) : Number(m.away_score || 0);
-        goalsAgainst = margateHome ? Number(m.away_score || 0) : Number(m.home_score || 0);
-      }
-
-      P++;
-      GF += goalsFor;
-      GA += goalsAgainst;
-
-      if (goalsFor > goalsAgainst) W++;
-      else if (goalsFor < goalsAgainst) L++;
-      else D++;
-    });
-
-    return {
-      P,
-      W,
-      D,
-      L,
-      GF,
-      GA,
-      GD: GF - GA,
-      PTS: (W * 3) + D
-    };
-  }
-
-  function recordTable(title, record) {
-    return `
-      <div class="player-stat-box">
-        <div class="player-stat-title">${title}</div>
-        <p><strong>P:</strong> ${record.P}</p>
-        <p><strong>W:</strong> ${record.W}</p>
-        <p><strong>D:</strong> ${record.D}</p>
-        <p><strong>L:</strong> ${record.L}</p>
-        <p><strong>GF:</strong> ${record.GF}</p>
-        <p><strong>GA:</strong> ${record.GA}</p>
-        <p><strong>GD:</strong> ${record.GD}</p>
-        <p><strong>Pts:</strong> ${record.PTS}</p>
-      </div>
-    `;
-  }
-
-  const competitiveMatches = teamMatches.filter(m => !isFriendly(m));
-  const friendlyMatches = teamMatches.filter(m => isFriendly(m));
-
-  const competitiveRecord = getRecord(competitiveMatches);
-  const friendlyRecord = getRecord(friendlyMatches);
-  const totalRecord = getRecord(teamMatches);
-
   function getPlayerStats(playerId, includeFriendlies = false) {
-    const rows = appearances.filter(a => {
-      if (String(a.player_id).trim() !== String(playerId).trim()) return false;
-      if (String(a.team).trim() !== "t1") return false;
+    const activeTeamSet = new Set(includedTeamIds);
 
-      const match = matches.find(m => String(m.id).trim() === String(a.match_id).trim());
+    const rows = appearances.filter(a => {
+      if (normalise(a.player_id) !== normalise(playerId)) return false;
+      if (!activeTeamSet.has(normalise(a.team))) return false;
+
+      const match = matches.find(m => normalise(m.id) === normalise(a.match_id));
       if (!isCountableMatch(match)) return false;
+      if (!matchInScope(match)) return false;
       if (!includeFriendlies && isFriendly(match)) return false;
 
       return true;
@@ -204,6 +294,23 @@ Promise.all([
       goals,
       appsDisplay: subs > 0 ? `${starts}+${subs}` : `${starts}`
     };
+  }
+
+  function rankingRows(rows, statKey) {
+    let previousValue = null;
+    let previousRank = 0;
+
+    return rows.map((row, index) => {
+      if (row[statKey] !== previousValue) {
+        previousRank = index + 1;
+        previousValue = row[statKey];
+      }
+
+      return {
+        ...row,
+        rank: previousRank
+      };
+    });
   }
 
   function renderTopAppearances(includeFriendlies) {
@@ -229,16 +336,19 @@ Promise.all([
       )
       .slice(0, 50);
 
+    const rankedRows = rankingRows(rows, "apps");
     const tbody = document.getElementById("topAppearancesTable");
 
-    if (!rows.length) {
+    if (!tbody) return;
+
+    if (!rankedRows.length) {
       tbody.innerHTML = `<tr><td colspan="3">No appearance data available.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = rows.map((row, index) => `
+    tbody.innerHTML = rankedRows.map(row => `
       <tr>
-        <td>${index + 1}</td>
+        <td>${row.rank}</td>
         <td><a href="player.html?id=${row.id}">${row.name}</a></td>
         <td>${row.appsDisplay}</td>
       </tr>
@@ -266,16 +376,19 @@ Promise.all([
       )
       .slice(0, 50);
 
+    const rankedRows = rankingRows(rows, "goals");
     const tbody = document.getElementById("topGoalsTable");
 
-    if (!rows.length) {
+    if (!tbody) return;
+
+    if (!rankedRows.length) {
       tbody.innerHTML = `<tr><td colspan="3">No goals data available.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = rows.map((row, index) => `
+    tbody.innerHTML = rankedRows.map(row => `
       <tr>
-        <td>${index + 1}</td>
+        <td>${row.rank}</td>
         <td><a href="player.html?id=${row.id}">${row.name}</a></td>
         <td>${row.goals}</td>
       </tr>
@@ -284,16 +397,19 @@ Promise.all([
 
   function renderSeasonSummary() {
     const tbody = document.getElementById("seasonSummaryTable");
+    if (!tbody) return;
+
+    const teamMatches = getTeamMatches();
     const grouped = {};
 
     teamMatches.forEach(m => {
-      const sid = String(m.season_id || "").trim() || "unknown";
+      const sid = normalise(m.season_id) || "unknown";
       if (!grouped[sid]) grouped[sid] = [];
       grouped[sid].push(m);
     });
 
     const rows = Object.entries(grouped)
-      .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
+      .sort((a, b) => normalise(a[0]).localeCompare(normalise(b[0])))
       .map(([seasonId, matchList]) => {
         const record = getRecord(matchList);
 
@@ -307,19 +423,47 @@ Promise.all([
             <td>${record.GF}</td>
             <td>${record.GA}</td>
             <td>${record.GD}</td>
-            <td>${record.PTS}</td>
           </tr>
         `;
       }).join("");
 
-    tbody.innerHTML = rows || `<tr><td colspan="9">No season records found.</td></tr>`;
+    tbody.innerHTML = rows || `<tr><td colspan="8">No season records found.</td></tr>`;
+  }
+
+  function opponentOptions() {
+    const teamMatches = getTeamMatches();
+    const opponentIds = [...new Set(teamMatches.map(getOpponentId))]
+      .filter(Boolean)
+      .filter(oppId => !teamIsIncluded(oppId))
+      .sort((a, b) => teamName(a).localeCompare(teamName(b)));
+
+    return opponentIds.map(oppId => `
+      <option value="${oppId}">${teamName(oppId)}</option>
+    `).join("");
+  }
+
+  function renderOpponentFilterOptions() {
+    const opponentFilter = document.getElementById("opponentFilter");
+    if (!opponentFilter) return;
+
+    const currentValue = opponentFilter.value;
+    opponentFilter.innerHTML = `
+      <option value="">All opponents</option>
+      ${opponentOptions()}
+    `;
+
+    if ([...opponentFilter.options].some(option => option.value === currentValue)) {
+      opponentFilter.value = currentValue;
+    }
   }
 
   function renderMatches() {
     const opponentFilter = document.getElementById("opponentFilter");
     const matchesWrap = document.getElementById("teamMatches");
+    if (!matchesWrap) return;
 
     const selectedOpponent = opponentFilter ? opponentFilter.value : "";
+    const teamMatches = getTeamMatches();
 
     const filteredMatches = selectedOpponent
       ? teamMatches.filter(m => getOpponentId(m) === selectedOpponent)
@@ -328,7 +472,7 @@ Promise.all([
     const grouped = {};
 
     filteredMatches.forEach(m => {
-      const sid = String(m.season_id || "").trim() || "unknown";
+      const sid = normalise(m.season_id) || "unknown";
       if (!grouped[sid]) grouped[sid] = [];
       grouped[sid].push(m);
     });
@@ -339,7 +483,7 @@ Promise.all([
     }
 
     matchesWrap.innerHTML = Object.entries(grouped)
-      .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
+      .sort((a, b) => normalise(a[0]).localeCompare(normalise(b[0])))
       .map(([seasonId, seasonMatches]) => {
         seasonMatches.sort((a, b) => parseDate(a.date) - parseDate(b.date));
 
@@ -352,14 +496,32 @@ Promise.all([
       }).join("");
   }
 
-  function opponentOptions() {
-    const opponentIds = [...new Set(teamMatches.map(getOpponentId))]
-      .filter(Boolean)
-      .sort((a, b) => teamName(a).localeCompare(teamName(b)));
+  function renderHeaderRecord() {
+    const recordWrap = document.getElementById("teamRecordWrap");
+    const includedTeamsWrap = document.getElementById("includedTeamsText");
 
-    return opponentIds.map(oppId => `
-      <option value="${oppId}">${teamName(oppId)}</option>
-    `).join("");
+    if (recordWrap) {
+      recordWrap.innerHTML = recordTableHtml(getTeamMatches());
+    }
+
+    if (includedTeamsWrap) {
+      includedTeamsWrap.textContent = includedTeamsText();
+    }
+  }
+
+  function refreshPageData() {
+    renderHeaderRecord();
+    renderSeasonSummary();
+    renderOpponentFilterOptions();
+    renderMatches();
+
+    if (isMargatePage) {
+      const appsToggle = document.getElementById("includeFriendliesApps");
+      const goalsToggle = document.getElementById("includeFriendliesGoals");
+
+      renderTopAppearances(appsToggle ? appsToggle.checked : false);
+      renderTopGoalscorers(goalsToggle ? goalsToggle.checked : false);
+    }
   }
 
   el.innerHTML = `
@@ -368,12 +530,9 @@ Promise.all([
         <img class="team-badge-large" src="images/teams/${team.id}.png" alt="${team.name}" onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
         <div class="team-header-text">
           <h2>${team.name}</h2>
-
-          <div class="player-stats-grid">
-            ${recordTable("Competitive Record", competitiveRecord)}
-            ${recordTable("Friendly Record", friendlyRecord)}
-            ${recordTable("Total Record", totalRecord)}
-          </div>
+          ${combineDropdownsHtml()}
+          <p class="player-count"><strong>Showing:</strong> <span id="includedTeamsText">${includedTeamsText()}</span></p>
+          <div id="teamRecordWrap"></div>
         </div>
       </div>
     </div>
@@ -391,7 +550,6 @@ Promise.all([
             <th>GF</th>
             <th>GA</th>
             <th>GD</th>
-            <th>Pts</th>
           </tr>
         </thead>
         <tbody id="seasonSummaryTable"></tbody>
@@ -446,15 +604,27 @@ Promise.all([
       <label for="opponentFilter"><strong>Filter by opponent:</strong></label>
       <select id="opponentFilter">
         <option value="">All opponents</option>
-        ${opponentOptions()}
       </select>
 
       <div id="teamMatches"></div>
     </div>
   `;
 
-  renderSeasonSummary();
-  renderMatches();
+  document.querySelectorAll(".also-include-team").forEach(select => {
+    select.addEventListener("change", () => {
+      const selected = [mainTeamId];
+
+      document.querySelectorAll(".also-include-team").forEach(dropdown => {
+        const value = normalise(dropdown.value);
+        if (value && !selected.includes(value)) {
+          selected.push(value);
+        }
+      });
+
+      includedTeamIds = selected;
+      refreshPageData();
+    });
+  });
 
   const opponentFilter = document.getElementById("opponentFilter");
   if (opponentFilter) {
@@ -465,17 +635,16 @@ Promise.all([
     const appsToggle = document.getElementById("includeFriendliesApps");
     const goalsToggle = document.getElementById("includeFriendliesGoals");
 
-    renderTopAppearances(false);
-    renderTopGoalscorers(false);
+    if (appsToggle) {
+      appsToggle.addEventListener("change", () => renderTopAppearances(appsToggle.checked));
+    }
 
-    appsToggle.addEventListener("change", () => {
-      renderTopAppearances(appsToggle.checked);
-    });
-
-    goalsToggle.addEventListener("change", () => {
-      renderTopGoalscorers(goalsToggle.checked);
-    });
+    if (goalsToggle) {
+      goalsToggle.addEventListener("change", () => renderTopGoalscorers(goalsToggle.checked));
+    }
   }
+
+  refreshPageData();
 
 }).catch(err => {
   document.getElementById("teamPage").innerHTML =
