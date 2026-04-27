@@ -7,19 +7,21 @@ Promise.all([
   fetch("data/seasons.json").then(r => r.json()),
   fetch("data/appearances.json").then(r => r.json()),
   fetch("data/players.json").then(r => r.json()),
-  fetch("data/managers.json").then(r => r.json()).catch(() => []),
-  fetch("data/player_of_the_season.json").then(r => r.json()).catch(() => [])
-]).then(([matches, teams, seasons, appearances, players, managers, playerOfSeason]) => {
+  fetch("data/managers.json").then(r => r.json()).catch(() => [])
+]).then(([matches, teams, seasons, appearances, players, managers]) => {
   const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
 
   const titleEl = document.getElementById("seasonTitle");
   const tableBody = document.getElementById("tableBody");
   const matchesEl = document.getElementById("matches");
   const scorersEl = document.getElementById("scorers");
+  const appearancesEl = document.getElementById("appearances");
   const seasonManagersTable = document.getElementById("seasonManagersTable");
-  const playerOfSeasonBox = document.getElementById("playerOfSeasonBox");
   const managerHeading = document.getElementById("managerHeading");
   const overallRecordTable = document.getElementById("overallRecordTable");
+  const excludeUnknownResults = document.getElementById("excludeUnknownResults");
+  const includeFriendliesApps = document.getElementById("includeFriendliesApps");
+  const includeFriendliesGoals = document.getElementById("includeFriendliesGoals");
 
   if (!season) {
     titleEl.textContent = "Season not found";
@@ -67,9 +69,10 @@ Promise.all([
       .replace(/^-+|-+$/g, "");
   }
 
-  function competitionBadgeHtml(competition, size = "22") {
+  function competitionBadgeHtml(competition, size = "18") {
     if (!competition || String(competition).trim() === "") return "";
     const slug = slugifyCompetition(competition);
+
     return `
       <img
         src="images/competitions/${slug}.png"
@@ -114,6 +117,10 @@ Promise.all([
   function playerName(playerId) {
     const p = players.find(x => String(x.id).trim() === String(playerId).trim());
     return p ? p.name : playerId;
+  }
+
+  function formatApps(starts, subs) {
+    return subs > 0 ? `${starts}+${subs}` : `${starts}`;
   }
 
   function formatManager(manager) {
@@ -281,56 +288,118 @@ Promise.all([
     });
   }
 
-  function renderMatches(matchList) {
+  function renderMatches() {
     matchesEl.innerHTML = "";
 
-    const sorted = [...matchList].sort((a, b) => {
+    let shownMatches = [...seasonMatches];
+
+    if (excludeUnknownResults && excludeUnknownResults.checked) {
+      shownMatches = shownMatches.filter(isCountableMatch);
+    }
+
+    const sorted = shownMatches.sort((a, b) => {
       const da = parseUkDate(a.date);
       const db = parseUkDate(b.date);
       return da - db;
     });
 
+    if (!sorted.length) {
+      matchesEl.innerHTML = `<div>No matches found.</div>`;
+      return;
+    }
+
     sorted.forEach((m, index) => {
-      const home = resolveTeam(m.home_team);
-      const away = resolveTeam(m.away_team);
+      const matchNumber = `#${String(index + 1).padStart(3, "0")}`;
 
       matchesEl.innerHTML += `
         <div class="match-row">
-          <div class="match-date">#${String(index + 1).padStart(3, "0")} &nbsp; ${m.date}</div>
-
-          <div class="match-scoreline">
-            <a href="match.html?id=${m.id}">
-              <span class="team-inline">
-                <img class="team-badge-small" src="images/teams/${home ? home.id : m.home_team}.png" alt="" onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
-                <span>${teamName(m.home_team)}</span>
-              </span>
-
-              <span class="score-separator">${m.home_score}-${m.away_score}</span>
-
-              <span class="team-inline">
-                <img class="team-badge-small" src="images/teams/${away ? away.id : m.away_team}.png" alt="" onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
-                <span>${teamName(m.away_team)}</span>
-              </span>
+          <div class="match-scoreline" style="display:block;">
+            <a href="match.html?id=${m.id}" style="display:block;">
+              <strong>${matchNumber}</strong>
+              &nbsp; ${m.date}
+              &nbsp; ${teamName(m.home_team)}
+              ${m.home_score}-${m.away_score}
+              ${teamName(m.away_team)}
+              &nbsp; <span class="match-meta">${competitionBadgeHtml(m.competition)} ${m.competition || ""}</span>
             </a>
-          </div>
-
-          <div class="match-meta">
-            ${competitionBadgeHtml(m.competition)}
-            ${m.competition || ""}
-            ${m.round ? ` - ${m.round}` : ""}
           </div>
         </div>
       `;
     });
   }
 
-  function renderTopScorers(matchList) {
-    const ids = new Set(matchList.map(m => String(m.id).trim()));
+  function matchIdsForStats(includeFriendlies) {
+    return new Set(
+      countableSeasonMatches
+        .filter(m => includeFriendlies || !isFriendly(m))
+        .map(m => String(m.id).trim())
+    );
+  }
+
+  function renderAppearances(includeFriendlies = false) {
+    const ids = matchIdsForStats(includeFriendlies);
     const map = {};
 
     appearances.forEach(a => {
       const matchId = String(a.match_id).trim();
       if (!ids.has(matchId)) return;
+      if (String(a.team || "").trim() !== "t1") return;
+
+      const playerId = String(a.player_id).trim();
+
+      if (!map[playerId]) {
+        map[playerId] = { starts: 0, subs: 0, goals: 0 };
+      }
+
+      if (Number(a.is_starting) === 1) map[playerId].starts++;
+      else map[playerId].subs++;
+
+      map[playerId].goals += Number(a.goals || 0);
+    });
+
+    const rows = Object.entries(map)
+      .map(([playerId, s]) => ({
+        playerId,
+        name: playerName(playerId),
+        starts: s.starts,
+        subs: s.subs,
+        apps: s.starts + s.subs,
+        goals: s.goals
+      }))
+      .filter(r => r.apps > 0)
+      .sort((a, b) =>
+        b.apps - a.apps ||
+        b.starts - a.starts ||
+        b.goals - a.goals ||
+        a.name.localeCompare(b.name)
+      );
+
+    appearancesEl.innerHTML = "";
+
+    if (!rows.length) {
+      appearancesEl.innerHTML = `<div>No appearances recorded.</div>`;
+      return;
+    }
+
+    rows.forEach((r, i) => {
+      appearancesEl.innerHTML += `
+        <div class="scorer-row">
+          <span>${i + 1}.</span>
+          <span><a href="player.html?id=${r.playerId}">${r.name}</a></span>
+          <span>${formatApps(r.starts, r.subs)}</span>
+        </div>
+      `;
+    });
+  }
+
+  function renderTopScorers(includeFriendlies = false) {
+    const ids = matchIdsForStats(includeFriendlies);
+    const map = {};
+
+    appearances.forEach(a => {
+      const matchId = String(a.match_id).trim();
+      if (!ids.has(matchId)) return;
+      if (String(a.team || "").trim() !== "t1") return;
 
       const playerId = String(a.player_id).trim();
 
@@ -358,8 +427,7 @@ Promise.all([
         b.starts - a.starts ||
         b.subs - a.subs ||
         a.name.localeCompare(b.name)
-      )
-      .slice(0, 15);
+      );
 
     scorersEl.innerHTML = "";
 
@@ -431,8 +499,7 @@ Promise.all([
           manager: entry.manager,
           firstDate,
           lastDate,
-          firstDateSort,
-          count: sortedMatches.length
+          firstDateSort
         };
       })
       .sort((a, b) => {
@@ -462,37 +529,28 @@ Promise.all([
     `).join("");
   }
 
-  function renderPlayerOfSeason() {
-    const record = playerOfSeason.find(r =>
-      String(r.season_id).trim() === String(seasonId).trim() &&
-      String(r.team_id).trim() === "t1"
-    );
-
-    if (!record) {
-      playerOfSeasonBox.textContent = "Unknown";
-      return;
-    }
-
-    const p = players.find(x =>
-      String(x.id).trim() === String(record.player_id).trim()
-    );
-
-    if (!p) {
-      playerOfSeasonBox.textContent = "Unknown";
-      return;
-    }
-
-    playerOfSeasonBox.innerHTML = `
-      <a href="player.html?id=${p.id}">${p.name}</a>
-    `;
-  }
-
   renderManagers();
-  renderPlayerOfSeason();
   renderOverallRecord(countableSeasonMatches);
   renderTable(buildTable(leagueMatches));
-  renderMatches(seasonMatches);
-  renderTopScorers(countableSeasonMatches);
+  renderMatches();
+  renderAppearances(false);
+  renderTopScorers(false);
+
+  if (excludeUnknownResults) {
+    excludeUnknownResults.addEventListener("change", renderMatches);
+  }
+
+  if (includeFriendliesApps) {
+    includeFriendliesApps.addEventListener("change", () => {
+      renderAppearances(includeFriendliesApps.checked);
+    });
+  }
+
+  if (includeFriendliesGoals) {
+    includeFriendliesGoals.addEventListener("change", () => {
+      renderTopScorers(includeFriendliesGoals.checked);
+    });
+  }
 
 }).catch(err => {
   document.getElementById("seasonTitle").textContent = "Error loading season";
