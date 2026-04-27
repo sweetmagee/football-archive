@@ -243,9 +243,9 @@ Promise.all([
           Reset
         </button>
 
-        <div id="combineDropdownWrap" style="display:none;">
+        <div id="combineDropdownWrap" style="display:none; flex-wrap:wrap; gap:8px; align-items:center;">
           ${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `
-            <div class="combine-team-row" data-row="${i}" style="display:none; margin-bottom:8px;">
+            <div class="combine-team-row" data-row="${i}" style="display:none; margin:0 8px 8px 0;">
               <select class="also-include-team" data-index="${i}">
                 <option value="">Also Include</option>
                 ${availableTeams.map(t => `
@@ -709,7 +709,7 @@ Promise.all([
       if (combineToggle.checked) {
         if (promptWrap) promptWrap.style.display = "none";
         if (resetButton) resetButton.style.display = "inline-block";
-        if (dropdownWrap) dropdownWrap.style.display = "block";
+        if (dropdownWrap) dropdownWrap.style.display = "flex";
         showCombineRow(0);
       } else {
         resetCombinedTeams();
