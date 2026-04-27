@@ -78,7 +78,7 @@ Promise.all([
         src="images/competitions/${slug}.png"
         alt="${competition}"
         title="${competition}"
-        style="width:${size}px;height:${size}px;object-fit:contain;"
+        style="width:${size}px;height:${size}px;object-fit:contain;vertical-align:middle;"
         onerror="this.style.display='none'"
       >
     `;
@@ -310,17 +310,38 @@ Promise.all([
 
     sorted.forEach((m, index) => {
       const matchNumber = `#${String(index + 1).padStart(3, "0")}`;
+      const home = resolveTeam(m.home_team);
+      const away = resolveTeam(m.away_team);
 
       matchesEl.innerHTML += `
         <div class="match-row">
           <div class="match-scoreline" style="display:block;">
-            <a href="match.html?id=${m.id}" style="display:block;">
+            <a href="match.html?id=${m.id}" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <strong>${matchNumber}</strong>
-              &nbsp; ${m.date}
-              &nbsp; ${teamName(m.home_team)}
-              ${m.home_score}-${m.away_score}
-              ${teamName(m.away_team)}
-              &nbsp; <span class="match-meta">${competitionBadgeHtml(m.competition)} ${m.competition || ""}</span>
+              <span>${m.date}</span>
+
+              <span class="team-inline">
+                <img class="team-badge-small"
+                     src="images/teams/${home ? home.id : m.home_team}.png"
+                     alt=""
+                     onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
+                <span>${teamName(m.home_team)}</span>
+              </span>
+
+              <span class="score-separator">${m.home_score}-${m.away_score}</span>
+
+              <span class="team-inline">
+                <img class="team-badge-small"
+                     src="images/teams/${away ? away.id : m.away_team}.png"
+                     alt=""
+                     onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
+                <span>${teamName(m.away_team)}</span>
+              </span>
+
+              <span class="match-meta">
+                ${competitionBadgeHtml(m.competition)}
+                ${m.competition || ""}
+              </span>
             </a>
           </div>
         </div>
