@@ -1,8 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Consecutive Matches | Margate FC Archive</title>
   <base href="/football-archive/">
   <link rel="stylesheet" href="css/styles.css">
@@ -30,6 +29,13 @@
   <div class="content-box">
     <h2>Consecutive Matches</h2>
 
+    <label class="stats-toggle">
+      <input type="checkbox" id="includeFriendlies">
+      Include friendlies
+    </label>
+
+    <div id="streakCount" class="player-count">Loading...</div>
+
     <table class="archive-table">
       <thead>
         <tr>
@@ -53,6 +59,15 @@ Promise.all([
   fetch("data/matches.json").then(r => r.json()),
   fetch("data/appearances.json").then(r => r.json())
 ]).then(([players, matches, appearances]) => {
+
+  const includeFriendliesBox = document.getElementById("includeFriendlies");
+  const tbody = document.getElementById("streakRows");
+  const countEl = document.getElementById("streakCount");
+
+  function isFriendly(match) {
+    const comp = String(match.competition || "").trim().toLowerCase();
+    return comp === "friendly" || comp === "fr" || comp === "friendlies";
+  }
 
   function validMatch(match) {
     return (
@@ -85,14 +100,6 @@ Promise.all([
     return Number.isNaN(d.getTime()) ? null : d;
   }
 
-  function formatDate(value) {
-    return value || "";
-  }
-
-  const validMatches = matches
-    .filter(validMatch)
-    .sort((a, b) => parseDate(a.date) - parseDate(b.date));
-
   const appearanceMap = {};
 
   appearances.forEach(app => {
@@ -106,7 +113,7 @@ Promise.all([
     appearanceMap[playerId].add(matchId);
   });
 
-  function longestStreakForPlayer(playerId) {
+  function longestStreakForPlayer(playerId, matchList) {
     const playerApps = appearanceMap[String(playerId).trim()] || new Set();
 
     let current = 0;
@@ -116,7 +123,7 @@ Promise.all([
     let bestStart = null;
     let bestEnd = null;
 
-    validMatches.forEach(match => {
+    matchList.forEach(match => {
       const played = playerApps.has(String(match.id).trim());
 
       if (played) {
@@ -138,47 +145,79 @@ Promise.all([
     });
 
     return {
-      playerId,
       streak: best,
       from: bestStart ? bestStart.date : "",
       to: bestEnd ? bestEnd.date : ""
     };
   }
 
-  const rows = players
-    .map(player => {
-      const streak = longestStreakForPlayer(player.id);
+  function rankRows(rows) {
+    let lastStreak = null;
+    let lastRank = 0;
+
+    return rows.map((row, index) => {
+      if (row.streak !== lastStreak) {
+        lastRank = index + 1;
+        lastStreak = row.streak;
+      }
 
       return {
-        id: player.id,
-        name: player.name,
-        streak: streak.streak,
-        from: streak.from,
-        to: streak.to
+        ...row,
+        rank: lastRank
       };
-    })
-    .filter(row => row.streak > 0)
-    .sort((a, b) => {
-      if (b.streak !== a.streak) return b.streak - a.streak;
-      return a.name.localeCompare(b.name);
     });
-
-  const tbody = document.getElementById("streakRows");
-
-  if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="5">No appearance records found.</td></tr>`;
-    return;
   }
 
-  tbody.innerHTML = rows.map((row, index) => `
-    <tr>
-      <td>${index + 1}</td>
-      <td><a href="player.html?id=${row.id}">${row.name}</a></td>
-      <td><strong>${row.streak}</strong></td>
-      <td>${formatDate(row.from)}</td>
-      <td>${formatDate(row.to)}</td>
-    </tr>
-  `).join("");
+  function render() {
+    const includeFriendlies = includeFriendliesBox.checked;
+
+    const matchList = matches
+      .filter(validMatch)
+      .filter(match => includeFriendlies || !isFriendly(match))
+      .sort((a, b) => parseDate(a.date) - parseDate(b.date));
+
+    const rows = players
+      .map(player => {
+        const streak = longestStreakForPlayer(player.id, matchList);
+
+        return {
+          id: player.id,
+          name: player.name,
+          streak: streak.streak,
+          from: streak.from,
+          to: streak.to
+        };
+      })
+      .filter(row => row.streak > 0)
+      .sort((a, b) => {
+        if (b.streak !== a.streak) return b.streak - a.streak;
+        return a.name.localeCompare(b.name);
+      });
+
+    const rankedRows = rankRows(rows);
+
+    countEl.textContent = includeFriendlies
+      ? `${rankedRows.length} players listed including friendlies`
+      : `${rankedRows.length} players listed, competitive matches only`;
+
+    if (!rankedRows.length) {
+      tbody.innerHTML = `<tr><td colspan="5">No appearance records found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rankedRows.map(row => `
+      <tr>
+        <td>${row.rank}</td>
+        <td><a href="player.html?id=${row.id}">${row.name}</a></td>
+        <td><strong>${row.streak}</strong></td>
+        <td>${row.from}</td>
+        <td>${row.to}</td>
+      </tr>
+    `).join("");
+  }
+
+  includeFriendliesBox.addEventListener("change", render);
+  render();
 
 }).catch(err => {
   document.getElementById("streakRows").innerHTML =
