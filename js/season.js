@@ -121,13 +121,14 @@ Promise.all([
   }
 
   const seasonMatches = matches.filter(m =>
-    String(m.season_id).trim() === String(seasonId).trim() &&
-    isCountableMatch(m)
-  );
+  String(m.season_id).trim() === String(seasonId).trim()
+);
+
+const countableSeasonMatches = seasonMatches.filter(isCountableMatch);
 
   titleEl.textContent = `${season.name} ${teamName("t1")}`;
 
-  const leagueMatches = seasonMatches.filter(m =>
+  const leagueMatches = countableSeasonMatches.filter(m =>
     !m.competition ||
     String(m.competition).trim().toLowerCase() === "league"
   );
@@ -429,8 +430,8 @@ Promise.all([
   renderManagers();
   renderPlayerOfSeason();
   renderTable(buildTable(leagueMatches));
-  renderMatches(seasonMatches);
-  renderTopScorers(seasonMatches);
+renderMatches(seasonMatches);
+renderTopScorers(countableSeasonMatches);
 
 }).catch(err => {
   document.getElementById("seasonTitle").textContent = "Error loading season";
