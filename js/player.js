@@ -32,15 +32,16 @@ Promise.all([
     return comp === "friendly" || comp === "fr" || comp === "friendlies";
   }
 
-  function validMatch(match) {
-    return (
-      match &&
-      match.home_score !== "?" &&
-      match.away_score !== "?" &&
-      !Number.isNaN(Number(match.home_score)) &&
-      !Number.isNaN(Number(match.away_score))
-    );
-  }
+ function validMatch(match) {
+  return (
+    match &&
+    String(match.abandoned || "").trim().toUpperCase() !== "Y" &&
+    match.home_score !== "?" &&
+    match.away_score !== "?" &&
+    !Number.isNaN(Number(match.home_score)) &&
+    !Number.isNaN(Number(match.away_score))
+  );
+}
 
   function parseDate(value) {
     if (!value) return null;

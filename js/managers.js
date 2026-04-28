@@ -22,6 +22,7 @@ Promise.all([
   function isCountableMatch(match) {
     return (
       match &&
+      String(match.abandoned || "").trim().toUpperCase() !== "Y" &&
       match.home_score !== "?" &&
       match.away_score !== "?" &&
       !Number.isNaN(Number(match.home_score)) &&
