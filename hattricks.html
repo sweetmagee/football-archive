@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Hat-Tricks | Margate FC Archive</title>
+  <base href="/football-archive/">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="header-bar site-header-image">
+  <div class="site-header-overlay">
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="players.html">Players</a>
+      <a href="managers.html">Managers</a>
+      <a href="seasons.html">Seasons</a>
+      <a href="opponents.html">Opponents</a>
+      <a href="statistics.html">Statistics</a>
+      <a href="records.html">Records</a>
+      <a href="honours.html">Honours</a>
+      <a href="history.html">History</a>
+      <a href="interactive.html">Interactive</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <div class="content-box">
+    <h2>Hat-Tricks</h2>
+
+    <label class="stats-toggle">
+      <input type="checkbox" id="includeFriendlies">
+      Include Friendlies
+    </label>
+
+    <div id="hatTrickCount" class="player-count">Loading...</div>
+
+    <table class="archive-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Player</th>
+          <th>Hat-Tricks</th>
+          <th>Consecutive Hat-Tricks</th>
+          <th>Most Goals In A Match</th>
+        </tr>
+      </thead>
+      <tbody id="hatTrickRows">
+        <tr><td colspan="5">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+Promise.all([
+  fetch("data/players.json").then(r => r.json()),
+  fetch("data/matches.json").then(r => r.json()),
+  fetch("data/appearances.json").then(r => r.json())
+]).then(([players, matches, appearances]) => {
+  const includeFriendliesBox = document.getElementById("includeFriendlies");
+  const tbody = document.getElementById("hatTrickRows");
+  const countEl = document.getElementById("hatTrickCount");
+
+  function isFriendly(match) {
+    const comp = String(match.competition || "").trim().toLowerCase();
+    return comp === "friendly" || comp === "friendlies" || comp === "fr" || comp.includes("friendly");
+  }
+
+  function isAbandoned(match) {
+    return String(match.abandoned || "").trim().toUpperCase() === "Y";
+  }
+
+  function validMatch(match) {
+    return (
+      match &&
+      !isAbandoned(match) &&
+      match.home_score !== "?" &&
+      match.away_score !== "?" &&
+      !Number.isNaN(Number(match.home_score)) &&
+      !Number.isNaN(Number(match.away_score))
+    );
+  }
+
+  function parseDate(value) {
+    if (!value) return null;
+
+    const parts = String(value)
+      .trim()
+      .replace(/\./g, "/")
+      .replace(/-/g, "/")
+      .split("/");
+
+    if (parts.length !== 3) return null;
+
+    let [dd, mm, yyyy] = parts;
+
+    if (yyyy.length === 2) {
+      yyyy = Number(yyyy) >= 50 ? `18${yyyy}` : `19${yyyy}`;
+    }
+
+    const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function rankRows(rows) {
+    let lastValue = null;
+    let lastRank = 0;
+
+    return rows.map((row, index) => {
+      if (row.hatTricks !== lastValue) {
+        lastRank = index + 1;
+        lastValue = row.hatTricks;
+      }
+
+      return {
+        ...row,
+        rank: lastRank
+      };
+    });
+  }
+
+  function getPlayerStats(playerId, matchList) {
+    const matchIds = new Set(matchList.map(m => String(m.id).trim()));
+
+    const playerApps = appearances
+      .filter(a =>
+        String(a.player_id).trim() === String(playerId).trim() &&
+        matchIds.has(String(a.match_id).trim())
+      )
+      .map(a => {
+        const match = matchList.find(m => String(m.id).trim() === String(a.match_id).trim());
+        return {
+          app: a,
+          match,
+          goals: Number(a.goals || 0)
+        };
+      })
+      .filter(row => row.match)
+      .sort((a, b) => parseDate(a.match.date) - parseDate(b.match.date));
+
+    const hatTricks = playerApps.filter(row => row.goals >= 3).length;
+    const mostGoals = playerApps.reduce((max, row) => Math.max(max, row.goals), 0);
+
+    let currentRun = 0;
+    let bestRun = 0;
+
+    playerApps.forEach(row => {
+      if (row.goals >= 3) {
+        currentRun++;
+        if (currentRun > bestRun) bestRun = currentRun;
+      } else {
+        currentRun = 0;
+      }
+    });
+
+    return {
+      hatTricks,
+      consecutiveHatTricks: bestRun,
+      mostGoals
+    };
+  }
+
+  function render() {
+    const includeFriendlies = includeFriendliesBox.checked;
+
+    const matchList = matches
+      .filter(validMatch)
+      .filter(match => includeFriendlies || !isFriendly(match))
+      .sort((a, b) => parseDate(a.date) - parseDate(b.date));
+
+    const rows = players
+      .map(player => {
+        const stats = getPlayerStats(player.id, matchList);
+
+        return {
+          id: player.id,
+          name: player.name,
+          hatTricks: stats.hatTricks,
+          consecutiveHatTricks: stats.consecutiveHatTricks,
+          mostGoals: stats.mostGoals
+        };
+      })
+      .filter(row => row.hatTricks > 0 || row.mostGoals >= 3)
+      .sort((a, b) => {
+        if (b.hatTricks !== a.hatTricks) return b.hatTricks - a.hatTricks;
+        if (b.consecutiveHatTricks !== a.consecutiveHatTricks) return b.consecutiveHatTricks - a.consecutiveHatTricks;
+        if (b.mostGoals !== a.mostGoals) return b.mostGoals - a.mostGoals;
+        return a.name.localeCompare(b.name);
+      });
+
+    const rankedRows = rankRows(rows);
+
+    countEl.textContent = includeFriendlies
+      ? `${rankedRows.length} players listed including friendlies`
+      : `${rankedRows.length} players listed, competitive matches only`;
+
+    if (!rankedRows.length) {
+      tbody.innerHTML = `<tr><td colspan="5">No hat-tricks found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rankedRows.map(row => `
+      <tr>
+        <td>${row.rank}</td>
+        <td><a href="player.html?id=${row.id}">${row.name}</a></td>
+        <td><strong>${row.hatTricks}</strong></td>
+        <td>${row.consecutiveHatTricks}</td>
+        <td>${row.mostGoals}</td>
+      </tr>
+    `).join("");
+  }
+
+  includeFriendliesBox.addEventListener("change", render);
+  render();
+
+}).catch(err => {
+  document.getElementById("hatTrickRows").innerHTML =
+    `<tr><td colspan="5">Error loading hat-tricks: ${err.message}</td></tr>`;
+  console.error(err);
+});
+</script>
+
+</body>
+</html>
