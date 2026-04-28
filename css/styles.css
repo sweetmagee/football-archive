@@ -886,3 +886,6 @@ button:hover {
 .top-row-centered {
   justify-content: center;
 }
+.content-box:first-child {
+  padding-top: 14px;
+}
