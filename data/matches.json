@@ -18,7 +18,9 @@
     "source_sheet": "Friendlies",
     "source_row": 3,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m2",
@@ -52,7 +54,9 @@
     "source_sheet": "Friendlies",
     "source_row": 4,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m3",
@@ -73,7 +77,9 @@
     "source_sheet": "Friendlies",
     "source_row": 5,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m4",
@@ -107,7 +113,9 @@
     "source_sheet": "Friendlies",
     "source_row": 6,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m5",
@@ -128,7 +136,9 @@
     "source_sheet": "Friendlies",
     "source_row": 7,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m6",
@@ -154,7 +164,9 @@
     "source_sheet": "Friendlies",
     "source_row": 8,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m7",
@@ -184,7 +196,9 @@
     "source_sheet": "Friendlies",
     "source_row": 9,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m8",
@@ -205,7 +219,9 @@
     "source_sheet": "Friendlies",
     "source_row": 10,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m9",
@@ -231,7 +247,9 @@
     "source_sheet": "Friendlies",
     "source_row": 11,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m10",
@@ -261,7 +279,9 @@
     "source_sheet": "Friendlies",
     "source_row": 12,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m11",
@@ -287,7 +307,9 @@
     "source_sheet": "Friendlies",
     "source_row": 13,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
   },
   {
     "id": "m12",
@@ -308,7 +330,9 @@
     "source_sheet": "Friendlies",
     "source_row": 14,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
   },
   {
     "id": "m13",
@@ -329,7 +353,9 @@
     "source_sheet": "Friendlies",
     "source_row": 15,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m14",
@@ -359,7 +385,9 @@
     "source_sheet": "Friendlies",
     "source_row": 16,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m15",
@@ -380,7 +408,9 @@
     "source_sheet": "Friendlies",
     "source_row": 17,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m16",
@@ -418,7 +448,9 @@
     "source_sheet": "Friendlies",
     "source_row": 18,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m17",
@@ -452,7 +484,9 @@
     "source_sheet": "Friendlies",
     "source_row": 19,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m18",
@@ -486,7 +520,9 @@
     "source_sheet": "Friendlies",
     "source_row": 20,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m19",
@@ -516,7 +552,9 @@
     "source_sheet": "Friendlies",
     "source_row": 21,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m20",
@@ -546,7 +584,9 @@
     "source_sheet": "Friendlies",
     "source_row": 22,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m21",
@@ -576,7 +616,9 @@
     "source_sheet": "Friendlies",
     "source_row": 23,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m22",
@@ -602,7 +644,9 @@
     "source_sheet": "Friendlies",
     "source_row": 24,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m23",
@@ -623,7 +667,9 @@
     "source_sheet": "Combined",
     "source_row": 3,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m24",
@@ -644,7 +690,9 @@
     "source_sheet": "Combined",
     "source_row": 4,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
   },
   {
     "id": "m25",
@@ -665,7 +713,9 @@
     "source_sheet": "Combined",
     "source_row": 5,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
   },
   {
     "id": "m26",
@@ -686,7 +736,9 @@
     "source_sheet": "Combined",
     "source_row": 6,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
   },
   {
     "id": "m27",
@@ -724,7 +776,9 @@
     "source_sheet": "Combined",
     "source_row": 7,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m28",
@@ -754,7 +808,9 @@
     "source_sheet": "Combined",
     "source_row": 8,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m29",
@@ -780,7 +836,9 @@
     "source_sheet": "Combined",
     "source_row": 9,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m30",
@@ -801,7 +859,9 @@
     "source_sheet": "Combined",
     "source_row": 10,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m31",
@@ -835,7 +895,9 @@
     "source_sheet": "Combined",
     "source_row": 11,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m32",
@@ -856,7 +918,9 @@
     "source_sheet": "Combined",
     "source_row": 12,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
   },
   {
     "id": "m33",
@@ -877,7 +941,9 @@
     "source_sheet": "Combined",
     "source_row": 13,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m34",
@@ -903,7 +969,9 @@
     "source_sheet": "Combined",
     "source_row": 14,
     "away_manager_id": "mgr1",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m35",
@@ -924,7 +992,9 @@
     "source_sheet": "Combined",
     "source_row": 15,
     "home_manager_id": "mgr1",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
   },
   {
     "id": "m36",
@@ -945,7 +1015,9 @@
     "source_sheet": "Combined",
     "source_row": 3,
     "home_manager_id": "mgr2",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
   },
   {
     "id": "m37",
@@ -971,7 +1043,9 @@
     "source_sheet": "Combined",
     "source_row": 4,
     "away_manager_id": "mgr2",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m38",
@@ -992,7 +1066,9 @@
     "source_sheet": "Combined",
     "source_row": 5,
     "away_manager_id": "mgr2",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
   },
   {
     "id": "m39",
@@ -1022,7 +1098,9 @@
     "source_sheet": "Combined",
     "source_row": 6,
     "home_manager_id": "mgr2",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m40",
@@ -1052,7 +1130,9 @@
     "source_sheet": "Combined",
     "source_row": 7,
     "away_manager_id": "mgr2",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m41",
@@ -1078,7 +1158,9 @@
     "source_sheet": "Combined",
     "source_row": 8,
     "away_manager_id": "mgr2",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m42",
@@ -1104,7 +1186,9 @@
     "source_sheet": "Combined",
     "source_row": 9,
     "home_manager_id": "mgr2",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m43",
@@ -1125,7 +1209,9 @@
     "source_sheet": "Combined",
     "source_row": 10,
     "home_manager_id": "mgr2",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m44",
@@ -1155,7 +1241,9 @@
     "source_sheet": "Combined",
     "source_row": 11,
     "away_manager_id": "mgr2",
-    "home_manager_id": ""
+    "home_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
   },
   {
     "id": "m45",
@@ -1176,7 +1264,9 @@
     "source_sheet": "Combined",
     "source_row": 12,
     "home_manager_id": "mgr2",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
   },
   {
     "id": "m46",
@@ -1202,6 +1292,8 @@
     "source_sheet": "Combined",
     "source_row": 13,
     "home_manager_id": "mgr2",
-    "away_manager_id": ""
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
   }
 ]
