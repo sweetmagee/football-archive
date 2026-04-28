@@ -9,10 +9,7 @@ Promise.all([
   fetch("data/players.json").then(r => r.json()),
   fetch("data/managers.json").then(r => r.json()).catch(() => [])
 ]).then(([matches, teams, seasons, appearances, players, managers]) => {
-
-  const season = seasons.find(
-    s => String(s.id).trim() === String(seasonId).trim()
-  );
+  const season = seasons.find(s => String(s.id).trim() === String(seasonId).trim());
 
   const titleEl = document.getElementById("seasonTitle");
   const tableBody = document.getElementById("tableBody");
@@ -23,66 +20,91 @@ Promise.all([
   const managerHeading = document.getElementById("managerHeading");
   const overallRecordTable = document.getElementById("overallRecordTable");
 
-  const competitiveOnlyMatches =
-    document.getElementById("competitiveOnlyMatches");
+  const competitiveOnlyMatches = document.getElementById("competitiveOnlyMatches");
+  const friendlyOnlyMatches = document.getElementById("friendlyOnlyMatches");
+  const excludeUnknownResults = document.getElementById("excludeUnknownResults");
+  const excludeUnknownResultsLabel = document.getElementById("excludeUnknownResultsLabel");
+  const excludeAbandonedGames = document.getElementById("excludeAbandonedGames");
+  const excludeAbandonedGamesLabel = document.getElementById("excludeAbandonedGamesLabel");
 
-  const excludeUnknownResults =
-    document.getElementById("excludeUnknownResults");
-
-  const includeFriendliesApps =
-    document.getElementById("includeFriendliesApps");
-
-  const includeFriendliesGoals =
-    document.getElementById("includeFriendliesGoals");
-
-  const includeFriendliesAppsLabel =
-    document.getElementById("includeFriendliesAppsLabel");
-
-  const includeFriendliesGoalsLabel =
-    document.getElementById("includeFriendliesGoalsLabel");
+  const includeFriendliesApps = document.getElementById("includeFriendliesApps");
+  const includeFriendliesGoals = document.getElementById("includeFriendliesGoals");
+  const includeFriendliesAppsLabel = document.getElementById("includeFriendliesAppsLabel");
+  const includeFriendliesGoalsLabel = document.getElementById("includeFriendliesGoalsLabel");
 
   if (!season) {
     titleEl.textContent = "Season not found";
     return;
   }
 
-  const friendlyOnlySeason =
-    String(season.name).trim() === "1896/97";
+  const friendlyOnlySeason = String(season.name).trim() === "1896/97";
 
-  function isCountableMatch(match) {
+  function isAbandoned(match) {
+    return String(match.abandoned || "").trim().toUpperCase() === "Y";
+  }
+
+  function hasUnknownResult(match) {
     return (
-      match &&
-      String(match.abandoned || "").trim().toUpperCase() !== "Y" &&
-      match.home_score !== "?" &&
-      match.away_score !== "?" &&
-      !Number.isNaN(Number(match.home_score)) &&
-      !Number.isNaN(Number(match.away_score))
+      match.home_score === "?" ||
+      match.away_score === "?" ||
+      Number.isNaN(Number(match.home_score)) ||
+      Number.isNaN(Number(match.away_score))
     );
   }
 
-  function isFriendly(match) {
-    const comp = String(match.competition || "")
-      .trim()
-      .toLowerCase();
+  function isCountableMatch(match) {
+    return match && !isAbandoned(match) && !hasUnknownResult(match);
+  }
 
+  function isFriendly(match) {
+    const comp = String(match.competition || "").trim().toLowerCase();
     return (
       comp === "friendly" ||
+      comp === "friendlies" ||
+      comp === "fr" ||
       comp.includes("friendly")
     );
   }
 
   function parseUkDate(value) {
     if (!value) return null;
-
-    const parts = String(value).split("/");
+    const cleaned = String(value).trim().replace(/-/g, "/").replace(/\./g, "/");
+    const parts = cleaned.split("/");
     if (parts.length !== 3) return null;
 
-    const d = parts[0].padStart(2, "0");
-    const m = parts[1].padStart(2, "0");
-    const y = parts[2];
+    let [d, m, y] = parts.map(x => x.trim());
+    if (!d || !m || !y) return null;
 
-    const dt = new Date(`${y}-${m}-${d}`);
+    if (y.length === 2) {
+      y = Number(y) >= 50 ? `18${y}` : `19${y}`;
+    }
+
+    const dt = new Date(`${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`);
     return Number.isNaN(dt.getTime()) ? null : dt;
+  }
+
+  function slugifyCompetition(name) {
+    return String(name || "")
+      .toLowerCase()
+      .trim()
+      .replace(/&/g, "and")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function competitionBadgeHtml(competition, size = "18") {
+    if (!competition || String(competition).trim() === "") return "";
+    const slug = slugifyCompetition(competition);
+
+    return `
+      <img
+        src="images/competitions/${slug}.png"
+        alt="${competition}"
+        title="${competition}"
+        style="width:${size}px;height:${size}px;object-fit:contain;vertical-align:middle;"
+        onerror="this.style.display='none'"
+      >
+    `;
   }
 
   function resolveTeam(teamValue) {
@@ -97,18 +119,45 @@ Promise.all([
     return team ? team.name : teamValue;
   }
 
+  function teamLink(teamValue) {
+    const team = resolveTeam(teamValue);
+
+    if (!team) return teamName(teamValue);
+
+    return `
+      <span class="team-inline">
+        <img
+          class="team-badge-small"
+          src="images/teams/${team.id}.png"
+          alt=""
+          onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';"
+        >
+        <a href="team.html?id=${encodeURIComponent(team.id)}">${team.name}</a>
+      </span>
+    `;
+  }
+
   function playerName(playerId) {
-    const p = players.find(x =>
-      String(x.id).trim() === String(playerId).trim()
-    );
+    const p = players.find(x => String(x.id).trim() === String(playerId).trim());
     return p ? p.name : playerId;
   }
 
   function formatApps(starts, subs) {
     return subs > 0 ? `${starts}+${subs}` : `${starts}`;
   }
-  const seasonMatches = matches.filter(
-    m => String(m.season_id).trim() === String(seasonId).trim()
+
+  function formatManager(manager) {
+    if (!manager) return "Unknown";
+
+    if (manager.id) {
+      return `<a href="manager.html?id=${manager.id}">${manager.name || manager.id}</a>`;
+    }
+
+    return manager.name || "Unknown";
+  }
+
+  const seasonMatches = matches.filter(m =>
+    String(m.season_id).trim() === String(seasonId).trim()
   );
 
   const countableSeasonMatches = seasonMatches.filter(isCountableMatch);
@@ -119,6 +168,17 @@ Promise.all([
     !m.competition ||
     String(m.competition).trim().toLowerCase() === "league"
   );
+
+  const seasonHasUnknownResults = seasonMatches.some(hasUnknownResult);
+  const seasonHasAbandonedGames = seasonMatches.some(isAbandoned);
+
+  if (excludeUnknownResultsLabel && seasonHasUnknownResults) {
+    excludeUnknownResultsLabel.style.display = "inline-flex";
+  }
+
+  if (excludeAbandonedGamesLabel && seasonHasAbandonedGames) {
+    excludeAbandonedGamesLabel.style.display = "inline-flex";
+  }
 
   function buildOverallRecord(matchList) {
     let P = 0, W = 0, D = 0, L = 0, GF = 0, GA = 0;
@@ -169,6 +229,90 @@ Promise.all([
     `;
   }
 
+  function buildTable(matchList) {
+    const table = {};
+
+    matchList.forEach(m => {
+      const home = String(m.home_team).trim();
+      const away = String(m.away_team).trim();
+
+      const hs = Number(m.home_score || 0);
+      const as = Number(m.away_score || 0);
+
+      if (!table[home]) {
+        table[home] = { teamId: home, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, PTS: 0 };
+      }
+
+      if (!table[away]) {
+        table[away] = { teamId: away, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, PTS: 0 };
+      }
+
+      table[home].P++;
+      table[away].P++;
+
+      table[home].GF += hs;
+      table[home].GA += as;
+
+      table[away].GF += as;
+      table[away].GA += hs;
+
+      if (hs > as) {
+        table[home].W++;
+        table[away].L++;
+        table[home].PTS += 3;
+      } else if (as > hs) {
+        table[away].W++;
+        table[home].L++;
+        table[away].PTS += 3;
+      } else {
+        table[home].D++;
+        table[away].D++;
+        table[home].PTS++;
+        table[away].PTS++;
+      }
+
+      table[home].GD = table[home].GF - table[home].GA;
+      table[away].GD = table[away].GF - table[away].GA;
+    });
+
+    return Object.values(table).sort((a, b) =>
+      b.PTS - a.PTS ||
+      b.GD - a.GD ||
+      b.GF - a.GF ||
+      teamName(a.teamId).localeCompare(teamName(b.teamId))
+    );
+  }
+
+  function renderTable(rows) {
+    tableBody.innerHTML = "";
+
+    if (!rows.length) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="10">No league matches found for this season.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    rows.forEach((row, i) => {
+      tableBody.innerHTML += `
+        <tr ${i === 0 ? 'class="top-row"' : ""}>
+          <td>${i + 1}</td>
+          <td>${teamLink(row.teamId)}</td>
+          <td>${row.P}</td>
+          <td>${row.W}</td>
+          <td>${row.D}</td>
+          <td>${row.L}</td>
+          <td>${row.GF}</td>
+          <td>${row.GA}</td>
+          <td>${row.GD}</td>
+          <td><strong>${row.PTS}</strong></td>
+        </tr>
+      `;
+    });
+  }
+
   function renderMatches() {
     matchesEl.innerHTML = "";
 
@@ -178,8 +322,16 @@ Promise.all([
       shownMatches = shownMatches.filter(m => !isFriendly(m));
     }
 
+    if (friendlyOnlyMatches && friendlyOnlyMatches.checked) {
+      shownMatches = shownMatches.filter(m => isFriendly(m));
+    }
+
     if (excludeUnknownResults && excludeUnknownResults.checked) {
-      shownMatches = shownMatches.filter(isCountableMatch);
+      shownMatches = shownMatches.filter(m => !hasUnknownResult(m));
+    }
+
+    if (excludeAbandonedGames && excludeAbandonedGames.checked) {
+      shownMatches = shownMatches.filter(m => !isAbandoned(m));
     }
 
     const sorted = shownMatches.sort((a, b) => {
@@ -204,6 +356,7 @@ Promise.all([
             <a href="match.html?id=${m.id}" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <strong>${matchNumber}</strong>
               <span>${m.date}</span>
+
               <span class="team-inline">
                 <img class="team-badge-small"
                      src="images/teams/${home ? home.id : m.home_team}.png"
@@ -211,7 +364,9 @@ Promise.all([
                      onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
                 <span>${teamName(m.home_team)}</span>
               </span>
+
               <span class="score-separator">${m.home_score}-${m.away_score}</span>
+
               <span class="team-inline">
                 <img class="team-badge-small"
                      src="images/teams/${away ? away.id : m.away_team}.png"
@@ -219,13 +374,19 @@ Promise.all([
                      onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
                 <span>${teamName(m.away_team)}</span>
               </span>
-              <span class="match-meta">${m.competition || ""}</span>
+
+              <span class="match-meta">
+                ${competitionBadgeHtml(m.competition)}
+                ${m.competition || ""}
+                ${isAbandoned(m) ? " - Abandoned" : ""}
+              </span>
             </a>
           </div>
         </div>
       `;
     });
   }
+
   function matchIdsForStats(includeFriendlies) {
     return new Set(
       countableSeasonMatches
@@ -344,15 +505,6 @@ Promise.all([
       `;
     });
   }
-  function formatManager(manager) {
-    if (!manager) return "Unknown";
-
-    if (manager.id) {
-      return `<a href="manager.html?id=${manager.id}">${manager.name || manager.id}</a>`;
-    }
-
-    return manager.name || "Unknown";
-  }
 
   function renderManagers() {
     const t1Matches = seasonMatches
@@ -436,128 +588,6 @@ Promise.all([
     `).join("");
   }
 
-  function buildTable(matchList) {
-    const table = {};
-
-    matchList.forEach(m => {
-      const home = String(m.home_team).trim();
-      const away = String(m.away_team).trim();
-
-      const hs = Number(m.home_score || 0);
-      const as = Number(m.away_score || 0);
-
-      if (!table[home]) {
-        table[home] = {
-          teamId: home,
-          P: 0,
-          W: 0,
-          D: 0,
-          L: 0,
-          GF: 0,
-          GA: 0,
-          GD: 0,
-          PTS: 0
-        };
-      }
-
-      if (!table[away]) {
-        table[away] = {
-          teamId: away,
-          P: 0,
-          W: 0,
-          D: 0,
-          L: 0,
-          GF: 0,
-          GA: 0,
-          GD: 0,
-          PTS: 0
-        };
-      }
-
-      table[home].P++;
-      table[away].P++;
-
-      table[home].GF += hs;
-      table[home].GA += as;
-
-      table[away].GF += as;
-      table[away].GA += hs;
-
-      if (hs > as) {
-        table[home].W++;
-        table[away].L++;
-        table[home].PTS += 3;
-      } else if (as > hs) {
-        table[away].W++;
-        table[home].L++;
-        table[away].PTS += 3;
-      } else {
-        table[home].D++;
-        table[away].D++;
-        table[home].PTS++;
-        table[away].PTS++;
-      }
-
-      table[home].GD = table[home].GF - table[home].GA;
-      table[away].GD = table[away].GF - table[away].GA;
-    });
-
-    return Object.values(table).sort((a, b) =>
-      b.PTS - a.PTS ||
-      b.GD - a.GD ||
-      b.GF - a.GF ||
-      teamName(a.teamId).localeCompare(teamName(b.teamId))
-    );
-  }
-
-  function teamLink(teamValue) {
-    const team = resolveTeam(teamValue);
-
-    if (!team) return teamName(teamValue);
-
-    return `
-      <span class="team-inline">
-        <img
-          class="team-badge-small"
-          src="images/teams/${team.id}.png"
-          alt=""
-          onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';"
-        >
-        <a href="team.html?id=${encodeURIComponent(team.id)}">${team.name}</a>
-      </span>
-    `;
-  }
-
-  function renderTable(rows) {
-    tableBody.innerHTML = "";
-
-    if (!rows.length) {
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="10">No league matches found for this season.</td>
-        </tr>
-      `;
-      return;
-    }
-
-    rows.forEach((row, i) => {
-      tableBody.innerHTML += `
-        <tr ${i === 0 ? 'class="top-row"' : ""}>
-          <td>${i + 1}</td>
-          <td>${teamLink(row.teamId)}</td>
-          <td>${row.P}</td>
-          <td>${row.W}</td>
-          <td>${row.D}</td>
-          <td>${row.L}</td>
-          <td>${row.GF}</td>
-          <td>${row.GA}</td>
-          <td>${row.GD}</td>
-          <td><strong>${row.PTS}</strong></td>
-        </tr>
-      `;
-    });
-  }
-
   if (friendlyOnlySeason) {
     if (includeFriendliesApps) includeFriendliesApps.checked = true;
     if (includeFriendliesGoals) includeFriendliesGoals.checked = true;
@@ -579,11 +609,29 @@ Promise.all([
   renderTopScorers(friendlyOnlySeason);
 
   if (competitiveOnlyMatches) {
-    competitiveOnlyMatches.addEventListener("change", renderMatches);
+    competitiveOnlyMatches.addEventListener("change", () => {
+      if (competitiveOnlyMatches.checked && friendlyOnlyMatches) {
+        friendlyOnlyMatches.checked = false;
+      }
+      renderMatches();
+    });
+  }
+
+  if (friendlyOnlyMatches) {
+    friendlyOnlyMatches.addEventListener("change", () => {
+      if (friendlyOnlyMatches.checked && competitiveOnlyMatches) {
+        competitiveOnlyMatches.checked = false;
+      }
+      renderMatches();
+    });
   }
 
   if (excludeUnknownResults) {
     excludeUnknownResults.addEventListener("change", renderMatches);
+  }
+
+  if (excludeAbandonedGames) {
+    excludeAbandonedGames.addEventListener("change", renderMatches);
   }
 
   if (includeFriendliesApps && !friendlyOnlySeason) {
