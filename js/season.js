@@ -462,6 +462,12 @@ Promise.all([
     const rankedRows = addRanks(rows, showGoalsOnly ? "goals" : "apps");
     const columns = splitIntoColumns(rankedRows, 3, 20);
 
+    const statsHeading = Array.from(document.querySelectorAll(".content-box h3")).find(el => el.textContent.includes("Appearances"));
+    if (statsHeading) {
+      const usedCount = rankedRows.length;
+      statsHeading.innerHTML = `Appearances &amp; Goalscorers (${usedCount} player${usedCount === 1 ? "" : "s"} used)`;
+    }
+
     if (!rankedRows.length) {
       appearancesEl.innerHTML = `<div>No records found.</div>`;
       return;
