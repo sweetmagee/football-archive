@@ -14,7 +14,6 @@ Promise.all([
   const titleEl = document.getElementById("seasonTitle");
   const tableBody = document.getElementById("tableBody");
   const matchesEl = document.getElementById("matches");
-  const scorersEl = document.getElementById("scorers");
   const appearancesEl = document.getElementById("appearances");
   const seasonManagersTable = document.getElementById("seasonManagersTable");
   const managerHeading = document.getElementById("managerHeading");
@@ -433,24 +432,14 @@ Promise.all([
     });
   }
 
-  function renderColumnList(container, columns, type) {
-    if (!container) return;
-
-    container.innerHTML = columns.map(column => `
-      <div class="scorer-list">
-        ${column.map(row => `
-          <div class="scorer-row">
-            <span>${row.rank}.</span>
-            <span><a href="player.html?id=${row.playerId}">${row.name}</a></span>
-            <span>${type === "apps" ? row.appsDisplay : row.goals}</span>
-          </div>
-        `).join("")}
-      </div>
-    `).join("");
-  }
-
-  function renderAppearances() {
+  function renderSeasonStats() {
     const ids = matchIdsForStatsMode();
+    const appearancesOnly = document.getElementById("appearancesOnly");
+    const goalscorersOnly = document.getElementById("goalscorersOnly");
+
+    const showAppsOnly = appearancesOnly && appearancesOnly.checked;
+    const showGoalsOnly = goalscorersOnly && goalscorersOnly.checked;
+
     const map = {};
 
     appearances.forEach(a => {
@@ -470,7 +459,7 @@ Promise.all([
       map[playerId].goals += Number(a.goals || 0);
     });
 
-    const rows = Object.entries(map)
+    let rows = Object.entries(map)
       .map(([playerId, s]) => ({
         playerId,
         name: playerName(playerId),
@@ -480,74 +469,57 @@ Promise.all([
         appsDisplay: formatApps(s.starts, s.subs),
         goals: s.goals
       }))
-      .filter(r => r.apps > 0)
-      .sort((a, b) =>
+      .filter(r => r.apps > 0);
+
+    if (showGoalsOnly) {
+      rows = rows.filter(r => r.goals > 0);
+    }
+
+    rows.sort((a, b) => {
+      if (showGoalsOnly) {
+        return (
+          b.goals - a.goals ||
+          b.apps - a.apps ||
+          a.name.localeCompare(b.name)
+        );
+      }
+
+      return (
         b.apps - a.apps ||
         b.starts - a.starts ||
         b.goals - a.goals ||
         a.name.localeCompare(b.name)
       );
-
-    const rankedRows = addRanks(rows, "apps");
-
-    if (!rankedRows.length) {
-      appearancesEl.innerHTML = `<div>No appearances recorded.</div>`;
-      return;
-    }
-
-    renderColumnList(appearancesEl, splitIntoColumns(rankedRows, 3, 20), "apps");
-  }
-
-  function renderTopScorers() {
-    const ids = matchIdsForStatsMode();
-    const map = {};
-
-    appearances.forEach(a => {
-      const matchId = String(a.match_id).trim();
-      if (!ids.has(matchId)) return;
-      if (String(a.team || "").trim() !== "t1") return;
-
-      const playerId = String(a.player_id).trim();
-
-      if (!map[playerId]) {
-        map[playerId] = { goals: 0, starts: 0, subs: 0 };
-      }
-
-      map[playerId].goals += Number(a.goals || 0);
-
-      if (Number(a.is_starting) === 1) map[playerId].starts++;
-      else map[playerId].subs++;
     });
 
-    const rows = Object.entries(map)
-      .map(([playerId, s]) => ({
-        playerId,
-        name: playerName(playerId),
-        goals: s.goals,
-        starts: s.starts,
-        subs: s.subs
-      }))
-      .filter(r => r.goals > 0)
-      .sort((a, b) =>
-        b.goals - a.goals ||
-        b.starts - a.starts ||
-        b.subs - a.subs ||
-        a.name.localeCompare(b.name)
-      );
-
-    const rankedRows = addRanks(rows, "goals");
+    const rankedRows = addRanks(rows, showGoalsOnly ? "goals" : "apps");
+    const columns = splitIntoColumns(rankedRows, 3, 20);
 
     if (!rankedRows.length) {
-      scorersEl.innerHTML = `<div>No scorers recorded.</div>`;
+      appearancesEl.innerHTML = `<div>No records found.</div>`;
       return;
     }
 
-    renderColumnList(scorersEl, splitIntoColumns(rankedRows, 2, 20), "goals");
-  }
+    appearancesEl.innerHTML = columns.map(column => `
+      <div class="scorer-list">
+        <div class="scorer-row" style="font-weight:bold;">
+          <span>Rank</span>
+          <span>Player</span>
+          <span>${showGoalsOnly ? "Gls" : showAppsOnly ? "App" : "App&nbsp;&nbsp;Gls"}</span>
+        </div>
 
-  function renderSeasonStats() {
-    renderAppearances();
-    renderTopScorers();
+        ${column.map(row => `
+          <div class="scorer-row">
+            <span>${row.rank}.</span>
+            <span><a href="player.html?id=${row.playerId}">${row.name}</a></span>
+            <span>
+              ${showGoalsOnly ? row.goals : row.appsDisplay}
+              ${(!showAppsOnly && !showGoalsOnly) ? `&nbsp;&nbsp;${row.goals}` : ""}
+            </span>
+          </div>
+        `).join("")}
+      </div>
+    `).join("");
   }
 
   function renderManagers() {
@@ -672,6 +644,27 @@ Promise.all([
   document.querySelectorAll('input[name="seasonStatsFilter"]').forEach(input => {
     input.addEventListener("change", renderSeasonStats);
   });
+
+  const appearancesOnly = document.getElementById("appearancesOnly");
+  const goalscorersOnly = document.getElementById("goalscorersOnly");
+
+  if (appearancesOnly) {
+    appearancesOnly.addEventListener("change", () => {
+      if (appearancesOnly.checked && goalscorersOnly) {
+        goalscorersOnly.checked = false;
+      }
+      renderSeasonStats();
+    });
+  }
+
+  if (goalscorersOnly) {
+    goalscorersOnly.addEventListener("change", () => {
+      if (goalscorersOnly.checked && appearancesOnly) {
+        appearancesOnly.checked = false;
+      }
+      renderSeasonStats();
+    });
+  }
 
 }).catch(err => {
   const titleEl = document.getElementById("seasonTitle");
