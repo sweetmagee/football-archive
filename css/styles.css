@@ -841,17 +841,26 @@ button:hover {
   justify-content: center;
   min-width: 220px;
   padding: 14px 18px;
-  border-radius: 10px;
+  background: #7b1e1e;
+  color: #fff !important;
+  border: 1px solid #4f1111;
+  border-radius: 8px;
   font-weight: bold;
   text-align: center;
-  text-decoration: none;
+  text-decoration: none !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.25);
 }
 
-.small {
+.stats-button:hover {
+  background: #5f1515;
+  color: #fff !important;
+  text-decoration: none !important;
+}
+
+.stats-button-small {
   transform: scale(0.9);
   transform-origin: left center;
 }
-
 @media (max-width: 700px) {
   .small {
     transform: none;
