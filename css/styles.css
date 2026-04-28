@@ -827,3 +827,33 @@ button:hover {
     flex-wrap: wrap;
   }
 }
+/* Statistics page buttons */
+.stats-button-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.stats-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 220px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+}
+
+.small {
+  transform: scale(0.9);
+  transform-origin: left center;
+}
+
+@media (max-width: 700px) {
+  .small {
+    transform: none;
+  }
+}
