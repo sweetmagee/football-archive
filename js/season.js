@@ -23,11 +23,15 @@ Promise.all([
   const excludeUnknownResults = document.getElementById("excludeUnknownResults");
   const includeFriendliesApps = document.getElementById("includeFriendliesApps");
   const includeFriendliesGoals = document.getElementById("includeFriendliesGoals");
+  const includeFriendliesAppsLabel = document.getElementById("includeFriendliesAppsLabel");
+  const includeFriendliesGoalsLabel = document.getElementById("includeFriendliesGoalsLabel");
 
   if (!season) {
     titleEl.textContent = "Season not found";
     return;
   }
+
+  const friendlyOnlySeason = String(season.name).trim() === "1896/97";
 
   function isCountableMatch(match) {
     return (
@@ -41,7 +45,12 @@ Promise.all([
 
   function isFriendly(match) {
     const comp = String(match.competition || "").trim().toLowerCase();
-    return comp === "friendly" || comp === "fr" || comp === "friendlies";
+    return (
+      comp === "friendly" ||
+      comp === "friendlies" ||
+      comp === "fr" ||
+      comp.includes("friendly")
+    );
   }
 
   function parseUkDate(value) {
@@ -555,12 +564,20 @@ Promise.all([
     `).join("");
   }
 
+  if (friendlyOnlySeason) {
+    if (includeFriendliesApps) includeFriendliesApps.checked = true;
+    if (includeFriendliesGoals) includeFriendliesGoals.checked = true;
+
+    if (includeFriendliesAppsLabel) includeFriendliesAppsLabel.style.display = "none";
+    if (includeFriendliesGoalsLabel) includeFriendliesGoalsLabel.style.display = "none";
+  }
+
   renderManagers();
   renderOverallRecord(countableSeasonMatches);
   renderTable(buildTable(leagueMatches));
   renderMatches();
-  renderAppearances(false);
-  renderTopScorers(false);
+  renderAppearances(friendlyOnlySeason ? true : false);
+  renderTopScorers(friendlyOnlySeason ? true : false);
 
   if (competitiveOnlyMatches) {
     competitiveOnlyMatches.addEventListener("change", renderMatches);
@@ -570,13 +587,13 @@ Promise.all([
     excludeUnknownResults.addEventListener("change", renderMatches);
   }
 
-  if (includeFriendliesApps) {
+  if (includeFriendliesApps && !friendlyOnlySeason) {
     includeFriendliesApps.addEventListener("change", () => {
       renderAppearances(includeFriendliesApps.checked);
     });
   }
 
-  if (includeFriendliesGoals) {
+  if (includeFriendliesGoals && !friendlyOnlySeason) {
     includeFriendliesGoals.addEventListener("change", () => {
       renderTopScorers(includeFriendliesGoals.checked);
     });
