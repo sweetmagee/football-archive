@@ -1,3 +1,4 @@
+<!-- Updated season.html -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -27,128 +28,92 @@
 
 <div class="page-wrap">
 
-  <h1 id="seasonTitle">Season</h1>
+<h1 id="seasonTitle">Season</h1>
 
-  <div class="season-grid">
-    <div class="season-main">
+<div class="content-box">
+  <h2 id="managerHeading">Manager</h2>
+  <table class="archive-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Span of Matches</th>
+      </tr>
+    </thead>
+    <tbody id="seasonManagersTable"></tbody>
+  </table>
+</div>
 
-      <div class="content-box">
-        <h2 id="managerHeading">Manager</h2>
-        <table class="archive-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Span of Matches</th>
-            </tr>
-          </thead>
-          <tbody id="seasonManagersTable"></tbody>
-        </table>
-      </div>
+<div class="content-box">
+  <h2>Overall Record</h2>
+  <table class="archive-table">
+    <thead>
+      <tr>
+        <th>Record</th>
+        <th>P</th>
+        <th>W</th>
+        <th>D</th>
+        <th>L</th>
+        <th>GF</th>
+        <th>GA</th>
+        <th>GD</th>
+      </tr>
+    </thead>
+    <tbody id="overallRecordTable"></tbody>
+  </table>
+</div>
 
-      <div class="content-box">
-        <h2>Overall Record</h2>
-        <table class="archive-table">
-          <thead>
-            <tr>
-              <th>Record</th>
-              <th>P</th>
-              <th>W</th>
-              <th>D</th>
-              <th>L</th>
-              <th>GF</th>
-              <th>GA</th>
-              <th>GD</th>
-            </tr>
-          </thead>
-          <tbody id="overallRecordTable"></tbody>
-        </table>
-      </div>
+<div class="content-box">
+  <h2>Season Statistics</h2>
 
-    </div>
+  <div style="display:flex; gap:18px; flex-wrap:wrap; margin-bottom:12px;">
+    <label class="stats-toggle">
+      <input type="radio" name="seasonStatsFilter" value="competitive" checked>
+      Competitive Games Only
+    </label>
 
-    <div class="season-side">
+    <label class="stats-toggle">
+      <input type="radio" name="seasonStatsFilter" value="friendly">
+      Friendly Games Only
+    </label>
 
-      <div class="content-box">
-        <h2>Appearances</h2>
-
-        <label class="stats-toggle" id="includeFriendliesAppsLabel">
-          <input type="checkbox" id="includeFriendliesApps">
-          Include friendlies
-        </label>
-
-        <div id="appearances" class="scorer-list"></div>
-      </div>
-
-      <div class="content-box">
-        <h2>Goalscorers</h2>
-
-        <label class="stats-toggle" id="includeFriendliesGoalsLabel">
-          <input type="checkbox" id="includeFriendliesGoals">
-          Include friendlies
-        </label>
-
-        <div id="scorers" class="scorer-list"></div>
-      </div>
-
-    </div>
+    <label class="stats-toggle">
+      <input type="radio" name="seasonStatsFilter" value="all">
+      All Matches
+    </label>
   </div>
 
-  <div class="season-grid">
-    <div class="season-main">
+  <h3>Appearances</h3>
+  <div id="appearances" style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;"></div>
 
-      <div class="content-box">
-        <h2>Matches</h2>
+  <h3 style="margin-top:18px;">Goalscorers</h3>
+  <div id="scorers" style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;"></div>
+</div>
 
-        <div id="matchFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
-          <label class="stats-toggle">
-            <input type="checkbox" id="competitiveOnlyMatches">
-            Competitive Games Only
-          </label>
+<div class="content-box">
+  <h2>Matches</h2>
+  <div id="matches" class="match-list"></div>
+</div>
 
-          <label class="stats-toggle">
-            <input type="checkbox" id="friendlyOnlyMatches">
-            Friendly Games Only
-          </label>
-
-          <label class="stats-toggle" id="excludeUnknownResultsLabel" style="display:none;">
-            <input type="checkbox" id="excludeUnknownResults">
-            Exclude Unknown Results
-          </label>
-
-          <label class="stats-toggle" id="excludeAbandonedGamesLabel" style="display:none;">
-            <input type="checkbox" id="excludeAbandonedGames">
-            Exclude Abandoned Games
-          </label>
-        </div>
-
-        <div id="matches" class="match-list"></div>
-      </div>
-
-      <div class="content-box">
-        <h2>League Table</h2>
-        <table class="archive-table">
-          <thead>
-            <tr>
-              <th>Pos</th>
-              <th>Team</th>
-              <th>P</th>
-              <th>W</th>
-              <th>D</th>
-              <th>L</th>
-              <th>GF</th>
-              <th>GA</th>
-              <th>GD</th>
-              <th>Pts</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </div>
-
-    </div>
-
-    <div class="season-side"></div>
-  </div>
+<div class="content-box">
+  <h2>League Table</h2>
+  <table class="archive-table">
+    <thead>
+      <tr>
+        <th>Pos</th>
+        <th>Team</th>
+        <th>P</th>
+        <th>W</th>
+        <th>D</th>
+        <th>L</th>
+        <th>GF</th>
+        <th>GA</th>
+        <th>GD</th>
+        <th>Pts</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
 
 </div>
 
