@@ -128,15 +128,7 @@ Promise.all([
       else drawn++;
     });
 
-    return {
-      played,
-      won,
-      drawn,
-      lost,
-      gf,
-      ga,
-      gd: gf - ga
-    };
+    return { played, won, drawn, lost, gf, ga, gd: gf - ga };
   }
 
   function recordRow(title, r) {
@@ -158,26 +150,49 @@ Promise.all([
   const friendlyRecord = buildRecord(countedMatches.filter(m => isFriendly(m)));
   const overallRecord = buildRecord(countedMatches);
 
-  function renderManagedMatches(includeFriendlies = false) {
+  const hasUnknownMatches = managerMatches.some(hasUnknownResult);
+  const hasAbandonedMatches = managerMatches.some(isAbandoned);
+
+  function renderManagedMatches() {
     const tbody = document.getElementById("matchesManagedTable");
     if (!tbody) return;
 
-    const shownMatches = managerMatches.filter(match =>
-      includeFriendlies || !isFriendly(match)
-    );
+    let shownMatches = [...managerMatches];
+
+    const competitiveOnly = document.getElementById("competitiveOnlyManaged");
+    const friendlyOnly = document.getElementById("friendlyOnlyManaged");
+    const excludeUnknown = document.getElementById("excludeUnknownManaged");
+    const excludeAbandoned = document.getElementById("excludeAbandonedManaged");
+
+    if (competitiveOnly && competitiveOnly.checked) {
+      shownMatches = shownMatches.filter(m => !isFriendly(m));
+    }
+
+    if (friendlyOnly && friendlyOnly.checked) {
+      shownMatches = shownMatches.filter(m => isFriendly(m));
+    }
+
+    if (excludeUnknown && excludeUnknown.checked) {
+      shownMatches = shownMatches.filter(m => !hasUnknownResult(m));
+    }
+
+    if (excludeAbandoned && excludeAbandoned.checked) {
+      shownMatches = shownMatches.filter(m => !isAbandoned(m));
+    }
 
     if (!shownMatches.length) {
-      tbody.innerHTML = `<tr><td colspan="4">No matches found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5">No matches found.</td></tr>`;
       return;
     }
 
-    tbody.innerHTML = shownMatches.map(match => {
+    tbody.innerHTML = shownMatches.map((match, index) => {
       const home = teamName(match.home_team);
       const away = teamName(match.away_team);
       const abandonedText = isAbandoned(match) ? " - Abandoned" : "";
 
       return `
         <tr>
+          <td>#${String(index + 1).padStart(3, "0")}</td>
           <td>${match.date || ""}</td>
           <td>
             <a href="match.html?id=${match.id}">
@@ -238,14 +253,36 @@ Promise.all([
     <div class="content-box">
       <h3>Matches Managed</h3>
 
-      <label class="stats-toggle">
-        <input type="checkbox" id="includeFriendliesManaged">
-        Include friendlies
-      </label>
+      <div id="managerMatchFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+        <label class="stats-toggle">
+          <input type="checkbox" id="competitiveOnlyManaged">
+          Competitive Games Only
+        </label>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="friendlyOnlyManaged">
+          Friendly Games Only
+        </label>
+
+        ${hasUnknownMatches ? `
+          <label class="stats-toggle">
+            <input type="checkbox" id="excludeUnknownManaged">
+            Exclude Unknown Results
+          </label>
+        ` : ""}
+
+        ${hasAbandonedMatches ? `
+          <label class="stats-toggle">
+            <input type="checkbox" id="excludeAbandonedManaged">
+            Exclude Abandoned Games
+          </label>
+        ` : ""}
+      </div>
 
       <table class="archive-table">
         <thead>
           <tr>
+            <th>#</th>
             <th>Date</th>
             <th>Match</th>
             <th>Competition</th>
@@ -257,15 +294,38 @@ Promise.all([
     </div>
   `;
 
-  renderManagedMatches(false);
+  const competitiveOnly = document.getElementById("competitiveOnlyManaged");
+  const friendlyOnly = document.getElementById("friendlyOnlyManaged");
+  const excludeUnknown = document.getElementById("excludeUnknownManaged");
+  const excludeAbandoned = document.getElementById("excludeAbandonedManaged");
 
-  const includeFriendliesManaged = document.getElementById("includeFriendliesManaged");
-
-  if (includeFriendliesManaged) {
-    includeFriendliesManaged.addEventListener("change", () => {
-      renderManagedMatches(includeFriendliesManaged.checked);
+  if (competitiveOnly) {
+    competitiveOnly.addEventListener("change", () => {
+      if (competitiveOnly.checked && friendlyOnly) {
+        friendlyOnly.checked = false;
+      }
+      renderManagedMatches();
     });
   }
+
+  if (friendlyOnly) {
+    friendlyOnly.addEventListener("change", () => {
+      if (friendlyOnly.checked && competitiveOnly) {
+        competitiveOnly.checked = false;
+      }
+      renderManagedMatches();
+    });
+  }
+
+  if (excludeUnknown) {
+    excludeUnknown.addEventListener("change", renderManagedMatches);
+  }
+
+  if (excludeAbandoned) {
+    excludeAbandoned.addEventListener("change", renderManagedMatches);
+  }
+
+  renderManagedMatches();
 
 }).catch(err => {
   document.getElementById("managerPage").innerHTML =
