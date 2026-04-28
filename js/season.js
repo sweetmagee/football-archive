@@ -27,11 +27,6 @@ Promise.all([
   const excludeAbandonedGames = document.getElementById("excludeAbandonedGames");
   const excludeAbandonedGamesLabel = document.getElementById("excludeAbandonedGamesLabel");
 
-  const includeFriendliesApps = document.getElementById("includeFriendliesApps");
-  const includeFriendliesGoals = document.getElementById("includeFriendliesGoals");
-  const includeFriendliesAppsLabel = document.getElementById("includeFriendliesAppsLabel");
-  const includeFriendliesGoalsLabel = document.getElementById("includeFriendliesGoalsLabel");
-
   if (!season) {
     titleEl.textContent = "Season not found";
     return;
@@ -284,6 +279,8 @@ Promise.all([
   }
 
   function renderTable(rows) {
+    if (!tableBody) return;
+
     tableBody.innerHTML = "";
 
     if (!rows.length) {
@@ -314,6 +311,8 @@ Promise.all([
   }
 
   function renderMatches() {
+    if (!matchesEl) return;
+
     matchesEl.innerHTML = "";
 
     let shownMatches = [...seasonMatches];
@@ -387,16 +386,71 @@ Promise.all([
     });
   }
 
-  function matchIdsForStats(includeFriendlies) {
+  function getSeasonStatsMode() {
+    const selected = document.querySelector('input[name="seasonStatsFilter"]:checked');
+    return selected ? selected.value : "competitive";
+  }
+
+  function matchIdsForStatsMode() {
+    const mode = getSeasonStatsMode();
+
     return new Set(
       countableSeasonMatches
-        .filter(m => includeFriendlies || !isFriendly(m))
+        .filter(m => {
+          if (mode === "competitive") return !isFriendly(m);
+          if (mode === "friendly") return isFriendly(m);
+          return true;
+        })
         .map(m => String(m.id).trim())
     );
   }
 
-  function renderAppearances(includeFriendlies = false) {
-    const ids = matchIdsForStats(includeFriendlies);
+  function splitIntoColumns(rows, columnCount, maxPerColumn) {
+    const limited = rows.slice(0, columnCount * maxPerColumn);
+    const columns = [];
+
+    for (let i = 0; i < columnCount; i++) {
+      columns.push(limited.slice(i * maxPerColumn, (i + 1) * maxPerColumn));
+    }
+
+    return columns;
+  }
+
+  function addRanks(rows, valueKey) {
+    let lastValue = null;
+    let lastRank = 0;
+
+    return rows.map((row, index) => {
+      if (row[valueKey] !== lastValue) {
+        lastRank = index + 1;
+        lastValue = row[valueKey];
+      }
+
+      return {
+        ...row,
+        rank: lastRank
+      };
+    });
+  }
+
+  function renderColumnList(container, columns, type) {
+    if (!container) return;
+
+    container.innerHTML = columns.map(column => `
+      <div class="scorer-list">
+        ${column.map(row => `
+          <div class="scorer-row">
+            <span>${row.rank}.</span>
+            <span><a href="player.html?id=${row.playerId}">${row.name}</a></span>
+            <span>${type === "apps" ? row.appsDisplay : row.goals}</span>
+          </div>
+        `).join("")}
+      </div>
+    `).join("");
+  }
+
+  function renderAppearances() {
+    const ids = matchIdsForStatsMode();
     const map = {};
 
     appearances.forEach(a => {
@@ -423,6 +477,7 @@ Promise.all([
         starts: s.starts,
         subs: s.subs,
         apps: s.starts + s.subs,
+        appsDisplay: formatApps(s.starts, s.subs),
         goals: s.goals
       }))
       .filter(r => r.apps > 0)
@@ -433,26 +488,18 @@ Promise.all([
         a.name.localeCompare(b.name)
       );
 
-    appearancesEl.innerHTML = "";
+    const rankedRows = addRanks(rows, "apps");
 
-    if (!rows.length) {
+    if (!rankedRows.length) {
       appearancesEl.innerHTML = `<div>No appearances recorded.</div>`;
       return;
     }
 
-    rows.forEach((r, i) => {
-      appearancesEl.innerHTML += `
-        <div class="scorer-row">
-          <span>${i + 1}.</span>
-          <span><a href="player.html?id=${r.playerId}">${r.name}</a></span>
-          <span>${formatApps(r.starts, r.subs)}</span>
-        </div>
-      `;
-    });
+    renderColumnList(appearancesEl, splitIntoColumns(rankedRows, 3, 20), "apps");
   }
 
-  function renderTopScorers(includeFriendlies = false) {
-    const ids = matchIdsForStats(includeFriendlies);
+  function renderTopScorers() {
+    const ids = matchIdsForStatsMode();
     const map = {};
 
     appearances.forEach(a => {
@@ -488,22 +535,19 @@ Promise.all([
         a.name.localeCompare(b.name)
       );
 
-    scorersEl.innerHTML = "";
+    const rankedRows = addRanks(rows, "goals");
 
-    if (!rows.length) {
+    if (!rankedRows.length) {
       scorersEl.innerHTML = `<div>No scorers recorded.</div>`;
       return;
     }
 
-    rows.forEach((r, i) => {
-      scorersEl.innerHTML += `
-        <div class="scorer-row">
-          <span>${i + 1}.</span>
-          <span><a href="player.html?id=${r.playerId}">${r.name}</a></span>
-          <span>${r.goals}</span>
-        </div>
-      `;
-    });
+    renderColumnList(scorersEl, splitIntoColumns(rankedRows, 2, 20), "goals");
+  }
+
+  function renderSeasonStats() {
+    renderAppearances();
+    renderTopScorers();
   }
 
   function renderManagers() {
@@ -589,24 +633,15 @@ Promise.all([
   }
 
   if (friendlyOnlySeason) {
-    if (includeFriendliesApps) includeFriendliesApps.checked = true;
-    if (includeFriendliesGoals) includeFriendliesGoals.checked = true;
-
-    if (includeFriendliesAppsLabel) {
-      includeFriendliesAppsLabel.style.display = "none";
-    }
-
-    if (includeFriendliesGoalsLabel) {
-      includeFriendliesGoalsLabel.style.display = "none";
-    }
+    const friendlyRadio = document.querySelector('input[name="seasonStatsFilter"][value="friendly"]');
+    if (friendlyRadio) friendlyRadio.checked = true;
   }
 
   renderManagers();
   renderOverallRecord(countableSeasonMatches);
   renderTable(buildTable(leagueMatches));
   renderMatches();
-  renderAppearances(friendlyOnlySeason);
-  renderTopScorers(friendlyOnlySeason);
+  renderSeasonStats();
 
   if (competitiveOnlyMatches) {
     competitiveOnlyMatches.addEventListener("change", () => {
@@ -634,17 +669,9 @@ Promise.all([
     excludeAbandonedGames.addEventListener("change", renderMatches);
   }
 
-  if (includeFriendliesApps && !friendlyOnlySeason) {
-    includeFriendliesApps.addEventListener("change", () => {
-      renderAppearances(includeFriendliesApps.checked);
-    });
-  }
-
-  if (includeFriendliesGoals && !friendlyOnlySeason) {
-    includeFriendliesGoals.addEventListener("change", () => {
-      renderTopScorers(includeFriendliesGoals.checked);
-    });
-  }
+  document.querySelectorAll('input[name="seasonStatsFilter"]').forEach(input => {
+    input.addEventListener("change", renderSeasonStats);
+  });
 
 }).catch(err => {
   const titleEl = document.getElementById("seasonTitle");
