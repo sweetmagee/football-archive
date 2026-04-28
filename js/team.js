@@ -20,14 +20,53 @@ Promise.all([
 
   const isMargatePage = String(id).trim() === "t1";
 
+  function isAbandoned(match) {
+    return String(match.abandoned || '').trim().toUpperCase() === 'Y';
+  }
+
+  function hasUnknownResult(match) {
+    return (
+      !match ||
+      match.home_score === '?' ||
+      match.away_score === '?' ||
+      Number.isNaN(Number(match.home_score)) ||
+      Number.isNaN(Number(match.away_score))
+    );
+  }
+
   function isCountableMatch(match) {
     return (
       match &&
-      match.home_score !== '?' &&
-      match.away_score !== '?' &&
-      !Number.isNaN(Number(match.home_score)) &&
-      !Number.isNaN(Number(match.away_score))
+      !isAbandoned(match) &&
+      !hasUnknownResult(match)
     );
+  }
+
+  function isFriendly(match) {
+    const comp = String(match.competition || '').trim().toLowerCase();
+    return (
+      comp === 'friendly' ||
+      comp === 'friendlies' ||
+      comp === 'fr' ||
+      comp.includes('friendly')
+    );
+  }
+
+  function parseDate(value) {
+    if (!value) return null;
+    const cleaned = String(value).trim().replace(/-/g, '/').replace(/\./g, '/');
+    const parts = cleaned.split('/');
+    if (parts.length !== 3) return null;
+
+    let [d, m, y] = parts.map(x => x.trim());
+    if (!d || !m || !y) return null;
+
+    if (y.length === 2) {
+      y = Number(y) >= 50 ? `18${y}` : `19${y}`;
+    }
+
+    const dt = new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`);
+    return Number.isNaN(dt.getTime()) ? null : dt;
   }
 
   function seasonName(seasonId) {
@@ -104,8 +143,7 @@ Promise.all([
       (
         String(m.home_team).trim() === String(id).trim() ||
         String(m.away_team).trim() === String(id).trim()
-      ) &&
-      isCountableMatch(m)
+      )
     );
   } else {
     squad = [];
@@ -114,10 +152,11 @@ Promise.all([
       (
         (String(m.home_team).trim() === "t1" && String(m.away_team).trim() === String(id).trim()) ||
         (String(m.away_team).trim() === "t1" && String(m.home_team).trim() === String(id).trim())
-      ) &&
-      isCountableMatch(m)
+      )
     );
   }
+
+  const countableTeamMatches = teamMatches.filter(isCountableMatch);
 
   const teamCaptains = captains
     .filter(c => String(c.team_id).trim() === String(id).trim())
@@ -174,7 +213,7 @@ Promise.all([
     };
   }
 
-  const overall = getRecord(teamMatches);
+  const overall = getRecord(countableTeamMatches);
 
   el.innerHTML = `
     <div class="content-box">
@@ -331,7 +370,7 @@ Promise.all([
   const summaryTable = document.getElementById('seasonSummaryTable');
   const groupedBySeason = {};
 
-  teamMatches.forEach(m => {
+  countableTeamMatches.forEach(m => {
     const sid = String(m.season_id || '').trim() || 'unknown';
     if (!groupedBySeason[sid]) groupedBySeason[sid] = [];
     groupedBySeason[sid].push(m);
@@ -587,33 +626,110 @@ Promise.all([
   el.innerHTML += `
     <div class="content-box section-block">
       <h3>Matches</h3>
+
+      <div id="teamMatchFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+        <label class="stats-toggle">
+          <input type="checkbox" id="competitiveOnlyMatches">
+          Competitive Games Only
+        </label>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="friendlyOnlyMatches">
+          Friendly Games Only
+        </label>
+
+        <label class="stats-toggle" id="excludeUnknownResultsLabel" style="display:none;">
+          <input type="checkbox" id="excludeUnknownResults">
+          Exclude Unknown Results
+        </label>
+
+        <label class="stats-toggle" id="excludeAbandonedGamesLabel" style="display:none;">
+          <input type="checkbox" id="excludeAbandonedGames">
+          Exclude Abandoned Games
+        </label>
+      </div>
+
       <div id="teamMatches"></div>
     </div>
   `;
 
+  const competitiveOnlyMatches = document.getElementById('competitiveOnlyMatches');
+  const friendlyOnlyMatches = document.getElementById('friendlyOnlyMatches');
+  const excludeUnknownResults = document.getElementById('excludeUnknownResults');
+  const excludeUnknownResultsLabel = document.getElementById('excludeUnknownResultsLabel');
+  const excludeAbandonedGames = document.getElementById('excludeAbandonedGames');
+  const excludeAbandonedGamesLabel = document.getElementById('excludeAbandonedGamesLabel');
   const matchesWrap = document.getElementById('teamMatches');
 
-  if (teamMatches.length === 0) {
-    matchesWrap.innerHTML = `<div>No matches found for this team.</div>`;
-  } else {
-    Object.entries(groupedBySeason)
+  const teamHasUnknownResults = teamMatches.some(hasUnknownResult);
+  const teamHasAbandonedGames = teamMatches.some(isAbandoned);
+
+  if (excludeUnknownResultsLabel && teamHasUnknownResults) {
+    excludeUnknownResultsLabel.style.display = 'inline-flex';
+  }
+
+  if (excludeAbandonedGamesLabel && teamHasAbandonedGames) {
+    excludeAbandonedGamesLabel.style.display = 'inline-flex';
+  }
+
+  function renderTeamMatches() {
+    if (!matchesWrap) return;
+
+    let shownMatches = [...teamMatches];
+
+    if (competitiveOnlyMatches && competitiveOnlyMatches.checked) {
+      shownMatches = shownMatches.filter(m => !isFriendly(m));
+    }
+
+    if (friendlyOnlyMatches && friendlyOnlyMatches.checked) {
+      shownMatches = shownMatches.filter(m => isFriendly(m));
+    }
+
+    if (excludeUnknownResults && excludeUnknownResults.checked) {
+      shownMatches = shownMatches.filter(m => !hasUnknownResult(m));
+    }
+
+    if (excludeAbandonedGames && excludeAbandonedGames.checked) {
+      shownMatches = shownMatches.filter(m => !isAbandoned(m));
+    }
+
+    if (shownMatches.length === 0) {
+      matchesWrap.innerHTML = `<div>No matches found for this team.</div>`;
+      return;
+    }
+
+    const groupedForMatches = {};
+
+    shownMatches.forEach(m => {
+      const sid = String(m.season_id || '').trim() || 'unknown';
+      if (!groupedForMatches[sid]) groupedForMatches[sid] = [];
+      groupedForMatches[sid].push(m);
+    });
+
+    matchesWrap.innerHTML = '';
+
+    Object.entries(groupedForMatches)
       .sort((a, b) => String(a[0]).localeCompare(String(b[0])))
       .forEach(([seasonId, seasonMatches]) => {
         seasonMatches.sort((a, b) => {
-          const da = new Date((a.date || '').split('/').reverse().join('-'));
-          const db = new Date((b.date || '').split('/').reverse().join('-'));
+          const da = parseDate(a.date);
+          const db = parseDate(b.date);
           return da - db;
         });
 
         matchesWrap.innerHTML += `<h4>${seasonName(seasonId)}</h4><div id="season-${seasonId}" class="match-list"></div>`;
         const seasonList = document.getElementById(`season-${seasonId}`);
 
-        seasonMatches.forEach(m => {
+        seasonMatches.forEach((m, index) => {
+          const matchNumber = `#${String(index + 1).padStart(3, '0')}`;
+
           seasonList.innerHTML += `
             <div class="match-row">
-              <div class="match-date">${m.date || ''}</div>
-              <div class="match-scoreline">
-                <a href="match.html?id=${m.id}">
+              <div class="match-scoreline" style="display:block;">
+                <a href="match.html?id=${m.id}" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                  <strong>${matchNumber}</strong>
+                  <span>${m.date || ''}</span>
+
                   <span class="team-inline">
                     ${teamBadgeHtml(m.home_team)}
                     <span>${teamName(m.home_team)}</span>
@@ -625,14 +741,45 @@ Promise.all([
                     ${teamBadgeHtml(m.away_team)}
                     <span>${teamName(m.away_team)}</span>
                   </span>
+
+                  <span class="match-meta">
+                    ${m.competition || ''}${m.round ? ` - ${m.round}` : ''}${isAbandoned(m) ? ' - Abandoned' : ''}
+                  </span>
                 </a>
               </div>
-              <div class="match-meta">${m.competition || ''}${m.round ? ` - ${m.round}` : ''}</div>
             </div>
           `;
         });
       });
   }
+
+  if (competitiveOnlyMatches) {
+    competitiveOnlyMatches.addEventListener('change', () => {
+      if (competitiveOnlyMatches.checked && friendlyOnlyMatches) {
+        friendlyOnlyMatches.checked = false;
+      }
+      renderTeamMatches();
+    });
+  }
+
+  if (friendlyOnlyMatches) {
+    friendlyOnlyMatches.addEventListener('change', () => {
+      if (friendlyOnlyMatches.checked && competitiveOnlyMatches) {
+        competitiveOnlyMatches.checked = false;
+      }
+      renderTeamMatches();
+    });
+  }
+
+  if (excludeUnknownResults) {
+    excludeUnknownResults.addEventListener('change', renderTeamMatches);
+  }
+
+  if (excludeAbandonedGames) {
+    excludeAbandonedGames.addEventListener('change', renderTeamMatches);
+  }
+
+  renderTeamMatches();
 
 }).catch(err => {
   document.getElementById('teamPage').innerHTML =
