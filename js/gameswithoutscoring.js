@@ -77,6 +77,21 @@ Promise.all([
       .sort((a, b) => matchSortValue(a.match) - matchSortValue(b.match));
   }
 
+  function isGoalkeeperByAppearances(rows) {
+    const counts = {};
+
+    rows.forEach(row => {
+      const shirt = Number(row.app.shirt_number || 0);
+      counts[shirt] = (counts[shirt] || 0) + 1;
+    });
+
+    const sorted = Object.entries(counts)
+      .map(([shirt, count]) => ({ shirt: Number(shirt), count }))
+      .sort((a, b) => b.count - a.count || a.shirt - b.shirt);
+
+    return sorted.length > 0 && sorted[0].shirt === 1;
+  }
+
   function bestRunWithoutScoring(rows) {
     let best = { length: 0, from: null, to: null };
     let current = { length: 0, from: null, to: null };
@@ -117,7 +132,14 @@ Promise.all([
         goals,
         run
       };
-    }).filter(row => row.apps > 0);
+    }).filter(row => {
+      if (row.apps <= 0) return false;
+
+      const records = playerRows(row.playerId, includeFriendlies);
+      const isGoalkeeper = isGoalkeeperByAppearances(records);
+
+      return !isGoalkeeper || row.goals > 0;
+    });
 
     const consecutiveRows = rows
       .filter(row => row.run.length > 0)
