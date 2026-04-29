@@ -22,6 +22,15 @@ Promise.all([
     .player-icons-inline { margin-left: 4px; white-space: nowrap; }
     .player-landmarks { margin-left: auto; text-align: right; font-size: 0.9em; white-space: nowrap; }
     .landmark-label { font-weight: 700; margin: 0 2px; }
+    .match-lineups-grid {
+      display: block !important;
+      width: 100% !important;
+    }
+    .match-lineup-column {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
+    }
   `;
   document.head.appendChild(matchStyle);
 
