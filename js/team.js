@@ -397,7 +397,7 @@ Promise.all([
         matchList.sort((a, b) => parseDate(a.date) - parseDate(b.date));
 
         return `
-          <h4 style="margin-top:18px;">${seasonName(seasonId)}</h4>
+          <h4>${seasonName(seasonId)}</h4>
           <div class="match-list">
             ${matchList.map((match, index) => matchLine(match, index)).join("")}
           </div>
@@ -497,7 +497,7 @@ Promise.all([
   el.innerHTML = `
     <div class="content-box">
       <div class="team-header">
-        <img class="team-badge-large"
+        <img class="team-badge-large" style="border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;padding:0!important;border-radius:0!important;"
              src="images/teams/${team.id}.png"
              alt="${team.name}"
              onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
