@@ -31,6 +31,13 @@ Promise.all([
       max-width: 100% !important;
       box-sizing: border-box;
     }
+    .lineup-player a {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .lineup-player a:hover {
+      text-decoration-thickness: 2px;
+    }
   `;
   document.head.appendChild(matchStyle);
 
