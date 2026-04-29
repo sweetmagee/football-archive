@@ -34,8 +34,8 @@
       <h2>Welcome</h2>
       <p class="home-intro">
         A statistical record of Margate and Thanet United FC - from the club's
-        foundation to the present day. The site contains results, line-ups,
-        player records, potted player histories and more.
+        foundation to the present day.<br><br>
+        <span id="welcomeStats">Loading site statistics...</span>
       </p>
     </div>
 
@@ -90,22 +90,6 @@
     </div>
 
   </div>
-
-  
-<script>
-fetch("data/players.json").then(r=>r.json()).then(players=>{
- return Promise.all([players, fetch("data/matches.json").then(r=>r.json())]);
-}).then(([players,matches])=>{
- const playerCount = players.length;
- const complete = matches.filter(m => String(m.incomplete||"").toUpperCase() !== "Y").length;
- const confirmed = matches.filter(m => String(m.abandoned||"").toUpperCase() !== "Y" && m.home_score !== "?" && m.away_score !== "?").length;
- const pct = confirmed ? ((complete/confirmed)*100).toFixed(1) : "0.0";
- const el=document.getElementById("welcomeStats");
- if(el){
-   el.textContent = `The site currently has the details of ${playerCount} players and complete details of ${complete} matches out of ${confirmed} confirmed as being played. So there are complete records for ${pct}% of all confirmed matches.`;
- }
-}).catch(()=>{});
-</script>
 
   <script src="js/home.js"></script>
 </body>
