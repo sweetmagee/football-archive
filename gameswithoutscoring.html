@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Games Without Scoring | Margate & Thanet United FC Archive</title>
+  <base href="/football-archive/">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div class="header-bar site-header-image">
+  <div class="site-header-overlay">
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="players.html">Players</a>
+      <a href="managers.html">Managers</a>
+      <a href="seasons.html">Seasons</a>
+      <a href="opponents.html">Opponents</a>
+      <a href="statistics.html">Statistics</a>
+      <a href="records.html">Records</a>
+      <a href="honours.html">Honours</a>
+      <a href="history.html">History</a>
+      <a href="interactive.html">Interactive</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <div class="content-box">
+
+    <label class="stats-toggle">
+      <input type="checkbox" id="includeFriendlies">
+      Include friendlies
+    </label>
+
+    <div id="runCount" class="player-count">Loading...</div>
+
+    <h3>Consecutive Matches Without Scoring</h3>
+    <table class="archive-table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Consecutive Matches Without Scoring</th>
+          <th>From</th>
+          <th>To</th>
+        </tr>
+      </thead>
+      <tbody id="consecutiveTable"></tbody>
+    </table>
+
+    <h3>Overall Matches Without Scoring</h3>
+    <table class="archive-table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Overall Matches Without Scoring</th>
+          <th>Appearances</th>
+          <th>Goals</th>
+        </tr>
+      </thead>
+      <tbody id="overallTable"></tbody>
+    </table>
+
+  </div>
+</div>
+
+<script src="js/gameswithoutscoring.js"></script>
+</body>
+</html>
