@@ -6,6 +6,7 @@ Promise.all([
   const table = document.getElementById("positionPlayedTable");
   const countEl = document.getElementById("positionPlayedCount");
   const includeFriendliesBox = document.getElementById("includeFriendlies");
+  const includeFriendliesTopTenBox = document.getElementById("includeFriendliesTopTen");
   const positionSelect = document.getElementById("positionSelect");
   const topTenTable = document.getElementById("topTenPositionTable");
   const topTenCount = document.getElementById("topTenCount");
@@ -175,20 +176,35 @@ Promise.all([
     }
   }
 
-  function render() {
+  function renderMainSection() {
     const includeFriendlies = includeFriendliesBox ? includeFriendliesBox.checked : false;
     const data = buildPositionData(includeFriendlies);
 
     renderMainTable(data, includeFriendlies);
+  }
+
+  function renderTopTenSection() {
+    const includeFriendlies = includeFriendliesTopTenBox ? includeFriendliesTopTenBox.checked : false;
+    const data = buildPositionData(includeFriendlies);
+
     renderTopTen(data, includeFriendlies);
   }
 
+  function render() {
+    renderMainSection();
+    renderTopTenSection();
+  }
+
   if (includeFriendliesBox) {
-    includeFriendliesBox.addEventListener("change", render);
+    includeFriendliesBox.addEventListener("change", renderMainSection);
+  }
+
+  if (includeFriendliesTopTenBox) {
+    includeFriendliesTopTenBox.addEventListener("change", renderTopTenSection);
   }
 
   if (positionSelect) {
-    positionSelect.addEventListener("change", render);
+    positionSelect.addEventListener("change", renderTopTenSection);
   }
 
   render();
