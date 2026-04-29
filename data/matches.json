@@ -410,7 +410,7 @@
     "home_manager_id": "mgr1",
     "away_manager_id": "",
     "abandoned": "",
-    "incomplete": ""
+    "incomplete": "Y"
   },
   {
     "id": "m16",
@@ -861,7 +861,7 @@
     "away_manager_id": "mgr1",
     "home_manager_id": "",
     "abandoned": "",
-    "incomplete": ""
+    "incomplete": "Y"
   },
   {
     "id": "m31",
@@ -1160,7 +1160,7 @@
     "away_manager_id": "mgr2",
     "home_manager_id": "",
     "abandoned": "",
-    "incomplete": ""
+    "incomplete": "Y"
   },
   {
     "id": "m42",
@@ -1211,7 +1211,7 @@
     "home_manager_id": "mgr2",
     "away_manager_id": "",
     "abandoned": "",
-    "incomplete": ""
+    "incomplete": "Y"
   },
   {
     "id": "m44",
