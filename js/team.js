@@ -299,35 +299,129 @@ Promise.all([
       }).join("");
   }
 
+
+  function shortScorerName(playerId, allIds) {
+    const p = players.find(x => normalise(x.id) === normalise(playerId));
+    if (!p) return playerId;
+
+    const parts = normalise(p.name).split(/\s+/);
+    const last = parts.pop() || p.name;
+    const first = parts.join(" ");
+
+    const sameSurname = allIds
+      .map(pid => players.find(x => normalise(x.id) === normalise(pid)))
+      .filter(Boolean)
+      .filter(x => {
+        const bits = normalise(x.name).split(/\s+/);
+        const xLast = bits.pop() || "";
+        return xLast.toLowerCase() === last.toLowerCase();
+      });
+
+    return sameSurname.length > 1 && first ? `${first.charAt(0)}.${last}` : last;
+  }
+
+  function joinScorerNames(items) {
+    if (items.length === 0) return "";
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} & ${items[1]}`;
+    return `${items.slice(0, -1).join(", ")} & ${items[items.length - 1]}`;
+  }
+
+  function margateGoalsFor(match) {
+    if (normalise(match.home_team) === "t1") return Number(match.home_score);
+    if (normalise(match.away_team) === "t1") return Number(match.away_score);
+    return 0;
+  }
+
+  function matchScorersText(match) {
+    const margateScore = margateGoalsFor(match);
+    if (Number.isNaN(margateScore) || margateScore <= 0) return "";
+
+    const teamApps = appearances.filter(a =>
+      normalise(a.match_id) === normalise(match.id) &&
+      normalise(a.team) === "t1"
+    );
+
+    const allIds = teamApps.map(a => a.player_id);
+
+    const rows = teamApps
+      .filter(a => Number(a.goals || 0) > 0)
+      .map(a => ({
+        name: shortScorerName(a.player_id, allIds),
+        surname: shortScorerName(a.player_id, allIds).replace(/^.*\./, ""),
+        goals: Number(a.goals || 0),
+        unknown: false
+      }));
+
+    const knownGoals = rows.reduce((sum, r) => sum + r.goals, 0);
+    const unknownGoals = margateScore - knownGoals;
+
+    if (unknownGoals > 0) {
+      rows.push({
+        name: "Unknown",
+        surname: "Unknown",
+        goals: unknownGoals,
+        unknown: true
+      });
+    }
+
+    rows.sort((a, b) => {
+      if (a.unknown && !b.unknown) return 1;
+      if (!a.unknown && b.unknown) return -1;
+      return (
+        b.goals - a.goals ||
+        a.surname.localeCompare(b.surname) ||
+        a.name.localeCompare(b.name)
+      );
+    });
+
+    const out = rows.map(r => r.goals > 1 ? `${r.name} (${r.goals})` : r.name);
+    return joinScorerNames(out);
+  }
+
+  function teamResultHtml(match) {
+    return `
+      <a href="match.html?id=${match.id}" class="team-season-result-link">
+        <span class="team-season-result-team team-season-result-home">
+          <span>${teamName(match.home_team)}</span>
+          ${teamBadgeHtml(match.home_team)}
+        </span>
+
+        <span class="team-season-result-score">${match.home_score} - ${match.away_score}</span>
+
+        <span class="team-season-result-team team-season-result-away">
+          ${teamBadgeHtml(match.away_team)}
+          <span>${teamName(match.away_team)}</span>
+        </span>
+      </a>
+    `;
+  }
+
+  function teamMatchSortDate(match) {
+    const note = normalise(match.notes).toLowerCase();
+    if (note.includes("date of match unknown")) {
+      return new Date(9999, 11, 31);
+    }
+
+    const d = parseDate(match.date);
+    return d || new Date(9999, 11, 30);
+  }
+
+
   function matchLine(match, index) {
     const matchNumber = `#${String(index + 1).padStart(3, "0")}`;
     const abandonedText = isAbandoned(match) ? " - Abandoned" : "";
+    const scorers = matchScorersText(match);
 
     return `
-      <div class="match-row">
-        <div class="match-scoreline" style="display:block;">
-          <a href="match.html?id=${match.id}" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <strong>${matchNumber}</strong>
-            <span>${match.date || ""}</span>
-
-            <span class="team-inline">
-              ${teamBadgeHtml(match.home_team)}
-              <span>${teamName(match.home_team)}</span>
-            </span>
-
-            <span class="score-separator">${match.home_score}-${match.away_score}</span>
-
-            <span class="team-inline">
-              ${teamBadgeHtml(match.away_team)}
-              <span>${teamName(match.away_team)}</span>
-            </span>
-
-            <span class="match-meta">
-              ${match.competition || ""}${match.round ? ` - ${match.round}` : ""}${abandonedText}
-            </span>
-          </a>
-        </div>
-      </div>
+      <tr>
+        <td class="team-match-number">${matchNumber}</td>
+        <td>${match.date || ""}</td>
+        <td>${match.competition || ""}${match.round ? ` - ${match.round}` : ""}${abandonedText}</td>
+        <td>${teamResultHtml(match)}</td>
+        <td class="team-match-scorers">${scorers || ""}</td>
+        <td>${match.attendance || ""}</td>
+      </tr>
     `;
   }
 
@@ -394,13 +488,25 @@ Promise.all([
     matchesWrap.innerHTML = Object.entries(grouped)
       .sort((a, b) => normalise(a[0]).localeCompare(normalise(b[0])))
       .map(([seasonId, matchList]) => {
-        matchList.sort((a, b) => parseDate(a.date) - parseDate(b.date));
+        matchList.sort((a, b) => teamMatchSortDate(a) - teamMatchSortDate(b));
 
         return `
           <h4>${seasonName(seasonId)}</h4>
-          <div class="match-list">
-            ${matchList.map((match, index) => matchLine(match, index)).join("")}
-          </div>
+          <table class="archive-table team-season-matches-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Competition</th>
+                <th>Result</th>
+                <th>Goalscorers</th>
+                <th>Att</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${matchList.map((match, index) => matchLine(match, index)).join("")}
+            </tbody>
+          </table>
         `;
       }).join("");
   }
@@ -530,7 +636,7 @@ Promise.all([
       </table>
     </div>
 
-    <div class="content-box section-block">
+    <div class="content-box section-block team-matches-section">
       <h3>Matches</h3>
 
       <div id="matchFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
