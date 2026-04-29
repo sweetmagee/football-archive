@@ -132,7 +132,59 @@ Promise.all([
       .filter(row => row.match && validMatch(row.match));
   }
 
-  function statSetFor(playerId) {
+  
+  function positionLabel(shirt) {
+    const map = {
+      1: "Goalkeeper",
+      2: "Right-back",
+      3: "Left-back",
+      4: "Right-half",
+      5: "Centre-half",
+      6: "Left-half",
+      7: "Outside-right",
+      8: "Inside-right",
+      9: "Centre-forward",
+      10: "Inside-left",
+      11: "Outside-left"
+    };
+    return map[Number(shirt)] || "Unknown";
+  }
+
+  function playerPositionSummary(rows) {
+    const counts = {};
+    let total = 0;
+
+    rows.forEach(r => {
+      const pos = positionLabel(r.app.shirt_number);
+      counts[pos] = (counts[pos] || 0) + 1;
+      total++;
+    });
+
+    const list = Object.entries(counts).map(([name,count]) => ({
+      name,
+      count,
+      pct: total ? Math.round((count / total) * 100) : 0
+    }))
+    .sort((a,b) => b.count - a.count || a.name.localeCompare(b.name));
+
+    if (!list.length) {
+      return { primary: player.position || "Unknown", rows: [] };
+    }
+
+    let running = 0;
+    list.forEach((row,i) => {
+      if (i < list.length - 1) {
+        row.pct = Math.round((row.count / total) * 100);
+        running += row.pct;
+      } else {
+        row.pct = Math.max(0, 100 - running);
+      }
+    });
+
+    return { primary: list[0].name, rows: list };
+  }
+
+function statSetFor(playerId) {
     const rows = playerRowsFor(playerId);
     return {
       competitive: calcStats(rows.filter(x => !isFriendly(x.match))),
@@ -184,6 +236,7 @@ Promise.all([
   }
 
   const appsWithMatch = playerRowsFor(id);
+  const positionSummary = playerPositionSummary(appsWithMatch);
 
   const competitive = appsWithMatch.filter(x => !isFriendly(x.match));
   const friendly = appsWithMatch.filter(x => isFriendly(x.match));
@@ -359,7 +412,45 @@ Promise.all([
         text-shadow: 0 0 3px #fff6a6, 0 0 8px #ffd700, 0 0 13px #ffb300;
       }
 
-      @media (max-width: 800px) {
+      
+      .position-info-btn {
+        margin-left: 8px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 2px solid #b30000;
+        background: radial-gradient(circle at 35% 30%, #ff8a8a, #e00000 60%, #b30000);
+        color: #fff;
+        font-weight: 700;
+        font-style: italic;
+        font-size: 18px;
+        line-height: 20px;
+        padding: 0;
+        cursor: pointer;
+        box-shadow: inset 0 2px 4px rgba(255,255,255,.35), 0 2px 4px rgba(0,0,0,.25);
+      }
+      .position-modal {
+        position: fixed;
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #fff;
+        border: 1px solid #999;
+        padding: 14px;
+        z-index: 9999;
+        min-width: 320px;
+        box-shadow: 0 8px 24px rgba(0,0,0,.25);
+      }
+      .position-modal h3 { margin-top:0; }
+      .position-close {
+        position:absolute;
+        top:6px;
+        right:8px;
+        cursor:pointer;
+        font-weight:bold;
+      }
+      .position-row { margin:6px 0; }
+@media (max-width: 800px) {
         .player-card {
           grid-template-columns: 1fr;
         }
@@ -376,7 +467,9 @@ Promise.all([
           ${photoHtml}
 
           <div class="player-photo-meta">
-            ${player.position ? `<p><strong>Position:</strong> ${player.position}</p>` : ""}
+            <p><strong>Primary Position:</strong> ${positionSummary.primary}
+               <button id="positionInfoBtn" type="button" class="position-info-btn" title="Click for full positional breakdown" aria-label="Click for full positional breakdown">i</button>
+             </p>
             ${profile.dob ? `<p class="nowrap"><strong>Date of Birth:</strong> ${profile.dob}</p>` : ""}
             ${profile.birth_place ? `<p><strong>Birth Place:</strong> ${profile.birth_place}</p>` : ""}
             ${profile.other_clubs ? `<p><strong>Other Clubs:</strong> ${profile.other_clubs}</p>` : ""}
@@ -499,6 +592,29 @@ Promise.all([
       seasonSummary.style.display = "block";
     });
   }
+
+  const infoBtn = document.getElementById("positionInfoBtn");
+  if (infoBtn) {
+    infoBtn.addEventListener("click", () => {
+      const existing = document.getElementById("positionModal");
+      if (existing) existing.remove();
+
+      const modal = document.createElement("div");
+      modal.id = "positionModal";
+      modal.className = "position-modal";
+      modal.innerHTML = `
+        <div class="position-close" id="closePositionModal">✕</div>
+        <h3>Full Position Details</h3>
+        ${positionSummary.rows.map(r => `<div class="position-row"><strong>${r.name}</strong>: ${r.pct}%</div>`).join("")}
+      `;
+      document.body.appendChild(modal);
+
+      document.getElementById("closePositionModal").addEventListener("click", () => {
+        modal.remove();
+      });
+    });
+  }
+
 
 }).catch(err => {
   const el = document.getElementById("player") || document.getElementById("playerPage");
