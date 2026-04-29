@@ -462,12 +462,16 @@ Promise.all([
     const rankedRows = addRanks(rows, showGoalsOnly ? "goals" : "apps");
     const columns = splitIntoColumns(rankedRows, 3, 20);
 
+    const usedCount = rankedRows.length;
+    const statsPlayerCount = document.getElementById("seasonStatsPlayerCount");
     const statsHeading = document.getElementById("seasonStatsHeading");
 
-    if (statsHeading) {
-      const usedCount = rankedRows.length;
-      statsHeading.innerHTML =
-        `Appearances &amp; Goalscorers (${usedCount} player${usedCount === 1 ? "" : "s"} used)`;
+    if (statsPlayerCount) {
+      statsPlayerCount.textContent =
+        `(${usedCount} player${usedCount === 1 ? "" : "s"} used)`;
+    } else if (statsHeading) {
+      statsHeading.textContent =
+        `Appearances & Goalscorers (${usedCount} player${usedCount === 1 ? "" : "s"} used)`;
     }
 
     if (!rankedRows.length) {
