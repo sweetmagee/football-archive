@@ -20,24 +20,8 @@ Promise.all([
     .lineup-player-main { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
     .lineup-position { display: inline-block; min-width: 28px; font-weight: 700; color: #6c5431; }
     .player-icons-inline { margin-left: 4px; white-space: nowrap; }
-    .player-landmarks { margin-left: auto; text-align: right; font-size: 0.9em; white-space: nowrap; }
+    .player-landmarks { margin-left: 8px; text-align: left; font-size: 0.9em; white-space: nowrap; }
     .landmark-label { font-weight: 700; margin: 0 2px; }
-    .match-lineups-grid {
-      display: block !important;
-      width: 100% !important;
-    }
-    .match-lineup-column {
-      width: 100% !important;
-      max-width: 100% !important;
-      box-sizing: border-box;
-    }
-    .lineup-player a {
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-    .lineup-player a:hover {
-      text-decoration-thickness: 2px;
-    }
   `;
   document.head.appendChild(matchStyle);
 
