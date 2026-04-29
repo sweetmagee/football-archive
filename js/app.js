@@ -91,6 +91,25 @@ function primaryPositionForPlayer(playerId) {
   return rows.length ? rows[0].position : "";
 }
 
+function positionSortRank(position) {
+  const order = [
+    "Goalkeeper",
+    "Right-back",
+    "Left-back",
+    "Centre-half",
+    "Right-half",
+    "Left-half",
+    "Outside-right",
+    "Inside-right",
+    "Centre-forward",
+    "Inside-left",
+    "Outside-left"
+  ];
+
+  const index = order.indexOf(String(position || "").trim());
+  return index === -1 ? order.length : index;
+}
+
 function getPlayerStats(playerId) {
   const showAll = includeFriendlies();
 
@@ -206,7 +225,7 @@ function compare(a, b) {
 
   if (sortColumn === "position") {
     result =
-      String(a.position || "").localeCompare(String(b.position || "")) ||
+      positionSortRank(a.position) - positionSortRank(b.position) ||
       String(a.lastName || "").localeCompare(String(b.lastName || "")) ||
       String(a.firstName || "").localeCompare(String(b.firstName || ""));
   }
@@ -290,7 +309,7 @@ function setSort(col) {
 function updateSortHeaders() {
   const headers = [
     { id: "sort-name", key: "name", label: "Name" },
-    { id: "sort-position", key: "position", label: "Position" },
+    { id: "sort-position", key: "position", label: "Primary Position" },
     { id: "sort-apps", key: "apps", label: "Apps" },
     { id: "sort-goals", key: "goals", label: "Goals" }
   ];
