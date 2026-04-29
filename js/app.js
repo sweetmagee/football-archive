@@ -47,6 +47,50 @@ function isFriendly(match) {
   return comp === "friendly" || comp === "fr" || comp === "friendlies";
 }
 
+function positionLabel(shirt) {
+  const map = {
+    1: "Goalkeeper",
+    2: "Right-back",
+    3: "Left-back",
+    4: "Right-half",
+    5: "Centre-half",
+    6: "Left-half",
+    7: "Outside-right",
+    8: "Inside-right",
+    9: "Centre-forward",
+    10: "Inside-left",
+    11: "Outside-left"
+  };
+
+  return map[Number(shirt)] || "Unknown";
+}
+
+function primaryPositionForPlayer(playerId) {
+  const counts = {};
+
+  appearances.forEach(a => {
+    if (String(a.player_id).trim() !== String(playerId).trim()) return;
+
+    const match = matches.find(m =>
+      String(m.id).trim() === String(a.match_id).trim()
+    );
+
+    if (!isCountableMatch(match)) return;
+
+    const pos = positionLabel(a.shirt_number);
+    counts[pos] = (counts[pos] || 0) + 1;
+  });
+
+  const rows = Object.entries(counts)
+    .map(([position, count]) => ({ position, count }))
+    .sort((a, b) =>
+      b.count - a.count ||
+      a.position.localeCompare(b.position)
+    );
+
+  return rows.length ? rows[0].position : "";
+}
+
 function getPlayerStats(playerId) {
   const showAll = includeFriendlies();
 
@@ -133,7 +177,7 @@ function enrichPlayers(list) {
     return {
       id: p.id,
       name: p.name || "",
-      position: p.position || "",
+      position: primaryPositionForPlayer(p.id) || p.position || "",
       team: p.team || "t1",
       photo: p.photo || "",
       date_added: p.date_added || "",
@@ -226,7 +270,8 @@ function getFilteredPlayers() {
     String(p.name || "").toLowerCase().includes(q) ||
     String(p.firstname || "").toLowerCase().includes(q) ||
     String(p.surname || "").toLowerCase().includes(q) ||
-    String(p.position || "").toLowerCase().includes(q)
+    String(p.position || "").toLowerCase().includes(q) ||
+    String(primaryPositionForPlayer(p.id) || "").toLowerCase().includes(q)
   );
 }
 
