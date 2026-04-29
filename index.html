@@ -91,6 +91,64 @@
 
   </div>
 
+
+<script>
+(function () {
+  const statsEl = document.getElementById("welcomeStats");
+  if (!statsEl) return;
+
+  function isY(value) {
+    return String(value || "").trim().toUpperCase() === "Y";
+  }
+
+  function hasKnownScore(match) {
+    return (
+      match &&
+      String(match.home_score).trim() !== "?" &&
+      String(match.away_score).trim() !== "?" &&
+      !Number.isNaN(Number(match.home_score)) &&
+      !Number.isNaN(Number(match.away_score))
+    );
+  }
+
+  Promise.all([
+    fetch("data/players.json").then(response => {
+      if (!response.ok) throw new Error("Could not load players.json");
+      return response.json();
+    }),
+    fetch("data/matches.json").then(response => {
+      if (!response.ok) throw new Error("Could not load matches.json");
+      return response.json();
+    })
+  ])
+  .then(([players, matches]) => {
+    const playerCount = Array.isArray(players) ? players.length : 0;
+    const matchList = Array.isArray(matches) ? matches : [];
+
+    const confirmedMatches = matchList.filter(match =>
+      !isY(match.abandoned) &&
+      hasKnownScore(match)
+    );
+
+    const completeMatches = confirmedMatches.filter(match =>
+      !isY(match.incomplete)
+    );
+
+    const percentage = confirmedMatches.length
+      ? Math.round((completeMatches.length / confirmedMatches.length) * 100)
+      : 0;
+
+    statsEl.textContent =
+      `The site currently has the details of ${playerCount} players and complete details of ${completeMatches.length} matches out of ${confirmedMatches.length} confirmed as being played. So there are complete records for ${percentage}% of all confirmed matches.`;
+  })
+  .catch(error => {
+    statsEl.textContent = "Unable to load site statistics. Please check data/players.json and data/matches.json.";
+    console.error("Welcome statistics error:", error);
+  });
+})();
+</script>
+
+
   <script src="js/home.js"></script>
 </body>
 </html>
