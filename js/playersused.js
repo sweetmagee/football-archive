@@ -66,6 +66,10 @@ Promise.all([
     return season ? season.name : seasonId;
   }
 
+  function goldStarWrap(value) {
+    return `<span class="gold-star">★</span>${value}<span class="gold-star">★</span>`;
+  }
+
   function seasonSortValue(season) {
     const startYear = Number(season.start_year);
     if (!Number.isNaN(startYear)) return startYear;
@@ -133,6 +137,7 @@ Promise.all([
     );
 
     let seasonsShown = 0;
+    let bestPlayersUsed = 0;
 
     orderedSeasons.forEach(season => {
       const seasonId = normalise(season.id);
@@ -150,14 +155,22 @@ Promise.all([
         if (firstLast[playerId] && firstLast[playerId].lastSeason === seasonId) lastOutings++;
       });
 
+      const playersUsedDisplay = playersUsed.size > bestPlayersUsed
+        ? goldStarWrap(playersUsed.size)
+        : playersUsed.size;
+
       table.innerHTML += `
         <tr>
           <td><a href="season.html?id=${seasonId}">${seasonName(seasonId)}</a></td>
-          <td>${playersUsed.size}</td>
+          <td>${playersUsedDisplay}</td>
           <td>${debutants}</td>
           <td>${lastOutings}</td>
         </tr>
       `;
+
+      if (playersUsed.size > bestPlayersUsed) {
+        bestPlayersUsed = playersUsed.size;
+      }
 
       seasonsShown++;
     });
