@@ -7,107 +7,14 @@
   <link rel="stylesheet" href="css/styles.css">
 
 <style>
-  .team-matches-wide {
-    width: 120%;
-    max-width: 120%;
-    margin-left: -10%;
-  }
-
-  .season-matches-table {
-    width: 100%;
-    table-layout: auto;
-  }
-
-  .season-matches-table th,
-  .season-matches-table td {
-    vertical-align: middle;
-    white-space: nowrap;
-  }
-
-  .season-matches-table th:nth-child(1),
-  .season-matches-table td:nth-child(1),
-  .season-matches-table th:nth-child(2),
-  .season-matches-table td:nth-child(2) {
-    width: 1%;
-    white-space: nowrap;
-  }
-
-  .season-matches-table th:nth-child(5),
-  .season-matches-table td:nth-child(5) {
-    white-space: normal;
-    text-align: left;
-  }
-
-  .season-match-number {
-    font-weight: normal;
-    font-family: inherit;
-    font-size: inherit;
-    line-height: inherit;
-  }
-
-  .season-result-link {
-    display: grid;
-    grid-template-columns: minmax(160px, 1fr) 70px minmax(160px, 1fr);
-    align-items: center;
-    column-gap: 12px;
-    text-decoration: none;
-    width: 100%;
-  }
-
-  .season-result-team {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 0;
-    white-space: nowrap;
-  }
-
-  .season-result-home {
-    justify-content: flex-end;
-    text-align: right;
-  }
-
-  .season-result-away {
-    justify-content: flex-start;
-    text-align: left;
-  }
-
-  .season-result-score {
-    text-align: center;
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .season-match-scorers {
-    text-align: left !important;
-  }
-
-  @media (max-width: 900px) {
-    .team-matches-wide {
-      width: 100%;
-      max-width: 100%;
-      margin-left: 0;
-    }
-
-    .season-matches-table th,
-    .season-matches-table td {
-      white-space: normal;
-    }
-
-    .season-result-link {
-      grid-template-columns: 1fr;
-      row-gap: 4px;
-    }
-
-    .season-result-home,
-    .season-result-away {
-      justify-content: flex-start;
-      text-align: left;
-    }
-
-    .season-result-score {
-      text-align: left;
-    }
+  .team-header .team-badge-large,
+  img.team-badge-large {
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
   }
 </style>
 
