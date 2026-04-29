@@ -83,7 +83,6 @@ Promise.all([
       });
 
       const matchIds = new Set(seasonMatches.map(match => normalise(match.id)));
-
       if (matchIds.size === 0) return;
 
       const playerMap = {};
@@ -124,29 +123,27 @@ Promise.all([
 
       if (!rows.length) return;
 
-      const topGoals = rows[0].goals;
-      const topRows = rows.filter(row => row.goals === topGoals);
+      // One top goalscorer per season only. Ties are broken by:
+      // 1) most games scored in, 2) best percentage of their own appearances scored in, 3) name.
+      const row = rows[0];
+      const pct = row.apps ? Math.round((row.gamesScoredIn / row.apps) * 100) : 0;
 
-      const isNewRecord = topGoals > allTimeBestBefore;
-      const goalsDisplay = isNewRecord ? goldStarWrap(topGoals) : topGoals;
+      const isNewRecord = row.goals > allTimeBestBefore;
+      const goalsDisplay = isNewRecord ? goldStarWrap(row.goals) : row.goals;
 
-      topRows.forEach(row => {
-        const pct = row.apps ? Math.round((row.gamesScoredIn / row.apps) * 100) : 0;
+      table.innerHTML += `
+        <tr>
+          <td><a href="season.html?id=${seasonId}">${seasonName(seasonId)}</a></td>
+          <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
+          <td>${goalsDisplay}</td>
+          <td>${pct}%</td>
+        </tr>
+      `;
 
-        table.innerHTML += `
-          <tr>
-            <td><a href="season.html?id=${seasonId}">${seasonName(seasonId)}</a></td>
-            <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
-            <td>${goalsDisplay}</td>
-            <td>${pct}%</td>
-          </tr>
-        `;
+      seasonsShown++;
 
-        seasonsShown++;
-      });
-
-      if (topGoals > allTimeBestBefore) {
-        allTimeBestBefore = topGoals;
+      if (row.goals > allTimeBestBefore) {
+        allTimeBestBefore = row.goals;
       }
     });
 
