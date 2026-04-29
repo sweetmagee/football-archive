@@ -31,6 +31,67 @@ Promise.all([
     return;
   }
 
+  const seasonStyle = document.createElement("style");
+  seasonStyle.textContent = `
+    .season-matches-wide {
+      width: 125%;
+      max-width: 125%;
+      margin-left: -12.5%;
+    }
+
+    .season-matches-table {
+      width: 100%;
+      table-layout: auto;
+    }
+
+    .season-matches-table th,
+    .season-matches-table td {
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .season-matches-table td:nth-child(5) {
+      white-space: normal;
+    }
+
+    .season-match-number {
+      font-weight: normal;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+    }
+
+    .season-result-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
+      text-decoration: none;
+    }
+
+    .season-match-competition img {
+      margin-right: 4px;
+    }
+
+    @media (max-width: 900px) {
+      .season-matches-wide {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+      }
+
+      .season-matches-table th,
+      .season-matches-table td {
+        white-space: normal;
+      }
+
+      .season-result-link {
+        flex-wrap: wrap;
+      }
+    }
+  `;
+  document.head.appendChild(seasonStyle);
+
   const friendlyOnlySeason = String(season.name).trim() === "1896/97";
 
   function isAbandoned(match) {
@@ -288,6 +349,122 @@ Promise.all([
     });
   }
 
+
+  function shortScorerName(playerId, allIds) {
+    const p = players.find(x => String(x.id).trim() === String(playerId).trim());
+    if (!p) return playerId;
+
+    const parts = String(p.name || "").trim().split(/\s+/);
+    const last = parts.pop() || p.name;
+    const first = parts.join(" ");
+
+    const sameSurname = allIds
+      .map(pid => players.find(x => String(x.id).trim() === String(pid).trim()))
+      .filter(Boolean)
+      .filter(x => {
+        const bits = String(x.name || "").trim().split(/\s+/);
+        const xLast = bits.pop() || "";
+        return xLast.toLowerCase() === last.toLowerCase();
+      });
+
+    return sameSurname.length > 1 && first ? `${first.charAt(0)}.${last}` : last;
+  }
+
+  function joinScorerNames(items) {
+    if (items.length === 0) return "";
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} & ${items[1]}`;
+    return `${items.slice(0, -1).join(", ")} & ${items[items.length - 1]}`;
+  }
+
+  function margateGoalsFor(match) {
+    if (String(match.home_team).trim() === "t1") return Number(match.home_score);
+    if (String(match.away_team).trim() === "t1") return Number(match.away_score);
+    return 0;
+  }
+
+  function matchScorersText(match) {
+    const margateScore = margateGoalsFor(match);
+    if (Number.isNaN(margateScore) || margateScore <= 0) return "";
+
+    const teamApps = appearances.filter(a =>
+      String(a.match_id).trim() === String(match.id).trim() &&
+      String(a.team || "").trim() === "t1"
+    );
+
+    const allIds = teamApps.map(a => a.player_id);
+
+    const rows = teamApps
+      .filter(a => Number(a.goals || 0) > 0)
+      .map(a => ({
+        name: shortScorerName(a.player_id, allIds),
+        surname: shortScorerName(a.player_id, allIds).replace(/^.*\./, ""),
+        goals: Number(a.goals || 0),
+        unknown: false
+      }));
+
+    const knownGoals = rows.reduce((sum, r) => sum + r.goals, 0);
+    const unknownGoals = margateScore - knownGoals;
+
+    if (unknownGoals > 0) {
+      rows.push({
+        name: "Unknown",
+        surname: "Unknown",
+        goals: unknownGoals,
+        unknown: true
+      });
+    }
+
+    rows.sort((a, b) => {
+      if (a.unknown && !b.unknown) return 1;
+      if (!a.unknown && b.unknown) return -1;
+      return (
+        b.goals - a.goals ||
+        a.surname.localeCompare(b.surname) ||
+        a.name.localeCompare(b.name)
+      );
+    });
+
+    const out = rows.map(r => r.goals > 1 ? `${r.name} (${r.goals})` : r.name);
+    return joinScorerNames(out);
+  }
+
+  function resultHtml(match) {
+    const home = resolveTeam(match.home_team);
+    const away = resolveTeam(match.away_team);
+
+    return `
+      <a href="match.html?id=${match.id}" class="season-result-link">
+        <span class="team-inline">
+          <img class="team-badge-small"
+               src="images/teams/${home ? home.id : match.home_team}.png"
+               alt=""
+               onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
+          <span>${teamName(match.home_team)}</span>
+        </span>
+        <span class="score-separator">${match.home_score}-${match.away_score}</span>
+        <span class="team-inline">
+          <img class="team-badge-small"
+               src="images/teams/${away ? away.id : match.away_team}.png"
+               alt=""
+               onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
+          <span>${teamName(match.away_team)}</span>
+        </span>
+      </a>
+    `;
+  }
+
+  function matchSortDate(match) {
+    const note = String(match.notes || "").toLowerCase();
+    if (note.includes("date of match unknown")) {
+      return new Date(9999, 11, 31);
+    }
+
+    const d = parseUkDate(match.date);
+    return d || new Date(9999, 11, 30);
+  }
+
+
   function renderMatches() {
     if (!matchesEl) return;
 
@@ -311,57 +488,46 @@ Promise.all([
       shownMatches = shownMatches.filter(m => !isAbandoned(m));
     }
 
-    const sorted = shownMatches.sort((a, b) => {
-      const da = parseUkDate(a.date);
-      const db = parseUkDate(b.date);
-      return da - db;
-    });
+    const sorted = shownMatches.sort((a, b) => matchSortDate(a) - matchSortDate(b));
 
     if (!sorted.length) {
       matchesEl.innerHTML = `<div>No matches found.</div>`;
       return;
     }
 
-    sorted.forEach((m, index) => {
-      const matchNumber = `#${String(index + 1).padStart(3, "0")}`;
-      const home = resolveTeam(m.home_team);
-      const away = resolveTeam(m.away_team);
+    matchesEl.innerHTML = `
+      <table class="archive-table season-matches-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Competition</th>
+            <th>Result</th>
+            <th>Goalscorers</th>
+            <th>Att</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map((m, index) => {
+            const matchNumber = `#${String(index + 1).padStart(3, "0")}`;
+            const abandonedText = isAbandoned(m) ? " - Abandoned" : "";
+            const comp = `${competitionBadgeHtml(m.competition)} ${m.competition || ""}${m.round ? ` - ${m.round}` : ""}${abandonedText}`;
+            const scorers = matchScorersText(m);
 
-      matchesEl.innerHTML += `
-        <div class="match-row">
-          <div class="match-scoreline" style="display:block;">
-            <a href="match.html?id=${m.id}" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <strong>${matchNumber}</strong>
-              <span>${m.date}</span>
-
-              <span class="team-inline">
-                <img class="team-badge-small"
-                     src="images/teams/${home ? home.id : m.home_team}.png"
-                     alt=""
-                     onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
-                <span>${teamName(m.home_team)}</span>
-              </span>
-
-              <span class="score-separator">${m.home_score}-${m.away_score}</span>
-
-              <span class="team-inline">
-                <img class="team-badge-small"
-                     src="images/teams/${away ? away.id : m.away_team}.png"
-                     alt=""
-                     onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
-                <span>${teamName(m.away_team)}</span>
-              </span>
-
-              <span class="match-meta">
-                ${competitionBadgeHtml(m.competition)}
-                ${m.competition || ""}
-                ${isAbandoned(m) ? " - Abandoned" : ""}
-              </span>
-            </a>
-          </div>
-        </div>
-      `;
-    });
+            return `
+              <tr>
+                <td class="season-match-number">${matchNumber}</td>
+                <td>${m.date || ""}</td>
+                <td class="season-match-competition">${comp}</td>
+                <td>${resultHtml(m)}</td>
+                <td>${scorers ? `(${scorers})` : ""}</td>
+                <td>${m.attendance || ""}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
   }
 
   function getSeasonStatsMode() {
