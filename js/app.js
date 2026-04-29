@@ -85,6 +85,46 @@ function splitName(fullName) {
   return { first, last };
 }
 
+function specialPlayerSortInfo(name) {
+  const value = String(name || "").trim();
+  const match = value.match(/^(Trialist|Unknown)(?:\s*#?\s*(\d+))?$/i);
+
+  if (!match) {
+    return {
+      isSpecial: false,
+      typeRank: 0,
+      number: 0
+    };
+  }
+
+  const type = match[1].toLowerCase();
+  const number = match[2] ? Number(match[2]) : 0;
+
+  return {
+    isSpecial: true,
+    typeRank: type === "trialist" ? 1 : 2,
+    number
+  };
+}
+
+function compareSpecialPlayers(a, b) {
+  const sa = specialPlayerSortInfo(a.name);
+  const sb = specialPlayerSortInfo(b.name);
+
+  if (sa.isSpecial && !sb.isSpecial) return 1;
+  if (!sa.isSpecial && sb.isSpecial) return -1;
+
+  if (sa.isSpecial && sb.isSpecial) {
+    return (
+      sa.typeRank - sb.typeRank ||
+      sa.number - sb.number ||
+      String(a.name || "").localeCompare(String(b.name || ""), undefined, { numeric: true })
+    );
+  }
+
+  return 0;
+}
+
 function enrichPlayers(list) {
   return list.map(p => {
     const stats = getPlayerStats(p.id);
@@ -108,6 +148,9 @@ function enrichPlayers(list) {
 }
 
 function compare(a, b) {
+  const specialResult = compareSpecialPlayers(a, b);
+  if (specialResult !== 0) return specialResult;
+
   let result = 0;
 
   if (sortColumn === "default" || sortColumn === "name") {
