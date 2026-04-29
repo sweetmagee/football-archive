@@ -5,6 +5,10 @@ Promise.all([
 ]).then(([players, appearances, matches]) => {
   const table = document.getElementById("positionPlayedTable");
   const countEl = document.getElementById("positionPlayedCount");
+  const includeFriendliesBox = document.getElementById("includeFriendlies");
+  const positionSelect = document.getElementById("positionSelect");
+  const topTenTable = document.getElementById("topTenPositionTable");
+  const topTenCount = document.getElementById("topTenCount");
 
   const positions = [
     { shirt: 1, name: "Goalkeeper" },
@@ -22,6 +26,11 @@ Promise.all([
 
   function normalise(value) {
     return String(value || "").trim();
+  }
+
+  function isFriendly(match) {
+    const comp = normalise(match.competition).toLowerCase();
+    return comp === "friendly" || comp === "friendlies" || comp === "fr" || comp.includes("friendly");
   }
 
   function isCountableMatch(match) {
@@ -44,7 +53,12 @@ Promise.all([
     return matches.find(m => normalise(m.id) === normalise(matchId));
   }
 
-  function buildRows() {
+  function positionName(shirt) {
+    const position = positions.find(p => Number(p.shirt) === Number(shirt));
+    return position ? position.name : "Unknown";
+  }
+
+  function buildPositionData(includeFriendlies) {
     const playerTotals = {};
     const positionTotals = {};
 
@@ -53,49 +67,62 @@ Promise.all([
 
       const match = getMatch(app.match_id);
       if (!isCountableMatch(match)) return;
+      if (!includeFriendlies && isFriendly(match)) return;
 
       const playerId = normalise(app.player_id);
       const shirt = Number(app.shirt_number || 0);
 
-      if (!playerTotals[playerId]) playerTotals[playerId] = 0;
-      playerTotals[playerId] += 1;
+      playerTotals[playerId] = (playerTotals[playerId] || 0) + 1;
 
       if (!positionTotals[shirt]) positionTotals[shirt] = {};
-      if (!positionTotals[shirt][playerId]) positionTotals[shirt][playerId] = 0;
-      positionTotals[shirt][playerId] += 1;
+      positionTotals[shirt][playerId] = (positionTotals[shirt][playerId] || 0) + 1;
     });
 
-    return positions.map(position => {
-      const playersForPosition = Object.entries(positionTotals[position.shirt] || {})
-        .map(([playerId, apps]) => ({
-          playerId,
-          name: playerName(playerId),
-          apps,
-          totalApps: playerTotals[playerId] || 0,
-          pct: playerTotals[playerId] ? Math.round((apps / playerTotals[playerId]) * 100) : 0
-        }))
-        .sort((a, b) =>
-          b.apps - a.apps ||
-          b.pct - a.pct ||
-          a.name.localeCompare(b.name)
-        );
+    return { playerTotals, positionTotals };
+  }
 
-      return {
-        position,
-        leader: playersForPosition[0] || null
-      };
+  function getPlayersForPosition(shirt, data) {
+    const positionRows = Object.entries(data.positionTotals[shirt] || {})
+      .map(([playerId, apps]) => ({
+        playerId,
+        name: playerName(playerId),
+        apps,
+        totalApps: data.playerTotals[playerId] || 0,
+        pct: data.playerTotals[playerId] ? Math.round((apps / data.playerTotals[playerId]) * 100) : 0
+      }))
+      .sort((a, b) =>
+        b.apps - a.apps ||
+        b.pct - a.pct ||
+        a.name.localeCompare(b.name)
+      );
+
+    return positionRows;
+  }
+
+  function addRanks(rows) {
+    let lastApps = null;
+    let lastRank = 0;
+
+    return rows.map((row, index) => {
+      if (row.apps !== lastApps) {
+        lastRank = index + 1;
+        lastApps = row.apps;
+      }
+
+      return { ...row, rank: lastRank };
     });
   }
 
-  function render() {
-    const rows = buildRows();
+  function renderMainTable(data, includeFriendlies) {
     table.innerHTML = "";
 
-    rows.forEach(row => {
-      if (!row.leader) {
+    positions.forEach(position => {
+      const leader = getPlayersForPosition(position.shirt, data)[0] || null;
+
+      if (!leader) {
         table.innerHTML += `
           <tr>
-            <td>${row.position.shirt} ${row.position.name}</td>
+            <td>${position.shirt} ${position.name}</td>
             <td>No appearances recorded</td>
             <td>0</td>
             <td>0%</td>
@@ -106,17 +133,62 @@ Promise.all([
 
       table.innerHTML += `
         <tr>
-          <td>${row.position.shirt} ${row.position.name}</td>
-          <td><a href="player.html?id=${row.leader.playerId}">${row.leader.name}</a></td>
-          <td>${row.leader.apps}</td>
-          <td>${row.leader.pct}%</td>
+          <td>${position.shirt} ${position.name}</td>
+          <td><a href="player.html?id=${leader.playerId}">${leader.name}</a></td>
+          <td>${leader.apps}</td>
+          <td>${leader.pct}%</td>
         </tr>
       `;
     });
 
     if (countEl) {
-      countEl.textContent = `${positions.length} positions shown`;
+      countEl.textContent = `${positions.length} positions shown (${includeFriendlies ? "all matches" : "competitive matches"})`;
     }
+  }
+
+  function renderTopTen(data, includeFriendlies) {
+    if (!positionSelect || !topTenTable) return;
+
+    const shirt = Number(positionSelect.value || 1);
+    const posName = positionName(shirt);
+    const rows = addRanks(getPlayersForPosition(shirt, data)).slice(0, 10);
+
+    topTenTable.innerHTML = "";
+
+    if (!rows.length) {
+      topTenTable.innerHTML = `<tr><td colspan="4">No appearances recorded for this position.</td></tr>`;
+    } else {
+      rows.forEach(row => {
+        topTenTable.innerHTML += `
+          <tr>
+            <td>${row.rank}</td>
+            <td><a href="player.html?id=${row.playerId}">${row.name}</a></td>
+            <td>${row.apps}</td>
+            <td>${row.pct}%</td>
+          </tr>
+        `;
+      });
+    }
+
+    if (topTenCount) {
+      topTenCount.textContent = `Top ${rows.length} for ${posName} (${includeFriendlies ? "all matches" : "competitive matches"})`;
+    }
+  }
+
+  function render() {
+    const includeFriendlies = includeFriendliesBox ? includeFriendliesBox.checked : false;
+    const data = buildPositionData(includeFriendlies);
+
+    renderMainTable(data, includeFriendlies);
+    renderTopTen(data, includeFriendlies);
+  }
+
+  if (includeFriendliesBox) {
+    includeFriendliesBox.addEventListener("change", render);
+  }
+
+  if (positionSelect) {
+    positionSelect.addEventListener("change", render);
   }
 
   render();
@@ -125,8 +197,12 @@ Promise.all([
   console.error(err);
 
   const table = document.getElementById("positionPlayedTable");
+  const topTenTable = document.getElementById("topTenPositionTable");
   const countEl = document.getElementById("positionPlayedCount");
+  const topTenCount = document.getElementById("topTenCount");
 
   if (countEl) countEl.textContent = "Error loading position played";
+  if (topTenCount) topTenCount.textContent = "Error loading position played";
   if (table) table.innerHTML = `<tr><td colspan="4">Error loading data: ${err.message}</td></tr>`;
+  if (topTenTable) topTenTable.innerHTML = `<tr><td colspan="4">Error loading data: ${err.message}</td></tr>`;
 });
