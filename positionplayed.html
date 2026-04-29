@@ -27,6 +27,16 @@
 
 <div class="page-wrap">
   <div class="content-box">
+
+    <label class="stats-toggle">
+      <input type="checkbox" id="includeFriendlies">
+      Include friendlies
+    </label>
+
+    <p style="margin:10px 0 14px 0;">
+      This table shows which player has made the highest number of appearances in each of the positions.
+    </p>
+
     <div id="positionPlayedCount" class="player-count">Loading...</div>
 
     <table class="archive-table">
@@ -39,6 +49,42 @@
         </tr>
       </thead>
       <tbody id="positionPlayedTable"></tbody>
+    </table>
+
+  </div>
+
+  <div class="content-box section-block">
+    <h3>Top 10 Appearances By Position</h3>
+
+    <label class="stats-toggle" for="positionSelect">
+      Position:
+      <select id="positionSelect" style="margin-left:8px;">
+        <option value="1">Goalkeeper</option>
+        <option value="2">Right-back</option>
+        <option value="3">Left-back</option>
+        <option value="4">Right-half</option>
+        <option value="5">Centre-half</option>
+        <option value="6">Left-half</option>
+        <option value="7">Outside-right</option>
+        <option value="8">Inside-right</option>
+        <option value="9">Centre-forward</option>
+        <option value="10">Inside-left</option>
+        <option value="11">Outside-left</option>
+      </select>
+    </label>
+
+    <div id="topTenCount" class="player-count">Loading...</div>
+
+    <table class="archive-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Player</th>
+          <th>Appearances in Position</th>
+          <th>% of Player's Appearances</th>
+        </tr>
+      </thead>
+      <tbody id="topTenPositionTable"></tbody>
     </table>
   </div>
 </div>
