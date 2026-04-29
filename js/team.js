@@ -397,7 +397,7 @@ Promise.all([
         matchList.sort((a, b) => parseDate(a.date) - parseDate(b.date));
 
         return `
-          <h4>${seasonName(seasonId)}</h4>
+          <h4 style="margin-top:18px;">${seasonName(seasonId)}</h4>
           <div class="match-list">
             ${matchList.map((match, index) => matchLine(match, index)).join("")}
           </div>
