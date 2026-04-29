@@ -18,6 +18,112 @@
   }
 </style>
 
+
+<style>
+  .team-matches-section {
+    width: 120%;
+    max-width: 120%;
+    margin-left: -10%;
+  }
+
+  .team-season-matches-table {
+    width: 100%;
+    table-layout: auto;
+  }
+
+  .team-season-matches-table th,
+  .team-season-matches-table td {
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .team-season-matches-table th:nth-child(1),
+  .team-season-matches-table td:nth-child(1),
+  .team-season-matches-table th:nth-child(2),
+  .team-season-matches-table td:nth-child(2) {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .team-season-matches-table th:nth-child(5),
+  .team-season-matches-table td:nth-child(5) {
+    white-space: normal;
+    text-align: left;
+  }
+
+  .team-match-number {
+    font-weight: normal;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  .team-season-result-link {
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) 70px minmax(160px, 1fr);
+    align-items: center;
+    column-gap: 12px;
+    text-decoration: none;
+    width: 100%;
+  }
+
+  .team-season-result-team {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .team-season-result-home {
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .team-season-result-away {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .team-season-result-score {
+    text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .team-match-scorers {
+    text-align: left !important;
+  }
+
+  @media (max-width: 900px) {
+    .team-matches-section {
+      width: 100%;
+      max-width: 100%;
+      margin-left: 0;
+    }
+
+    .team-season-matches-table th,
+    .team-season-matches-table td {
+      white-space: normal;
+    }
+
+    .team-season-result-link {
+      grid-template-columns: 1fr;
+      row-gap: 4px;
+    }
+
+    .team-season-result-home,
+    .team-season-result-away {
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .team-season-result-score {
+      text-align: left;
+    }
+  }
+</style>
+
 </head>
 <body>
 
