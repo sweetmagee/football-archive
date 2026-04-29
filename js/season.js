@@ -34,9 +34,9 @@ Promise.all([
   const seasonStyle = document.createElement("style");
   seasonStyle.textContent = `
     .season-matches-wide {
-      width: 125%;
-      max-width: 125%;
-      margin-left: -12.5%;
+      width: 120%;
+      max-width: 120%;
+      margin-left: -10%;
     }
 
     .season-matches-table {
@@ -50,8 +50,18 @@ Promise.all([
       white-space: nowrap;
     }
 
+    .season-matches-table th:nth-child(1),
+    .season-matches-table td:nth-child(1),
+    .season-matches-table th:nth-child(2),
+    .season-matches-table td:nth-child(2) {
+      width: 1%;
+      white-space: nowrap;
+    }
+
+    .season-matches-table th:nth-child(5),
     .season-matches-table td:nth-child(5) {
       white-space: normal;
+      text-align: left;
     }
 
     .season-match-number {
@@ -61,12 +71,41 @@ Promise.all([
       line-height: inherit;
     }
 
+    .season-match-scorers {
+      text-align: left !important;
+    }
+
     .season-result-link {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(160px, 1fr) 70px minmax(160px, 1fr);
       align-items: center;
-      gap: 8px;
-      flex-wrap: nowrap;
+      column-gap: 12px;
       text-decoration: none;
+      width: 100%;
+    }
+
+    .season-result-team {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    .season-result-home {
+      justify-content: flex-end;
+      text-align: right;
+    }
+
+    .season-result-away {
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .season-result-score {
+      text-align: center;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
 
     .season-match-competition img {
@@ -86,7 +125,18 @@ Promise.all([
       }
 
       .season-result-link {
-        flex-wrap: wrap;
+        grid-template-columns: 1fr;
+        row-gap: 4px;
+      }
+
+      .season-result-home,
+      .season-result-away {
+        justify-content: flex-start;
+        text-align: left;
+      }
+
+      .season-result-score {
+        text-align: left;
       }
     }
   `;
@@ -435,15 +485,17 @@ Promise.all([
 
     return `
       <a href="match.html?id=${match.id}" class="season-result-link">
-        <span class="team-inline">
+        <span class="season-result-team season-result-home">
+          <span>${teamName(match.home_team)}</span>
           <img class="team-badge-small"
                src="images/teams/${home ? home.id : match.home_team}.png"
                alt=""
                onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
-          <span>${teamName(match.home_team)}</span>
         </span>
-        <span class="score-separator">${match.home_score}-${match.away_score}</span>
-        <span class="team-inline">
+
+        <span class="season-result-score">${match.home_score} - ${match.away_score}</span>
+
+        <span class="season-result-team season-result-away">
           <img class="team-badge-small"
                src="images/teams/${away ? away.id : match.away_team}.png"
                alt=""
@@ -520,7 +572,7 @@ Promise.all([
                 <td>${m.date || ""}</td>
                 <td class="season-match-competition">${comp}</td>
                 <td>${resultHtml(m)}</td>
-                <td>${scorers ? `(${scorers})` : ""}</td>
+                <td class="season-match-scorers">${scorers || ""}</td>
                 <td>${m.attendance || ""}</td>
               </tr>
             `;
