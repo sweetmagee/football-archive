@@ -1010,3 +1010,45 @@ button:hover {
 .match-info-close {
   margin: 8px 0 0 0;
 }
+
+
+/* Match line-up alignment: keep info button level with goal/card icons and rows equal height */
+.lineup-player {
+  min-height: 26px;
+  align-items: center;
+}
+
+.lineup-player-main {
+  min-height: 24px;
+  line-height: 24px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.lineup-position {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+}
+
+.player-icons-inline {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  line-height: 24px;
+  vertical-align: middle;
+}
+
+.match-info-button {
+  vertical-align: middle;
+  flex-shrink: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0;
+}
+
+.lineup-player-main a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+}
