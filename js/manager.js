@@ -20,10 +20,76 @@ Promise.all([
     if (parts.length !== 3) return null;
 
     let [d, m, y] = parts;
-    if (y.length === 2) y = Number(y) >= 50 ? `18${y}` : `19${y}`;
+    if (y.length === 2) {
+      y = Number(y) >= 50 ? `18${y}` : `19${y}`;
+    }
 
     const dt = new Date(`${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`);
     return Number.isNaN(dt.getTime()) ? null : dt;
+  }
+
+
+  function hasKnownDate(match) {
+    return !!parseDateUK(match && match.date);
+  }
+
+  function ordinal(n) {
+    const suffixes = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return `${n}${suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]}`;
+  }
+
+  function formatLongDate(value) {
+    const d = parseDateUK(value);
+    if (!d) return "Unknown";
+
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    return `${days[d.getDay()]} ${ordinal(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function matchSortDate(match) {
+    const note = String(match.notes || "").trim().toLowerCase();
+
+    if (note.includes("date of match unknown")) {
+      return new Date(9999, 11, 31);
+    }
+
+    return parseDateUK(match.date) || new Date(9999, 11, 30);
+  }
+
+  function teamBadgeHtml(teamValue) {
+    const team = resolveTeam(teamValue);
+    const badgeId = team ? team.id : teamValue;
+
+    return `
+      <img class="team-badge-small"
+           src="images/teams/${badgeId}.png"
+           alt=""
+           onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
+    `;
+  }
+
+  function resultHtml(match) {
+    return `
+      <a href="match.html?id=${match.id}" class="manager-result-link">
+        <span class="manager-result-team manager-result-home">
+          <span>${teamName(match.home_team)}</span>
+          ${teamBadgeHtml(match.home_team)}
+        </span>
+
+        <span class="manager-result-score">${match.home_score} - ${match.away_score}</span>
+
+        <span class="manager-result-team manager-result-away">
+          ${teamBadgeHtml(match.away_team)}
+          <span>${teamName(match.away_team)}</span>
+        </span>
+      </a>
+    `;
   }
 
   function resolveTeam(teamValue) {
@@ -38,28 +104,6 @@ Promise.all([
     return team ? team.name : teamValue;
   }
 
-  function isFriendly(match) {
-    const comp = String(match.competition || "").trim().toLowerCase();
-    return comp === "friendly" || comp === "friendlies" || comp === "fr" || comp.includes("friendly");
-  }
-
-  function isAbandoned(match) {
-    return String(match.abandoned || "").trim().toUpperCase() === "Y";
-  }
-
-  function hasUnknownResult(match) {
-    return (
-      match.home_score === "?" ||
-      match.away_score === "?" ||
-      Number.isNaN(Number(match.home_score)) ||
-      Number.isNaN(Number(match.away_score))
-    );
-  }
-
-  function isCountableMatch(match) {
-    return match && !isAbandoned(match) && !hasUnknownResult(match);
-  }
-
   function isManagedByThisMatch(match) {
     return (
       String(match.home_manager_id || "").trim() === String(manager.id).trim() ||
@@ -71,25 +115,56 @@ Promise.all([
     if (String(match.home_manager_id || "").trim() === String(manager.id).trim()) {
       return match.home_team;
     }
-
     if (String(match.away_manager_id || "").trim() === String(manager.id).trim()) {
       return match.away_team;
     }
-
     return "";
+  }
+
+  function isCountableScore(value) {
+    return value !== "?" && !Number.isNaN(Number(value));
   }
 
   const managerMatches = matches
     .filter(isManagedByThisMatch)
     .sort((a, b) => parseDateUK(a.date) - parseDateUK(b.date));
 
-  const countedMatches = managerMatches.filter(isCountableMatch);
+  const countedMatches = managerMatches.filter(m =>
+    !isAbandoned(m) &&
+    isCountableScore(m.home_score) &&
+    isCountableScore(m.away_score)
+  );
+
+  let played = 0;
+  let won = 0;
+  let drawn = 0;
+  let lost = 0;
+  let gf = 0;
+  let ga = 0;
+
+  countedMatches.forEach(match => {
+    const teamId = managedTeamId(match);
+
+    const isHome = String(match.home_team).trim() === String(teamId).trim();
+
+    const teamGoals = isHome ? Number(match.home_score) : Number(match.away_score);
+    const oppGoals = isHome ? Number(match.away_score) : Number(match.home_score);
+
+    played++;
+    gf += teamGoals;
+    ga += oppGoals;
+
+    if (teamGoals > oppGoals) won++;
+    else if (teamGoals < oppGoals) lost++;
+    else drawn++;
+  });
 
   const firstMatch = managerMatches[0];
   const lastMatch = managerMatches[managerMatches.length - 1];
 
   const firstDate = firstMatch ? firstMatch.date : "Unknown";
   const lastDate = lastMatch ? lastMatch.date : "Unknown";
+
   const managedClub = firstMatch ? teamName(managedTeamId(firstMatch)) : "Unknown";
 
   const photoFile = manager.photo && String(manager.photo).trim() !== ""
@@ -104,115 +179,16 @@ Promise.all([
     >
   `;
 
-  function buildRecord(matchList) {
-    let played = 0;
-    let won = 0;
-    let drawn = 0;
-    let lost = 0;
-    let gf = 0;
-    let ga = 0;
-
-    matchList.forEach(match => {
-      const teamId = managedTeamId(match);
-      const isHome = String(match.home_team).trim() === String(teamId).trim();
-
-      const teamGoals = isHome ? Number(match.home_score) : Number(match.away_score);
-      const oppGoals = isHome ? Number(match.away_score) : Number(match.home_score);
-
-      played++;
-      gf += teamGoals;
-      ga += oppGoals;
-
-      if (teamGoals > oppGoals) won++;
-      else if (teamGoals < oppGoals) lost++;
-      else drawn++;
-    });
-
-    return { played, won, drawn, lost, gf, ga, gd: gf - ga };
-  }
-
-  function recordRow(title, r) {
-    return `
-      <tr>
-        <td>${title}</td>
-        <td>${r.played}</td>
-        <td>${r.won}</td>
-        <td>${r.drawn}</td>
-        <td>${r.lost}</td>
-        <td>${r.gf}</td>
-        <td>${r.ga}</td>
-        <td>${r.gd}</td>
-      </tr>
-    `;
-  }
-
-  const competitiveRecord = buildRecord(countedMatches.filter(m => !isFriendly(m)));
-  const friendlyRecord = buildRecord(countedMatches.filter(m => isFriendly(m)));
-  const overallRecord = buildRecord(countedMatches);
-
-  const hasUnknownMatches = managerMatches.some(hasUnknownResult);
-  const hasAbandonedMatches = managerMatches.some(isAbandoned);
-
-  function renderManagedMatches() {
-    const tbody = document.getElementById("matchesManagedTable");
-    if (!tbody) return;
-
-    let shownMatches = [...managerMatches];
-
-    const competitiveOnly = document.getElementById("competitiveOnlyManaged");
-    const friendlyOnly = document.getElementById("friendlyOnlyManaged");
-    const excludeUnknown = document.getElementById("excludeUnknownManaged");
-    const excludeAbandoned = document.getElementById("excludeAbandonedManaged");
-
-    if (competitiveOnly && competitiveOnly.checked) {
-      shownMatches = shownMatches.filter(m => !isFriendly(m));
-    }
-
-    if (friendlyOnly && friendlyOnly.checked) {
-      shownMatches = shownMatches.filter(m => isFriendly(m));
-    }
-
-    if (excludeUnknown && excludeUnknown.checked) {
-      shownMatches = shownMatches.filter(m => !hasUnknownResult(m));
-    }
-
-    if (excludeAbandoned && excludeAbandoned.checked) {
-      shownMatches = shownMatches.filter(m => !isAbandoned(m));
-    }
-
-    if (!shownMatches.length) {
-      tbody.innerHTML = `<tr><td colspan="5">No matches found.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = shownMatches.map((match, index) => {
-      const home = teamName(match.home_team);
-      const away = teamName(match.away_team);
-      const abandonedText = isAbandoned(match) ? " - Abandoned" : "";
-
-      return `
-        <tr>
-          <td>#${String(index + 1).padStart(3, "0")}</td>
-          <td>${match.date || ""}</td>
-          <td>
-            <a href="match.html?id=${match.id}">
-              ${home} ${match.home_score}-${match.away_score} ${away}
-            </a>
-          </td>
-          <td>${match.competition || ""}${abandonedText}</td>
-          <td>${hasUnknownResult(match) ? "Unknown result" : isAbandoned(match) ? "Not counted" : ""}</td>
-        </tr>
-      `;
-    }).join("");
-  }
-
   el.innerHTML = `
     <div class="content-box">
       <div class="player-card">
-        <div>${photoHtml}</div>
+        <div>
+          ${photoHtml}
+        </div>
 
         <div class="player-meta">
           <h2>${manager.name}</h2>
+
           <p><strong>Club:</strong> ${managedClub}</p>
           <p><strong>Date of Birth:</strong> ${manager.dob || "Unknown"}</p>
           <p><strong>First Match:</strong> ${firstDate}</p>
@@ -224,25 +200,25 @@ Promise.all([
     <div class="content-box">
       <h3>Managerial Record</h3>
 
-      <table class="archive-table">
-        <thead>
-          <tr>
-            <th>Record</th>
-            <th>P</th>
-            <th>W</th>
-            <th>D</th>
-            <th>L</th>
-            <th>GF</th>
-            <th>GA</th>
-            <th>GD</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${recordRow("Competitive Record", competitiveRecord)}
-          ${recordRow("Friendly Record", friendlyRecord)}
-          ${recordRow("Overall Record", overallRecord)}
-        </tbody>
-      </table>
+      <div class="player-stats-grid">
+        <div class="player-stat-box">
+          <div class="player-stat-title">Matches</div>
+          <p><strong>${played}</strong></p>
+        </div>
+
+        <div class="player-stat-box">
+          <div class="player-stat-title">Record</div>
+          <p>W ${won}</p>
+          <p>D ${drawn}</p>
+          <p>L ${lost}</p>
+        </div>
+
+        <div class="player-stat-box">
+          <div class="player-stat-title">Goals</div>
+          <p>For ${gf}</p>
+          <p>Against ${ga}</p>
+        </div>
+      </div>
     </div>
 
     <div class="content-box">
@@ -253,80 +229,35 @@ Promise.all([
     <div class="content-box">
       <h3>Matches Managed</h3>
 
-      <div id="managerMatchFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
-        <label class="stats-toggle">
-          <input type="checkbox" id="competitiveOnlyManaged">
-          Competitive Games Only
-        </label>
-
-        <label class="stats-toggle">
-          <input type="checkbox" id="friendlyOnlyManaged">
-          Friendly Games Only
-        </label>
-
-        ${hasUnknownMatches ? `
-          <label class="stats-toggle">
-            <input type="checkbox" id="excludeUnknownManaged">
-            Exclude Unknown Results
-          </label>
-        ` : ""}
-
-        ${hasAbandonedMatches ? `
-          <label class="stats-toggle">
-            <input type="checkbox" id="excludeAbandonedManaged">
-            Exclude Abandoned Games
-          </label>
-        ` : ""}
-      </div>
-
       <table class="archive-table">
         <thead>
           <tr>
-            <th>#</th>
             <th>Date</th>
             <th>Match</th>
             <th>Competition</th>
-            <th>Notes</th>
           </tr>
         </thead>
-        <tbody id="matchesManagedTable"></tbody>
+        <tbody>
+          ${managerMatches.map(match => {
+            const home = teamName(match.home_team);
+            const away = teamName(match.away_team);
+
+            return `
+              <tr>
+                <td>${match.date}</td>
+                <td>
+                  <a href="match.html?id=${match.id}">
+                    ${home} ${match.home_score} - ${match.away_score} ${away}
+                  </a>
+                </td>
+                <td>${match.competition || ""}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
       </table>
     </div>
   `;
-
-  const competitiveOnly = document.getElementById("competitiveOnlyManaged");
-  const friendlyOnly = document.getElementById("friendlyOnlyManaged");
-  const excludeUnknown = document.getElementById("excludeUnknownManaged");
-  const excludeAbandoned = document.getElementById("excludeAbandonedManaged");
-
-  if (competitiveOnly) {
-    competitiveOnly.addEventListener("change", () => {
-      if (competitiveOnly.checked && friendlyOnly) {
-        friendlyOnly.checked = false;
-      }
-      renderManagedMatches();
-    });
-  }
-
-  if (friendlyOnly) {
-    friendlyOnly.addEventListener("change", () => {
-      if (friendlyOnly.checked && competitiveOnly) {
-        competitiveOnly.checked = false;
-      }
-      renderManagedMatches();
-    });
-  }
-
-  if (excludeUnknown) {
-    excludeUnknown.addEventListener("change", renderManagedMatches);
-  }
-
-  if (excludeAbandoned) {
-    excludeAbandoned.addEventListener("change", renderManagedMatches);
-  }
-
-  renderManagedMatches();
-
 }).catch(err => {
   document.getElementById("managerPage").innerHTML =
     `<div class="content-box"><p>Error loading manager page: ${err.message}</p></div>`;
