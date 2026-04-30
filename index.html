@@ -172,14 +172,25 @@
     const playerCount = Array.isArray(players) ? players.length : 0;
     const matchList = Array.isArray(matches) ? matches : [];
 
-    const confirmedMatches = matchList.filter(match =>
-      !isY(match.abandoned) &&
-      hasKnownScore(match)
-    );
+   function isDateUnknown(match) {
+  const note = String(match.notes || "").trim().toLowerCase();
 
-    const completeMatches = confirmedMatches.filter(match =>
-      !isY(match.incomplete)
-    );
+  return (
+    note.includes("date of match unknown") ||
+    !match.date ||
+    String(match.date).trim() === ""
+  );
+}
+
+const confirmedMatches = matchList.filter(match =>
+  !isY(match.abandoned) &&
+  hasKnownScore(match)
+);
+
+const completeMatches = confirmedMatches.filter(match =>
+  !isY(match.incomplete) &&
+  !isDateUnknown(match)
+);
 
     const percentage = confirmedMatches.length
       ? Math.round((completeMatches.length / confirmedMatches.length) * 100)
