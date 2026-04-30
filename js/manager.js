@@ -3,8 +3,10 @@ const id = new URLSearchParams(window.location.search).get("id");
 Promise.all([
   fetch("data/managers.json").then(r => r.json()),
   fetch("data/matches.json").then(r => r.json()),
-  fetch("data/teams.json").then(r => r.json())
-]).then(([managers, matches, teams]) => {
+  fetch("data/teams.json").then(r => r.json()),
+  fetch("data/appearances.json").then(r => r.json()),
+  fetch("data/players.json").then(r => r.json())
+]).then(([managers, matches, teams, appearances, players]) => {
   const manager = managers.find(m => String(m.id).trim() === String(id).trim());
   const el = document.getElementById("managerPage");
 
@@ -168,6 +170,108 @@ Promise.all([
     return `${days} day${days !== 1 ? "s" : ""}`;
   }
 
+  function playerFor(playerId) {
+    return players.find(p => normalise(p.id) === normalise(playerId));
+  }
+
+  function shortScorerName(playerId, allIds) {
+    if (normalise(playerId).toLowerCase() === "unknown") return "Unknown";
+
+    const p = playerFor(playerId);
+    if (!p) return playerId;
+
+    const parts = normalise(p.name).split(/\s+/);
+    const last = parts.pop() || p.name;
+    const first = parts.join(" ");
+
+    const sameSurname = allIds
+      .map(pid => playerFor(pid))
+      .filter(Boolean)
+      .filter(x => {
+        const bits = normalise(x.name).split(/\s+/);
+        const xLast = bits.pop() || "";
+        return xLast.toLowerCase() === last.toLowerCase();
+      });
+
+    return sameSurname.length > 1 && first ? `${first.charAt(0)}.${last}` : last;
+  }
+
+  function joinScorerNames(items) {
+    if (items.length === 0) return "";
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} & ${items[1]}`;
+    return `${items.slice(0, -1).join(", ")} & ${items[items.length - 1]}`;
+  }
+
+  function margateGoalsFor(match) {
+    if (normalise(match.home_team) === "t1") return Number(match.home_score);
+    if (normalise(match.away_team) === "t1") return Number(match.away_score);
+    return 0;
+  }
+
+  function matchApps(match) {
+    return appearances.filter(a =>
+      normalise(a.match_id) === normalise(match.id) &&
+      normalise(a.team) === "t1"
+    );
+  }
+
+  function matchScorersText(match) {
+    const score = margateGoalsFor(match);
+    if (Number.isNaN(score) || score <= 0) return "";
+
+    const apps = matchApps(match);
+    const allIds = apps.map(a => a.player_id);
+
+    let rows = apps
+      .filter(a => Number(a.goals || 0) > 0)
+      .map(a => ({
+        name: shortScorerName(a.player_id, allIds),
+        surname: shortScorerName(a.player_id, allIds).replace(/^.*\./, ""),
+        goals: Number(a.goals || 0),
+        unknown: false
+      }));
+
+    if (!rows.length && Array.isArray(match.scorers)) {
+      rows = match.scorers
+        .filter(s => Number(s.goals || 0) > 0)
+        .map(s => {
+          const scorerIds = match.scorers.map(x => x.player_id);
+          return {
+            name: shortScorerName(s.player_id, scorerIds),
+            surname: shortScorerName(s.player_id, scorerIds).replace(/^.*\./, ""),
+            goals: Number(s.goals || 0),
+            unknown: normalise(s.player_id).toLowerCase() === "unknown"
+          };
+        });
+    }
+
+    const knownGoals = rows.reduce((sum, r) => sum + r.goals, 0);
+    const unknownGoals = score - knownGoals;
+
+    if (unknownGoals > 0) {
+      rows.push({
+        name: "Unknown",
+        surname: "Unknown",
+        goals: unknownGoals,
+        unknown: true
+      });
+    }
+
+    rows.sort((a, b) => {
+      if (a.unknown && !b.unknown) return 1;
+      if (!a.unknown && b.unknown) return -1;
+
+      return (
+        b.goals - a.goals ||
+        a.surname.localeCompare(b.surname) ||
+        a.name.localeCompare(b.name)
+      );
+    });
+
+    return joinScorerNames(rows.map(r => r.goals > 1 ? `${r.name} (${r.goals})` : r.name));
+  }
+
   const managerMatches = matches
     .filter(isManagedByThisMatch)
     .sort((a, b) => matchSortDate(a) - matchSortDate(b));
@@ -274,12 +378,13 @@ Promise.all([
     shownMatches.sort((a, b) => matchSortDate(a) - matchSortDate(b));
 
     if (!shownMatches.length) {
-      tbody.innerHTML = `<tr><td colspan="4">No matches found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6">No matches found.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = shownMatches.map((match, index) => {
       const abandonedText = isAbandoned(match) ? " - Abandoned" : "";
+      const scorers = matchScorersText(match);
 
       return `
         <tr>
@@ -287,6 +392,8 @@ Promise.all([
           <td>${match.date || ""}</td>
           <td>${match.competition || ""}${match.round ? ` - ${match.round}` : ""}${abandonedText}</td>
           <td>${resultHtml(match)}</td>
+          <td class="manager-match-scorers">${scorers || ""}</td>
+          <td>${match.attendance || ""}</td>
         </tr>
       `;
     }).join("");
@@ -294,9 +401,20 @@ Promise.all([
 
   el.innerHTML = `
     <style>
+      .manager-record-table th,
+      .manager-record-table td,
       .manager-matches-table th,
       .manager-matches-table td {
         vertical-align: middle;
+      }
+
+      .manager-matches-table {
+        width: 100%;
+        table-layout: auto;
+      }
+
+      .manager-matches-table th,
+      .manager-matches-table td {
         white-space: nowrap;
       }
 
@@ -306,6 +424,12 @@ Promise.all([
       .manager-matches-table td:nth-child(2) {
         width: 1%;
         white-space: nowrap;
+      }
+
+      .manager-matches-table th:nth-child(5),
+      .manager-matches-table td:nth-child(5) {
+        white-space: normal;
+        text-align: left;
       }
 
       .manager-match-number {
@@ -346,6 +470,10 @@ Promise.all([
         text-align: center;
         white-space: nowrap;
         font-variant-numeric: tabular-nums;
+      }
+
+      .manager-match-scorers {
+        text-align: left !important;
       }
 
       @media (max-width: 900px) {
@@ -443,7 +571,7 @@ Promise.all([
     <div class="content-box">
       <h3>Managerial Record</h3>
 
-      <table class="archive-table">
+      <table class="archive-table manager-record-table">
         <thead>
           <tr>
             <th>Record</th>
@@ -500,6 +628,8 @@ Promise.all([
             <th>Date</th>
             <th>Competition</th>
             <th>Result</th>
+            <th>Goalscorers</th>
+            <th>Att</th>
           </tr>
         </thead>
         <tbody id="matchesManagedTable"></tbody>
