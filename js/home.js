@@ -1,80 +1,52 @@
 Promise.all([
-  fetch("data/players.json").then(r => r.json()),
-  fetch("data/appearances.json").then(r => r.json()),
-  fetch("data/teams.json").then(r => r.json()),
-  fetch("data/matches.json").then(r => r.json()),
-  fetch("data/seasons.json").then(r => r.json())
-]).then(([players, appearances, teams, matches, seasons]) => {
-
+  fetch("data/players.json").then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status} loading players.json`);
+    return r.json();
+  }),
+  fetch("data/appearances.json").then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status} loading appearances.json`);
+    return r.json();
+  }),
+  fetch("data/teams.json").then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status} loading teams.json`);
+    return r.json();
+  })
+]).then(([players, appearances, teams]) => {
   const latestEl = document.getElementById("latestAdditions");
   const featuredEl = document.getElementById("featuredPlayer");
   const randomBtn = document.getElementById("randomPlayerBtn");
 
-  function normalise(v) {
-    return String(v || "").trim();
+  function teamName(teamId) {
+    const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
+    return team ? team.name : teamId;
   }
 
   function getPlayerStats(playerId) {
-    const pa = appearances.filter(a => normalise(a.player_id) === normalise(playerId));
+    const pa = appearances.filter(a => String(a.player_id).trim() === String(playerId).trim());
 
     const starts = pa.filter(a => Number(a.is_starting) === 1).length;
     const subs = pa.filter(a => Number(a.is_starting) !== 1).length;
     const goals = pa.reduce((sum, a) => sum + Number(a.goals || 0), 0);
 
     return {
+      starts,
+      subs,
+      goals,
       totalApps: starts + subs,
-      goals
+      appsDisplay: subs > 0 ? `${starts}+${subs}` : `${starts}`
     };
   }
 
-  function getPrimaryPosition(playerId) {
-    const pa = appearances.filter(a => normalise(a.player_id) === normalise(playerId));
+  function formatDateAdded(value) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
 
-    const counts = {};
-
-    pa.forEach(a => {
-      const shirt = Number(a.shirt_number || 0);
-      counts[shirt] = (counts[shirt] || 0) + 1;
+    return d.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
     });
-
-    const sorted = Object.entries(counts)
-      .sort((a, b) => b[1] - a[1]);
-
-    const shirt = sorted.length ? Number(sorted[0][0]) : null;
-
-    const map = {
-      1: "Goalkeeper",
-      2: "Right-back",
-      3: "Left-back",
-      4: "Right-half",
-      5: "Centre-half",
-      6: "Left-half",
-      7: "Outside-right",
-      8: "Inside-right",
-      9: "Centre-forward",
-      10: "Inside-left",
-      11: "Outside-left"
-    };
-
-    return map[shirt] || "Unknown";
-  }
-
-  function getPlayerSeasons(playerId) {
-    const pa = appearances
-      .filter(a => normalise(a.player_id) === normalise(playerId))
-      .map(a => matches.find(m => normalise(m.id) === normalise(a.match_id)))
-      .filter(Boolean);
-
-    const seasonIds = [...new Set(pa.map(m => normalise(m.season_id)))];
-
-    const ordered = seasonIds
-      .map(id => seasons.find(s => normalise(s.id) === id))
-      .filter(Boolean)
-      .sort((a, b) => Number(a.start_year) - Number(b.start_year));
-
-    if (!ordered.length) return "";
-
-    return `${ordered[0].name} to ${ordered[ordered.length - 1].name}`;
   }
 
   function renderRandomPlayer(excludeId = null) {
@@ -84,72 +56,87 @@ Promise.all([
     }
 
     let pool = players;
-    if (excludeId && players.length > 1) {
-      pool = players.filter(p => normalise(p.id) !== normalise(excludeId));
+    if (excludeId !== null && players.length > 1) {
+      pool = players.filter(p => String(p.id).trim() !== String(excludeId).trim());
     }
 
-    const player = pool[Math.floor(Math.random() * pool.length)];
-    const stats = getPlayerStats(player.id);
-    const position = getPrimaryPosition(player.id);
-    const seasonsPlayed = getPlayerSeasons(player.id);
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    const featured = pool[randomIndex];
+    const stats = getPlayerStats(featured.id);
 
-    const photo = player.photo && player.photo.trim()
-      ? player.photo.trim()
+    const photo = featured.photo && featured.photo.trim() !== ""
+      ? featured.photo.trim()
       : "default.png";
 
-    featuredEl.dataset.currentPlayerId = player.id;
+    featuredEl.dataset.currentPlayerId = featured.id;
 
     featuredEl.innerHTML = `
       <div class="featured-player-card">
         <div class="featured-player-image">
           <img src="images/players/${photo}"
-               alt="${player.name}"
+               alt="${featured.name}"
                onerror="this.src='images/players/default.png'">
         </div>
 
         <div class="featured-player-text">
           <h3>
-            <a href="player.html?id=${player.id}">
-              ${player.name}
+            <a href="player.html?id=${featured.id}">
+              ${featured.name}
             </a>
           </h3>
 
-          <p><strong>Primary Position:</strong> ${position}</p>
-          <p><strong>Seasons:</strong> ${seasonsPlayed || "Unknown"}</p>
-          <p><strong>Total Appearances:</strong> ${stats.totalApps}</p>
-          <p><strong>Total Goals:</strong> ${stats.goals}</p>
+          <p><strong>Position:</strong> ${featured.position || "Not recorded"}</p>
+          <p><strong>Team:</strong> ${teamName(featured.team || "")}</p>
+          <p><strong>Appearances:</strong> ${stats.appsDisplay}</p>
+          <p><strong>Goals:</strong> ${stats.goals}</p>
 
-          ${player.bio ? `<p>${player.bio}</p>` : ""}
+          ${featured.bio ? `<p>${featured.bio}</p>` : ""}
         </div>
       </div>
     `;
   }
 
-  // Latest Additions (unchanged)
+  // Latest Additions = newest date_added first
   const latestPlayers = [...players]
-    .filter(p => p.date_added)
-    .sort((a, b) => new Date(b.date_added) - new Date(a.date_added))
+    .filter(p => p.date_added && String(p.date_added).trim() !== "")
+    .sort((a, b) => {
+      const da = new Date(a.date_added);
+      const db = new Date(b.date_added);
+      return db - da;
+    })
     .slice(0, 5);
 
-  latestEl.innerHTML = latestPlayers.length
-    ? `<ul class="home-list">
+  if (!latestPlayers.length) {
+    latestEl.innerHTML = `<p>No recent additions available.</p>`;
+  } else {
+    latestEl.innerHTML = `
+      <ul class="home-list">
         ${latestPlayers.map(p => `
           <li>
             <a href="player.html?id=${p.id}">${p.name}</a>
+            ${p.position ? ` — ${p.position}` : ""}
+            ${p.date_added ? `<span class="date-added">(${formatDateAdded(p.date_added)})</span>` : ""}
           </li>
         `).join("")}
-      </ul>`
-    : `<p>No recent additions available.</p>`;
+      </ul>
+    `;
+  }
 
   renderRandomPlayer();
 
   if (randomBtn) {
     randomBtn.addEventListener("click", () => {
-      const current = featuredEl.dataset.currentPlayerId;
-      renderRandomPlayer(current);
+      const currentId = featuredEl.dataset.currentPlayerId || null;
+      renderRandomPlayer(currentId);
     });
   }
 
 }).catch(err => {
   console.error(err);
+
+  const latestEl = document.getElementById("latestAdditions");
+  const featuredEl = document.getElementById("featuredPlayer");
+
+  if (latestEl) latestEl.innerHTML = `<p>Error loading latest additions.</p>`;
+  if (featuredEl) featuredEl.innerHTML = `<p>Error loading random player.</p>`;
 });
