@@ -17,11 +17,74 @@ Promise.all([
 
   const matchStyle = document.createElement("style");
   matchStyle.textContent = `
-    .lineup-player-main { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+    .lineup-player-main { display: inline-flex; align-items: center; gap: 6px; min-width: 0; flex-wrap: wrap; }
     .lineup-position { display: inline-block; min-width: 28px; font-weight: 700; color: #6c5431; }
     .player-icons-inline { margin-left: 4px; white-space: nowrap; }
-    .player-landmarks { margin-left: 8px; text-align: left; font-size: 0.9em; white-space: nowrap; }
-    .landmark-label { font-weight: 700; margin: 0 2px; }
+    .match-info-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 17px;
+      height: 17px;
+      margin-left: 3px;
+      border-radius: 50%;
+      border: 1px solid #8b0000;
+      background: #c51616;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      cursor: pointer;
+      font-family: Arial, Helvetica, sans-serif;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    }
+    .match-info-button:hover {
+      background: #9f1010;
+      text-decoration: none;
+    }
+    .match-info-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(31, 22, 13, 0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .match-info-modal {
+      width: min(420px, 92vw);
+      background: #fbf3df;
+      border: 2px solid #9d8152;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      padding: 16px 18px;
+      color: #1f160d;
+    }
+    .match-info-modal h3 {
+      margin: 0 0 12px 0;
+    }
+    .match-info-modal ul {
+      margin: 0 0 14px 0;
+      padding-left: 0;
+      list-style: none;
+    }
+    .match-info-modal li {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.35;
+    }
+    .match-info-modal-icon {
+      display: inline-block;
+      min-width: 22px;
+      text-align: center;
+    }
+    .match-info-close {
+      margin: 6px 0 0 0;
+    }
   `;
   document.head.appendChild(matchStyle);
 
@@ -296,9 +359,6 @@ Promise.all([
     return map[Number(shirtNumber || 0)] || "";
   }
 
-  function starLabel(text) {
-    return `<span class="gold-star">★</span><span class="landmark-label">${text}</span><span class="gold-star">★</span>`;
-  }
 
   function milestoneReached(before, after, step) {
     const labels = [];
@@ -325,30 +385,148 @@ Promise.all([
     return { apps: appsCount, goals: goalsCount };
   }
 
-  function playerLandmarkLabels(a) {
+  function getPlayerMilestones(a) {
     const playerId = String(a.player_id).trim();
     const currentGoals = Number(a.goals || 0);
     const currentIsCompetitive = !isFriendly(match);
     const allBefore = playerCareerStatsBefore(playerId, false);
     const compBefore = playerCareerStatsBefore(playerId, true);
-    const labels = [];
 
-    if (allBefore.apps === 0) labels.push("Debut");
-    if (currentIsCompetitive && compBefore.apps === 0) labels.push("Competitive Debut");
-    if (currentGoals > 0 && allBefore.goals === 0) labels.push(currentGoals > 1 ? "First Goals" : "First Goal");
-    if (currentGoals > 0 && currentIsCompetitive && compBefore.goals === 0) labels.push(currentGoals > 1 ? "First Competitive Goals" : "First Competitive Goal");
+    const groups = {
+      debut: [],
+      appearance: [],
+      goal: []
+    };
 
-    milestoneReached(allBefore.apps, allBefore.apps + 1, 50).forEach(n => labels.push(`${n}th Appearance`));
-    if (currentIsCompetitive) milestoneReached(compBefore.apps, compBefore.apps + 1, 50).forEach(n => labels.push(`${n}th Competitive Appearance`));
-    if (currentGoals > 0) {
-      milestoneReached(allBefore.goals, allBefore.goals + currentGoals, 25).forEach(n => labels.push(`${n}th Goal`));
-      if (currentIsCompetitive) milestoneReached(compBefore.goals, compBefore.goals + currentGoals, 25).forEach(n => labels.push(`${n}th Competitive Goal`));
+    if (allBefore.apps === 0) groups.debut.push("Debut");
+    if (currentIsCompetitive && compBefore.apps === 0) groups.debut.push("Competitive Debut");
+
+    if (currentGoals > 0 && allBefore.goals === 0) {
+      groups.debut.push(currentGoals > 1 ? "First Goals" : "First Goal");
     }
 
-    return labels.length ? `<span class="player-landmarks">${labels.map(starLabel).join(" ")}</span>` : "";
+    if (currentGoals > 0 && currentIsCompetitive && compBefore.goals === 0) {
+      groups.debut.push(currentGoals > 1 ? "First Competitive Goals" : "First Competitive Goal");
+    }
+
+    milestoneReached(allBefore.apps, allBefore.apps + 1, 50)
+      .forEach(n => groups.appearance.push(`${n}th Appearance`));
+
+    if (currentIsCompetitive) {
+      milestoneReached(compBefore.apps, compBefore.apps + 1, 50)
+        .forEach(n => groups.appearance.push(`${n}th Competitive Appearance`));
+    }
+
+    if (currentGoals > 0) {
+      milestoneReached(allBefore.goals, allBefore.goals + currentGoals, 25)
+        .forEach(n => groups.goal.push(`${n}th Goal`));
+
+      if (currentIsCompetitive) {
+        milestoneReached(compBefore.goals, compBefore.goals + currentGoals, 25)
+          .forEach(n => groups.goal.push(`${n}th Competitive Goal`));
+      }
+    }
+
+    return groups;
   }
 
-  function playerIcons(a) {
+  function flattenMilestones(groups) {
+    return [
+      ...(groups.debut || []),
+      ...(groups.appearance || []),
+      ...(groups.goal || [])
+    ];
+  }
+
+  function milestoneIcon(label) {
+    if (/goal/i.test(label)) return "⚽";
+    if (/appearance|debut/i.test(label)) return "🏁";
+    return "ℹ️";
+  }
+
+  function groupedMilestoneHtml(groups) {
+    const sections = [
+      { key: "debut", title: "Debuts & Firsts" },
+      { key: "appearance", title: "Appearance Landmarks" },
+      { key: "goal", title: "Goal Landmarks" }
+    ];
+
+    return sections
+      .filter(section => groups[section.key] && groups[section.key].length)
+      .map(section => `
+        <h4>${section.title}</h4>
+        <ul>
+          ${groups[section.key].map(label => `
+            <li><span class="match-info-modal-icon">${milestoneIcon(label)}</span><span>${label}</span></li>
+          `).join("")}
+        </ul>
+      `).join("");
+  }
+
+  function encodeMilestones(groups) {
+    return encodeURIComponent(JSON.stringify(groups));
+  }
+
+  function playerInfoButton(a) {
+    const groups = getPlayerMilestones(a);
+    const labels = flattenMilestones(groups);
+
+    if (!labels.length) return "";
+
+    const title = labels.join(" | ");
+    const encoded = encodeMilestones(groups);
+
+    return `
+      <button class="match-info-button"
+              type="button"
+              title="${title}"
+              aria-label="Show player milestones"
+              data-player="${playerName(a.player_id).replace(/"/g, "&quot;")}"
+              data-info="${encoded}">
+        i
+      </button>
+    `;
+  }
+
+  window.showMatchPlayerInfo = function(button) {
+    const playerNameText = button.getAttribute("data-player") || "Player";
+    let groups = {};
+
+    try {
+      groups = JSON.parse(decodeURIComponent(button.getAttribute("data-info") || "{}"));
+    } catch (err) {
+      groups = {};
+    }
+
+    const modal = document.createElement("div");
+    modal.className = "match-info-modal-backdrop";
+
+    modal.innerHTML = `
+      <div class="match-info-modal" role="dialog" aria-modal="true" aria-label="Player milestone details">
+        <h3>${playerNameText}</h3>
+        ${groupedMilestoneHtml(groups)}
+        <button class="archive-button match-info-close" type="button">Close</button>
+      </div>
+    `;
+
+    modal.addEventListener("click", event => {
+      if (event.target === modal) modal.remove();
+    });
+
+    modal.querySelector(".match-info-close").addEventListener("click", () => {
+      modal.remove();
+    });
+
+    document.body.appendChild(modal);
+  };
+
+  document.addEventListener("click", event => {
+    const button = event.target.closest(".match-info-button");
+    if (!button) return;
+    window.showMatchPlayerInfo(button);
+  });
+
+  function playerIcons(a)  function playerIcons(a) {
     const captain = Number(a.captain || 0) === 1 ? `<span class="captain-icon" title="Captain">Ⓒ</span>` : "";
     const goals = "⚽".repeat(Number(a.goals || 0));
     const yellows = "🟨".repeat(Number(a.yellow || 0));
@@ -388,7 +566,7 @@ Promise.all([
   function playerLineHtml(a) {
     const position = positionFromShirt(a.shirt_number);
     const positionHtml = position ? `<span class="lineup-position">${position}</span>` : `<span class="lineup-position"></span>`;
-    const landmarks = playerLandmarkLabels(a);
+    const infoButton = playerInfoButton(a);
 
     return `
       <div class="lineup-player">
@@ -396,9 +574,9 @@ Promise.all([
           ${positionHtml}
           <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
           ${playerIcons(a)}
+          ${infoButton}
           ${subMarker(a)}
         </span>
-        ${landmarks}
       </div>
     `;
   }
