@@ -172,25 +172,58 @@
     const playerCount = Array.isArray(players) ? players.length : 0;
     const matchList = Array.isArray(matches) ? matches : [];
 
-   function isDateUnknown(match) {
-  const note = String(match.notes || "").trim().toLowerCase();
+    function parseKnownDate(value) {
+      const text = String(value || "").trim().toLowerCase();
 
-  return (
-    note.includes("date of match unknown") ||
-    !match.date ||
-    String(match.date).trim() === ""
-  );
-}
+      if (
+        !text ||
+        text === "unknown" ||
+        text === "?" ||
+        text.includes("date of match unknown") ||
+        text.includes("unknown date")
+      ) {
+        return null;
+      }
 
-const confirmedMatches = matchList.filter(match =>
-  !isY(match.abandoned) &&
-  hasKnownScore(match)
-);
+      const cleaned = text.replace(/-/g, "/").replace(/\./g, "/");
+      const parts = cleaned.split("/");
 
-const completeMatches = confirmedMatches.filter(match =>
-  !isY(match.incomplete) &&
-  !isDateUnknown(match)
-);
+      if (parts.length !== 3) return null;
+
+      let [day, month, year] = parts.map(part => part.trim());
+      if (!day || !month || !year) return null;
+
+      if (year.length === 2) {
+        year = Number(year) >= 50 ? `18${year}` : `19${year}`;
+      }
+
+      const parsed = new Date(Number(year), Number(month) - 1, Number(day));
+
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function isDateUnknown(match) {
+      const note = String(match.notes || "").trim().toLowerCase();
+      const date = String(match.date || "").trim().toLowerCase();
+
+      return (
+        note.includes("date of match unknown") ||
+        note.includes("unknown date") ||
+        date.includes("date of match unknown") ||
+        date.includes("unknown date") ||
+        !parseKnownDate(match.date)
+      );
+    }
+
+    const confirmedMatches = matchList.filter(match =>
+      !isY(match.abandoned) &&
+      hasKnownScore(match)
+    );
+
+    const completeMatches = confirmedMatches.filter(match =>
+      !isY(match.incomplete) &&
+      !isDateUnknown(match)
+    );
 
     const percentage = confirmedMatches.length
       ? Math.round((completeMatches.length / confirmedMatches.length) * 100)
