@@ -1295,5 +1295,572 @@
     "away_manager_id": "",
     "abandoned": "",
     "incomplete": "Y"
+  },
+  {
+    "id": "m47",
+    "date": "30/09/1899",
+    "home_team": "t26",
+    "away_team": "t1",
+    "home_score": "2",
+    "away_score": "2",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "Not sure if home or away.",
+    "scorers_text": "Wells (2)",
+    "scorers": [
+      {
+        "player_id": "p1614",
+        "goals": 2
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 3,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
+  },
+  {
+    "id": "m48",
+    "date": "04/10/1899",
+    "home_team": "t27",
+    "away_team": "t1",
+    "home_score": "0",
+    "away_score": "4",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "Not sure if home or away.",
+    "scorers_text": "Wells (4)",
+    "scorers": [
+      {
+        "player_id": "p1614",
+        "goals": 4
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 4,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
+  },
+  {
+    "id": "m49",
+    "date": "07/10/1899",
+    "home_team": "t18",
+    "away_team": "t1",
+    "home_score": "1",
+    "away_score": "7",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "Dumpton",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Skey (2), Wells (2), Page, Pearce & Read",
+    "scorers": [
+      {
+        "player_id": "p1380",
+        "goals": 2
+      },
+      {
+        "player_id": "p1614",
+        "goals": 2
+      },
+      {
+        "player_id": "p1145",
+        "goals": 1
+      },
+      {
+        "player_id": "p1171",
+        "goals": 1
+      },
+      {
+        "player_id": "p1263",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 5,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
+  },
+  {
+    "id": "m50",
+    "date": "14/10/1899",
+    "home_team": "t1",
+    "away_team": "t6",
+    "home_score": "3",
+    "away_score": "0",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "Blowfield (Margate College)",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Wells (2) & Pearce",
+    "scorers": [
+      {
+        "player_id": "p1614",
+        "goals": 2
+      },
+      {
+        "player_id": "p1171",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 6,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
+  },
+  {
+    "id": "m51",
+    "date": "21/10/1899",
+    "home_team": "t1",
+    "away_team": "t28",
+    "home_score": "3",
+    "away_score": "0",
+    "season_id": "1899-00",
+    "competition": "Kent Junior Cup",
+    "round": "1",
+    "venue": "Blowfield (Margate College)",
+    "attendance": "",
+    "referee": "",
+    "notes": "First competitive game at Blowfield. Abandoned due to fog early in the second half.",
+    "scorers_text": "Pearce (2) & Wells",
+    "scorers": [
+      {
+        "player_id": "p1171",
+        "goals": 2
+      },
+      {
+        "player_id": "p1614",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 7,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "Y",
+    "incomplete": "Y"
+  },
+  {
+    "id": "m52",
+    "date": "28/10/1899",
+    "home_team": "t1",
+    "away_team": "t28",
+    "home_score": "3",
+    "away_score": "0",
+    "season_id": "1899-00",
+    "competition": "Kent Junior Cup",
+    "round": "1",
+    "venue": "Blowfield (Margate College)",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Page, Pearce & Wells",
+    "scorers": [
+      {
+        "player_id": "p1145",
+        "goals": 1
+      },
+      {
+        "player_id": "p1171",
+        "goals": 1
+      },
+      {
+        "player_id": "p1614",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 8,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
+  },
+  {
+    "id": "m53",
+    "date": "04/11/1899",
+    "home_team": "t1",
+    "away_team": "t9",
+    "home_score": "2",
+    "away_score": "2",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "Blowfield (Margate College)",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "?",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 9,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
+  },
+  {
+    "id": "m54",
+    "date": "11/11/1899",
+    "home_team": "t1",
+    "away_team": "t29",
+    "home_score": "7",
+    "away_score": "1",
+    "season_id": "1899-00",
+    "competition": "Kent Junior Cup",
+    "round": "2",
+    "venue": "Blowfield (Margate College)",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Crosoer (2), Pearce (2), Wells (2) & Page",
+    "scorers": [
+      {
+        "player_id": "p366",
+        "goals": 2
+      },
+      {
+        "player_id": "p1171",
+        "goals": 2
+      },
+      {
+        "player_id": "p1614",
+        "goals": 2
+      },
+      {
+        "player_id": "p1145",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 10,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
+  },
+  {
+    "id": "m55",
+    "date": "18/11/1899",
+    "home_team": "t1",
+    "away_team": "t15",
+    "home_score": "1",
+    "away_score": "2",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "Blowfield (Margate College)",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "?",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 11,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
+  },
+  {
+    "id": "m56",
+    "date": "09/12/1899",
+    "home_team": "t30",
+    "away_team": "t1",
+    "home_score": "1",
+    "away_score": "3",
+    "season_id": "1899-00",
+    "competition": "Kent Junior Cup",
+    "round": "3",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Pearce, Summers & OG",
+    "scorers": [
+      {
+        "player_id": "p1171",
+        "goals": 1
+      },
+      {
+        "player_id": "p1464",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 12,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
+  },
+  {
+    "id": "m57",
+    "date": "06/01/1900",
+    "home_team": "t9",
+    "away_team": "t1",
+    "home_score": "1",
+    "away_score": "2",
+    "season_id": "1899-00",
+    "competition": "Kent Junior Cup",
+    "round": "4",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Crosoer (2)",
+    "scorers": [
+      {
+        "player_id": "p366",
+        "goals": 2
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 13,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
+  },
+  {
+    "id": "m58",
+    "date": "03/02/1900",
+    "home_team": "t1",
+    "away_team": "t28",
+    "home_score": "?",
+    "away_score": "?",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 14,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
+  },
+  {
+    "id": "m59",
+    "date": "10/02/1900",
+    "home_team": "t9",
+    "away_team": "t1",
+    "home_score": "0",
+    "away_score": "0",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 15,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
+  },
+  {
+    "id": "m60",
+    "date": "17/02/1900",
+    "home_team": "t31",
+    "away_team": "t1",
+    "home_score": "2",
+    "away_score": "1",
+    "season_id": "1899-00",
+    "competition": "Kent Junior Cup",
+    "round": "SF",
+    "venue": "Southwood",
+    "attendance": "500*",
+    "referee": "",
+    "notes": "Abandoned after 45 minutes due to waterlogged pitch.",
+    "scorers_text": "Summers",
+    "scorers": [
+      {
+        "player_id": "p1464",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 16,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "Y",
+    "incomplete": ""
+  },
+  {
+    "id": "m61",
+    "date": "24/02/1900",
+    "home_team": "t31",
+    "away_team": "t1",
+    "home_score": "2",
+    "away_score": "0",
+    "season_id": "1899-00",
+    "competition": "Kent Junior Cup",
+    "round": "SF",
+    "venue": "Southwood",
+    "attendance": "2,000*",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 17,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": ""
+  },
+  {
+    "id": "m62",
+    "date": "17/03/1900",
+    "home_team": "t29",
+    "away_team": "t1",
+    "home_score": "0",
+    "away_score": "1",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "Not sure if home or away.",
+    "scorers_text": "?",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 18,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
+  },
+  {
+    "id": "m63",
+    "date": "07/04/1900",
+    "home_team": "t29",
+    "away_team": "t1",
+    "home_score": "0",
+    "away_score": "6",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "Not sure if home or away.",
+    "scorers_text": "?",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 19,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
+  },
+  {
+    "id": "m64",
+    "date": "14/04/1900",
+    "home_team": "t1",
+    "away_team": "t32",
+    "home_score": "0",
+    "away_score": "2",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "Blowfield (Margate College)",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 20,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
+  },
+  {
+    "id": "m65",
+    "date": "16/04/1900",
+    "home_team": "t1",
+    "away_team": "t33",
+    "home_score": "2",
+    "away_score": "2",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "",
+    "attendance": "",
+    "referee": "",
+    "notes": "",
+    "scorers_text": "Britton & Crosoer",
+    "scorers": [
+      {
+        "player_id": "p205",
+        "goals": 1
+      },
+      {
+        "player_id": "p366",
+        "goals": 1
+      }
+    ],
+    "source_sheet": "Combined",
+    "source_row": 21,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
+  },
+  {
+    "id": "m66",
+    "date": "unknown",
+    "home_team": "t15",
+    "away_team": "t1",
+    "home_score": "4",
+    "away_score": "1",
+    "season_id": "1899-00",
+    "competition": "Friendly",
+    "round": "",
+    "venue": "Blowfield (Margate College)",
+    "attendance": "",
+    "referee": "",
+    "notes": "Date of match unknown.",
+    "scorers_text": "?",
+    "scorers": [],
+    "source_sheet": "Combined",
+    "source_row": 22,
+    "home_manager_id": "",
+    "away_manager_id": "",
+    "abandoned": "",
+    "incomplete": "Y"
   }
 ]
