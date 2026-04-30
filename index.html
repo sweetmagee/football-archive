@@ -217,13 +217,6 @@
   <div class="page-wrap">
 
     <div class="content-box">
-      <h2>About This Site</h2>
-      <p class="home-intro">
-        A Margate and Thanet United FC archive - from the club's foundation to the present day.<br><br>
-        
-      </p>
-    
-    <div class="content-box">
       <h2>Current Archive Statistics</h2>
 
       <table class="archive-table">
@@ -247,7 +240,7 @@
 
       <div id="homeMissingMatchesPanel" style="display:none;"></div>
     </div>
-</div>
+
 
     <div class="home-grid home-grid-equal">
 
@@ -551,7 +544,7 @@
     const showDates = document.getElementById("homeDateMissingFilter")?.checked ?? true;
 
     let rows = matches
-      .filter(match => !isY(match.abandoned))
+      .filter(isIncludedInArchiveStats)
       .filter(match => {
         const lineups = lineUpMissing(match, appearances);
         const scorers = goalscorersMissing(match, appearances);
