@@ -164,7 +164,28 @@ Promise.all([
 
   const firstDate = firstMatch ? formatLongDate(firstMatch.date) : "Unknown";
   const lastDate = lastMatch ? formatLongDate(lastMatch.date) : "Unknown";
-  const managedClub = firstMatch ? teamName(managedTeamId(firstMatch)) : "Unknown";
+  
+
+  function formatSpan(start, end) {
+    if (!start || !end) return "Unknown";
+
+    const diff = end - start;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    const years = Math.floor(days / 365);
+    const remainingDays = days % 365;
+
+    if (years > 0) {
+      return `${years} year${years>1?"s":""} ${remainingDays} day${remainingDays!=1?"s":""}`;
+    }
+
+    return `${days} day${days!=1?"s":""}`;
+  }
+
+  const spanStart = parseDateUK(firstMatch?.date);
+  const spanEnd = parseDateUK(lastMatch?.date);
+  const managementSpan = formatSpan(spanStart, spanEnd);
+const managedClub = firstMatch ? teamName(managedTeamId(firstMatch)) : "Unknown";
 
   const photoFile = manager.photo && normalise(manager.photo) !== ""
     ? manager.photo
@@ -257,7 +278,7 @@ Promise.all([
     shownMatches.sort((a, b) => matchSortDate(a) - matchSortDate(b));
 
     if (!shownMatches.length) {
-      tbody.innerHTML = `<tr><td colspan="5">No matches found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4">No matches found.</td></tr>`;
       return;
     }
 
@@ -275,7 +296,7 @@ Promise.all([
           <td>${match.date || ""}</td>
           <td>${match.competition || ""}${match.round ? ` - ${match.round}` : ""}${abandonedText}</td>
           <td>${resultHtml(match)}</td>
-          <td>${noteText}</td>
+          
         </tr>
       `;
     }).join("");
@@ -370,6 +391,7 @@ Promise.all([
           <p><strong>Date of Birth:</strong> ${manager.dob || "Unknown"}</p>
           <p><strong>First Match:</strong> ${firstDate}</p>
           <p><strong>Last Match:</strong> ${lastDate}</p>
+          <p><strong>Management Span (All matches):</strong> ${managementSpan}</p>
         </div>
       </div>
     </div>
@@ -439,7 +461,7 @@ Promise.all([
             <th>Date</th>
             <th>Competition</th>
             <th>Result</th>
-            <th>Notes</th>
+            
           </tr>
         </thead>
         <tbody id="matchesManagedTable"></tbody>
