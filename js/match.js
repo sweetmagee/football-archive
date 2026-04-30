@@ -31,7 +31,67 @@ Promise.all([
       max-width: 100% !important;
       box-sizing: border-box;
     }
-  `;
+
+    .lineup-player {
+      min-height: 26px;
+      align-items: center;
+    }
+    .lineup-player-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      flex-wrap: nowrap;
+      min-height: 24px;
+      line-height: 24px;
+    }
+    .lineup-position {
+      display: inline-flex;
+      align-items: center;
+      min-width: 28px;
+      height: 24px;
+      font-weight: 700;
+      color: #6c5431;
+    }
+    .player-icons-inline {
+      display: inline-flex;
+      align-items: center;
+      height: 24px;
+      line-height: 24px;
+      margin-left: 4px;
+      white-space: nowrap;
+      letter-spacing: 2px;
+      vertical-align: middle;
+    }
+    .match-info-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 17px;
+      height: 17px;
+      min-width: 17px;
+      min-height: 17px;
+      margin: 0 0 0 3px;
+      padding: 0;
+      border-radius: 50%;
+      border: 1px solid #8b0000;
+      background: #c51616;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 17px;
+      cursor: pointer;
+      font-family: Arial, Helvetica, sans-serif;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .match-info-button:hover { background: #9f1010; text-decoration: none; }
+    .lineup-player-main a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+    }  `;
   document.head.appendChild(matchStyle);
 
   document.addEventListener("click", event => {
