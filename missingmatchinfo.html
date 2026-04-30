@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Missing Match Information | Margate & Thanet United FC Archive</title>
+  <base href="/football-archive/">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <style>
+    .missing-match-section {
+      width: 120%;
+      max-width: 120%;
+      margin-left: -10%;
+    }
+
+    .missing-matches-table {
+      width: 100%;
+      table-layout: auto;
+    }
+
+    .missing-matches-table th,
+    .missing-matches-table td {
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    .missing-matches-table th:nth-child(1),
+    .missing-matches-table td:nth-child(1),
+    .missing-matches-table th:nth-child(2),
+    .missing-matches-table td:nth-child(2) {
+      width: 1%;
+      white-space: nowrap;
+    }
+
+    .missing-matches-table th:nth-child(5),
+    .missing-matches-table td:nth-child(5) {
+      white-space: normal;
+      text-align: left;
+    }
+
+    .missing-match-number {
+      font-weight: normal;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+    }
+
+    .missing-result-link {
+      display: grid;
+      grid-template-columns: minmax(160px, 1fr) 70px minmax(160px, 1fr);
+      align-items: center;
+      column-gap: 12px;
+      text-decoration: none;
+      width: 100%;
+    }
+
+    .missing-result-team {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    .missing-result-home {
+      justify-content: flex-end;
+      text-align: right;
+    }
+
+    .missing-result-away {
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .missing-result-score {
+      text-align: center;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .missing-match-scorers {
+      text-align: left !important;
+    }
+
+    @media (max-width: 900px) {
+      .missing-match-section {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+      }
+
+      .missing-matches-table th,
+      .missing-matches-table td {
+        white-space: normal;
+      }
+
+      .missing-result-link {
+        grid-template-columns: 1fr;
+        row-gap: 4px;
+      }
+
+      .missing-result-home,
+      .missing-result-away {
+        justify-content: flex-start;
+        text-align: left;
+      }
+
+      .missing-result-score {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header-bar site-header-image">
+  <div class="site-header-overlay">
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="players.html">Players</a>
+      <a href="managers.html">Managers</a>
+      <a href="seasons.html">Seasons</a>
+      <a href="opponents.html">Opponents</a>
+      <a href="statistics.html">Statistics</a>
+      <a href="records.html">Records</a>
+      <a href="honours.html">Honours</a>
+      <a href="history.html">History</a>
+      <a href="interactive.html">Interactive</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <div class="content-box missing-match-section">
+    <h2>Missing Match Information</h2>
+
+    <div id="missingMatchFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+      <label class="stats-toggle">
+        <input type="checkbox" id="lineupMissingFilter" checked>
+        Line-up Details Missing
+      </label>
+
+      <label class="stats-toggle">
+        <input type="checkbox" id="goalscorersMissingFilter" checked>
+        Missing Goalscorers
+      </label>
+
+      <label class="stats-toggle">
+        <input type="checkbox" id="dateMissingFilter" checked>
+        Match Date Missing
+      </label>
+    </div>
+
+    <div id="missingMatchCount" class="player-count">Loading...</div>
+
+    <div id="missingMatches"></div>
+  </div>
+</div>
+
+<script src="js/missingmatchinfo.js"></script>
+</body>
+</html>
