@@ -47,340 +47,123 @@
   .featured-player-card {
     height: 100%;
   }
-</style>
 
+  .home-missing-section {
+    width: 120%;
+    max-width: 120%;
+    margin-left: -10%;
+  }
 
-<style>
-  .archive-stats-help {
-    display: inline-flex;
+  .home-missing-filters {
+    display: flex;
+    gap: 18px;
     align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    margin-left: 8px;
-    border-radius: 50%;
-    background: #4a321b;
-    color: #f7ecd5;
-    font-weight: 700;
-    font-size: 13px;
-    cursor: help;
-    position: relative;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
   }
 
-  .archive-stats-help:hover::after {
-    content: "Incomplete means: players with no appearances; matches marked Incomplete = Y; or matches where the date is missing / not in dd/mm/yyyy format.";
-    position: absolute;
-    left: 28px;
-    top: -8px;
-    width: 330px;
-    background: #4a321b;
-    color: #f7ecd5;
-    border: 1px solid #c5aa78;
-    padding: 10px 12px;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    z-index: 20;
-    font-weight: 400;
-    line-height: 1.35;
-  }
-
-  .archive-table tbody tr.percent-green td {
-    background: #d9ead3 !important;
-    font-weight: 700;
-  }
-
-  .archive-table tbody tr.percent-warning td {
-    background: #f4cccc !important;
-    font-weight: 700;
-  }
-
-  .missing-info-toggle-wrap {
-    margin-top: 14px;
-  }
-
-  #homeMissingMatchesPanel {
-    margin-top: 16px;
+  .home-missing-table {
+    width: 100%;
+    table-layout: auto;
   }
 
   .home-missing-table th,
   .home-missing-table td {
     vertical-align: middle;
-  }
-
-  .home-missing-result {
     white-space: nowrap;
   }
-</style>
 
-</head>
-<body>
-
-   <div class="header-bar site-header-image">
-  <div class="site-header-overlay">
-    <div class="nav-links">
-      <a href="index.html">Home</a>
-      <a href="players.html">Players</a>
-      <a href="managers.html">Managers</a>
-      <a href="seasons.html">Seasons</a>
-      <a href="opponents.html">Opponents</a>
-      <a href="statistics.html">Statistics</a>
-      <a href="records.html">Records</a>
-      <a href="honours.html">Honours</a>
-      <a href="history.html">History</a>
-      <a href="interactive.html">Interactive</a>
-
-    </div>
-  </div>
-</div>
-
-
-
-  <div class="page-wrap">
-
-    <div class="content-box">
-      <h2>About This Site</h2>
-      <p class="home-intro">
-        A Margate and Thanet United FC archive - from the club's foundation to the present day.<br><br>
-        
-      </p>
-    
-    <div class="content-box">
-      <h2>Current Archive Statistics <span class="archive-stats-help" title="Incomplete means: players with no appearances; matches marked Incomplete = Y; or matches where the date is missing / not in dd/mm/yyyy format.">?</span></h2>
-
-      <table class="archive-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Players</th>
-            <th>Competitive Matches</th>
-            <th>Friendly Matches</th>
-            <th>All Matches</th>
-          </tr>
-        </thead>
-        <tbody id="archiveStatsTable"></tbody>
-      </table>
-
-      <div class="missing-info-toggle-wrap">
-        <button id="showMissingMatchesBtn" class="archive-button" type="button">
-          Click here to see matches that are missing information
-        </button>
-      </div>
-
-      <div id="homeMissingMatchesPanel" style="display:none;"></div>
-    </div>
-</div>
-
-    <div class="home-grid home-grid-equal">
-
-      <div class="content-box">
-        <h2>Latest Additions</h2>
-        <div id="latestAdditions">Loading...</div>
-      </div>
-
-      <div class="content-box random-player-box">
-        <h2>Random Player</h2>
-        <div id="featuredPlayer">Loading...</div>
-
-        <div class="random-player-footer">
-          <button id="randomPlayerBtn" class="archive-button" type="button">
-            Another Random Player
-          </button>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="home-grid">
-
-      <div class="content-box">
-        <h2>Browse by Season</h2>
-        <p>Jump straight into the year-by-year record of the club.</p>
-        <p><a href="seasons.html">Browse all seasons</a></p>
-      </div>
-
-      <div class="content-box">
-        <h2>Programme Covers</h2>
-
-        <div class="programme-grid">
-          <div class="programme-card">
-            <img src="images/programmes/programme1.jpg"
-                 alt="Programme cover"
-                 onerror="this.style.display='none'">
-            <p>Historic programme cover</p>
-          </div>
-
-          <div class="programme-card">
-            <img src="images/programmes/programme2.jpg"
-                 alt="Programme cover"
-                 onerror="this.style.display='none'">
-            <p>More covers coming soon</p>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-
-<script>
-(function () {
-  function isY(value) {
-    return String(value || "").trim().toUpperCase() === "Y";
+  .home-missing-table th:nth-child(1),
+  .home-missing-table td:nth-child(1),
+  .home-missing-table th:nth-child(2),
+  .home-missing-table td:nth-child(2) {
+    width: 1%;
+    white-space: nowrap;
   }
 
-  function isFriendly(match) {
-    const comp = String(match.competition || "").toLowerCase();
-    return comp.includes("friendly") || comp === "fr";
+  .home-missing-table th:nth-child(5),
+  .home-missing-table td:nth-child(5) {
+    white-space: normal;
+    text-align: left;
   }
 
-  function hasStrictDate(match) {
-    return /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(String(match.date || "").trim());
+  .home-missing-number {
+    font-weight: normal;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
   }
 
-  function isDateMissing(match) {
-    const note = String(match.notes || "").toLowerCase();
-    const date = String(match.date || "").toLowerCase();
-
-    return (
-      !hasStrictDate(match) ||
-      note.includes("date of match unknown") ||
-      note.includes("unknown date") ||
-      date.includes("date of match unknown") ||
-      date.includes("unknown date")
-    );
+  .home-missing-result-link {
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) 70px minmax(160px, 1fr);
+    align-items: center;
+    column-gap: 12px;
+    text-decoration: none;
+    width: 100%;
   }
 
-  function isMatchIncomplete(match) {
-    return isY(match.incomplete) || isDateMissing(match);
+  .home-missing-result-team {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    white-space: nowrap;
   }
 
-  function pct(a, b) {
-    return b ? Math.round((a / b) * 100) : 0;
+  .home-missing-result-home {
+    justify-content: flex-end;
+    text-align: right;
   }
 
-  function percentRowClass(allPct) {
-    return allPct === 100 ? "percent-green" : "percent-warning";
+  .home-missing-result-away {
+    justify-content: flex-start;
+    text-align: left;
   }
 
-  function parseDate(value) {
-    if (!hasStrictDate({ date: value })) return null;
-    const [d, m, y] = String(value).split("/").map(Number);
-    const parsed = new Date(y, m - 1, d);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  .home-missing-result-score {
+    text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
   }
 
-  function matchSortDate(match) {
-    if (isDateMissing(match)) return new Date(9999, 11, 31);
-    return parseDate(match.date) || new Date(9999, 11, 30);
+  .home-missing-scorers {
+    text-align: left !important;
   }
 
-  function teamName(teamId, teams) {
-    const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
-    return team ? team.name : teamId;
-  }
-
-  function matchApps(match, appearances) {
-    return appearances.filter(a =>
-      String(a.match_id || "").trim() === String(match.id || "").trim() &&
-      String(a.team || "").trim() === "t1"
-    );
-  }
-
-  function margateGoalsFor(match) {
-    if (String(match.home_team).trim() === "t1") return Number(match.home_score);
-    if (String(match.away_team).trim() === "t1") return Number(match.away_score);
-    return 0;
-  }
-
-  function lineUpMissing(match, appearances) {
-    return isY(match.incomplete) && matchApps(match, appearances).length < 11;
-  }
-
-  function goalscorersMissing(match, appearances) {
-    if (!isY(match.incomplete)) return false;
-
-    const score = margateGoalsFor(match);
-    if (Number.isNaN(score) || score <= 0) return false;
-
-    const knownGoalsFromApps = matchApps(match, appearances)
-      .reduce((sum, a) => sum + Number(a.goals || 0), 0);
-
-    const scorersArray = Array.isArray(match.scorers) ? match.scorers : [];
-    const knownGoalsFromScorers = scorersArray
-      .filter(s => String(s.player_id || "").trim().toLowerCase() !== "unknown")
-      .reduce((sum, s) => sum + Number(s.goals || 0), 0);
-
-    const knownGoals = Math.max(knownGoalsFromApps, knownGoalsFromScorers);
-    const scorerText = String(match.scorers_text || "").toLowerCase();
-
-    return scorerText.includes("?") || scorerText.includes("unknown") || knownGoals < score;
-  }
-
-  function missingReasons(match, appearances) {
-    const reasons = [];
-
-    if (lineUpMissing(match, appearances)) reasons.push("Line-up details missing");
-    if (goalscorersMissing(match, appearances)) reasons.push("Missing goalscorers");
-    if (isDateMissing(match)) reasons.push("Match date missing");
-
-    return reasons;
-  }
-
-  function renderMissingMatches(matches, teams, appearances) {
-    const panel = document.getElementById("homeMissingMatchesPanel");
-    if (!panel) return;
-
-    const rows = matches
-      .filter(match => !isY(match.abandoned))
-      .filter(match => {
-        const reasons = missingReasons(match, appearances);
-        return reasons.length > 0;
-      })
-      .sort((a, b) => matchSortDate(a) - matchSortDate(b));
-
-    if (!rows.length) {
-      panel.innerHTML = `
-        <p>No matches are currently missing information.</p>
-        <button id="hideMissingMatchesBtn" class="archive-button" type="button">Hide this list</button>
-      `;
-      return;
+  @media (max-width: 900px) {
+    .home-missing-section {
+      width: 100%;
+      max-width: 100%;
+      margin-left: 0;
     }
 
-    panel.innerHTML = `
-      <table class="archive-table home-missing-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Date</th>
-            <th>Competition</th>
-            <th>Match</th>
-            <th>Missing Information</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map((match, index) => {
-            const result = `${teamName(match.home_team, teams)} ${match.home_score}-${match.away_score} ${teamName(match.away_team, teams)}`;
-            const dateText = isDateMissing(match) ? (match.date || "Date unknown") : match.date;
-            const comp = `${match.competition || ""}${match.round ? ` - ${match.round}` : ""}`;
+    .home-missing-table th,
+    .home-missing-table td {
+      white-space: normal;
+    }
 
-            return `
-              <tr>
-                <td>#${String(index + 1).padStart(3, "0")}</td>
-                <td>${dateText}</td>
-                <td>${comp}</td>
-                <td class="home-missing-result"><a href="match.html?id=${match.id}">${result}</a></td>
-                <td>${missingReasons(match, appearances).join(", ")}</td>
-              </tr>
-            `;
-          }).join("")}
-        </tbody>
-      </table>
+    .home-missing-result-link {
+      grid-template-columns: 1fr;
+      row-gap: 4px;
+    }
 
-      <button id="hideMissingMatchesBtn" class="archive-button" type="button">Hide this list</button>
-    `;
+    .home-missing-result-home,
+    .home-missing-result-away {
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .home-missing-result-score {
+      text-align: left;
+    }
+  }
+
+</style>
+
+
+<style>
+  );
 
     const hideBtn = document.getElementById("hideMissingMatchesBtn");
     if (hideBtn) {
@@ -410,7 +193,7 @@
     let compComplete = 0, compIncomplete = 0;
     let frComplete = 0, frIncomplete = 0;
 
-    matches.forEach(match => {
+    matches.filter(isIncludedInArchiveStats).forEach(match => {
       const complete = !isMatchIncomplete(match);
       const friendly = isFriendly(match);
 
@@ -457,7 +240,7 @@
       </tr>
     `;
 
-    renderMissingMatches(matches, teams, appearances);
+    renderMissingMatches(matches, teams, appearances, players);
 
     const showBtn = document.getElementById("showMissingMatchesBtn");
     const panel = document.getElementById("homeMissingMatchesPanel");
@@ -477,6 +260,7 @@
   });
 })();
 </script>
+
 
 
 
