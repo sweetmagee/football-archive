@@ -161,9 +161,41 @@
 
 </style>
 
-
 <style>
-.archive-table tbody tr.percent-green td {
+  .archive-stats-help {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-left: 8px;
+    border-radius: 50%;
+    background: #4a321b;
+    color: #f7ecd5;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: help;
+    position: relative;
+  }
+
+  .archive-stats-help:hover::after {
+    content: "Incomplete means: players with no appearances; matches marked Incomplete = Y; or matches where the date is missing / not in dd/mm/yyyy format.";
+    position: absolute;
+    left: 28px;
+    top: -8px;
+    width: 330px;
+    background: #4a321b;
+    color: #f7ecd5;
+    border: 1px solid #c5aa78;
+    padding: 10px 12px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    z-index: 20;
+    font-weight: 400;
+    line-height: 1.35;
+  }
+
+  .archive-table tbody tr.percent-green td {
     background: #d9ead3 !important;
     font-weight: 700;
   }
@@ -212,38 +244,7 @@
   </div>
 </div>
 
-
-
   <div class="page-wrap">
-
-    <div class="content-box">
-      <h2>About This Site</h2>
-      <p class="home-intro">
-        A Margate and Thanet United FC archive - from the club's foundation to the present day.<br><br>
-        
-      </p>
-    
-    <div class="content-box">
-      <h2>Current Archive Statistics</h2>
-
-      <table class="archive-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Players</th>
-            <th>Competitive Matches</th>
-            <th>Friendly Matches</th>
-            <th>All Matches</th>
-          </tr>
-        </thead>
-        <tbody id="archiveStatsTable"></tbody>
-      </table>
-
-      <div class="missing-info-toggle-wrap">
-        <button id="showMissingMatchesBtn" class="archive-button" type="button">
-          Click here to see matches that are missing information
-        </button>
-      </div>
 
       <div id="homeMissingMatchesPanel" style="display:none;"></div>
     </div>
@@ -300,10 +301,6 @@
     </div>
 
   </div>
-
-
-
-
 
 <script>
 (function () {
@@ -729,10 +726,6 @@
   });
 })();
 </script>
-
-
-
-
 
   <script src="js/home.js"></script>
 </body>
