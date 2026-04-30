@@ -311,6 +311,37 @@ Promise.all([
     return map[Number(shirtNumber || 0)] || "";
   }
 
+
+  function milestoneReached(before, after, step) {
+    const labels = [];
+    for (let n = step; n <= after; n += step) {
+      if (before < n && after >= n) labels.push(n);
+    }
+    return labels;
+  }
+
+  function playerCareerStatsBefore(playerId, competitiveOnly = false) {
+    let appsCount = 0;
+    let goalsCount = 0;
+
+    apps.forEach(row => {
+      if (String(row.player_id).trim() !== String(playerId).trim()) return;
+
+      const matchRecord = matches.find(m =>
+        String(m.id).trim() === String(row.match_id).trim()
+      );
+
+      if (!matchRecord || !isKnownScore(matchRecord)) return;
+      if (competitiveOnly && isFriendly(matchRecord)) return;
+      if (!isBeforeCurrentMatch(matchRecord)) return;
+
+      appsCount++;
+      goalsCount += Number(row.goals || 0);
+    });
+
+    return { apps: appsCount, goals: goalsCount };
+  }
+
   function getPlayerMilestones(a) {
     const playerId = String(a.player_id).trim();
     const currentGoals = Number(a.goals || 0);
