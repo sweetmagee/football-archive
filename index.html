@@ -5,10 +5,57 @@
   <title>Margate & Thanet United FC Archive</title>
   <base href="/football-archive/">
   <link rel="stylesheet" href="css/styles.css">
+
+<style>
+  .home-grid-equal {
+    align-items: stretch;
+  }
+
+  .home-grid-equal > .content-box {
+    display: flex;
+    flex-direction: column;
+    padding: 22px;
+    box-sizing: border-box;
+    min-height: 100%;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .home-grid-equal > .content-box h2 {
+    margin-top: 0;
+    min-height: 1.4em;
+    display: flex;
+    align-items: center;
+  }
+
+  .home-grid-equal > .content-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+  }
+
+  .home-grid-equal #latestAdditions,
+  .home-grid-equal #featuredPlayer {
+    flex: 1;
+  }
+
+  .random-player-box {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .random-player-footer {
+    margin-top: auto;
+    padding-top: 12px;
+  }
+
+  .featured-player-card {
+    height: 100%;
+  }
+</style>
+
 </head>
 <body>
 
-<div class="header-bar site-header-image">
+   <div class="header-bar site-header-image">
   <div class="site-header-overlay">
     <div class="nav-links">
       <a href="index.html">Home</a>
@@ -21,73 +68,79 @@
       <a href="honours.html">Honours</a>
       <a href="history.html">History</a>
       <a href="interactive.html">Interactive</a>
+
     </div>
   </div>
 </div>
 
-<div class="page-wrap">
 
-  <div class="content-box">
-    <h2>Welcome</h2>
-    <p class="home-intro">
-      A statistical record of Margate and Thanet United FC - from the club's
-      foundation to the present day.<br><br>
-      <span id="welcomeStats">Loading site statistics...</span>
-    </p>
-  </div>
 
-  <!-- UPDATED: align items stretch -->
-  <div class="home-grid" style="align-items: stretch;">
+  <div class="page-wrap">
 
     <div class="content-box">
-      <h2>Latest Additions</h2>
-      <div id="latestAdditions">Loading...</div>
-    </div>
-
-    <div class="content-box random-player-box">
-      <h2>Random Player</h2>
-      <div id="featuredPlayer">Loading...</div>
-
-      <p>
-        <button id="randomPlayerBtn" class="archive-button" type="button">
-          Another Random Player
-        </button>
+      <h2>About This Site</h2>
+      <p class="home-intro">
+        A complete record of Margate and Thanet United FC - from the club's
+        foundation to the present day.<br><br>
+        <span id="welcomeStats">Loading site statistics...</span>
+        <br><br>
+        To see which confirmed matches are missing information - line-ups and / or goals - click
+        <a href="missingmatchinfo.html">here</a>.
       </p>
     </div>
 
-  </div>
+    <div class="home-grid home-grid-equal">
 
-  <div class="home-grid">
+      <div class="content-box">
+        <h2>Latest Additions</h2>
+        <div id="latestAdditions">Loading...</div>
+      </div>
 
-    <div class="content-box">
-      <h2>Browse by Season</h2>
-      <p>Jump straight into the year-by-year record of the club.</p>
-      <p><a href="seasons.html">Browse all seasons</a></p>
-    </div>
+      <div class="content-box random-player-box">
+        <h2>Random Player</h2>
+        <div id="featuredPlayer">Loading...</div>
 
-    <div class="content-box">
-      <h2>Programme Covers</h2>
-
-      <div class="programme-grid">
-        <div class="programme-card">
-          <img src="images/programmes/programme1.jpg"
-               alt="Programme cover"
-               onerror="this.style.display='none'">
-          <p>Historic programme cover</p>
-        </div>
-
-        <div class="programme-card">
-          <img src="images/programmes/programme2.jpg"
-               alt="Programme cover"
-               onerror="this.style.display='none'">
-          <p>More covers coming soon</p>
+        <div class="random-player-footer">
+          <button id="randomPlayerBtn" class="archive-button" type="button">
+            Another Random Player
+          </button>
         </div>
       </div>
+
+    </div>
+
+    <div class="home-grid">
+
+      <div class="content-box">
+        <h2>Browse by Season</h2>
+        <p>Jump straight into the year-by-year record of the club.</p>
+        <p><a href="seasons.html">Browse all seasons</a></p>
+      </div>
+
+      <div class="content-box">
+        <h2>Programme Covers</h2>
+
+        <div class="programme-grid">
+          <div class="programme-card">
+            <img src="images/programmes/programme1.jpg"
+                 alt="Programme cover"
+                 onerror="this.style.display='none'">
+            <p>Historic programme cover</p>
+          </div>
+
+          <div class="programme-card">
+            <img src="images/programmes/programme2.jpg"
+                 alt="Programme cover"
+                 onerror="this.style.display='none'">
+            <p>More covers coming soon</p>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </div>
 
-</div>
 
 <script>
 (function () {
@@ -145,6 +198,7 @@
 })();
 </script>
 
-<script src="js/home.js"></script>
+
+  <script src="js/home.js"></script>
 </body>
 </html>
