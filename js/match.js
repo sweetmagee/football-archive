@@ -17,76 +17,28 @@ Promise.all([
 
   const matchStyle = document.createElement("style");
   matchStyle.textContent = `
-    .lineup-player-main { display: inline-flex; align-items: center; gap: 6px; min-width: 0; flex-wrap: wrap; }
+    .lineup-player-main { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
     .lineup-position { display: inline-block; min-width: 28px; font-weight: 700; color: #6c5431; }
     .player-icons-inline { margin-left: 4px; white-space: nowrap; }
-    .match-info-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 17px;
-      height: 17px;
-      margin-left: 3px;
-      border-radius: 50%;
-      border: 1px solid #8b0000;
-      background: #c51616;
-      color: #fff;
-      font-size: 12px;
-      font-weight: 800;
-      line-height: 1;
-      cursor: pointer;
-      font-family: Arial, Helvetica, sans-serif;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    .player-landmarks { margin-left: auto; text-align: right; font-size: 0.9em; white-space: nowrap; }
+    .landmark-label { font-weight: 700; margin: 0 2px; }
+    .match-lineups-grid {
+      display: block !important;
+      width: 100% !important;
     }
-    .match-info-button:hover {
-      background: #9f1010;
-      text-decoration: none;
-    }
-    .match-info-modal-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: rgba(31, 22, 13, 0.65);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+    .match-lineup-column {
+      width: 100% !important;
+      max-width: 100% !important;
       box-sizing: border-box;
-    }
-    .match-info-modal {
-      width: min(420px, 92vw);
-      background: #fbf3df;
-      border: 2px solid #9d8152;
-      border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-      padding: 16px 18px;
-      color: #1f160d;
-    }
-    .match-info-modal h3 {
-      margin: 0 0 12px 0;
-    }
-    .match-info-modal ul {
-      margin: 0 0 14px 0;
-      padding-left: 0;
-      list-style: none;
-    }
-    .match-info-modal li {
-      margin-bottom: 8px;
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      line-height: 1.35;
-    }
-    .match-info-modal-icon {
-      display: inline-block;
-      min-width: 22px;
-      text-align: center;
-    }
-    .match-info-close {
-      margin: 6px 0 0 0;
     }
   `;
   document.head.appendChild(matchStyle);
+
+  document.addEventListener("click", event => {
+    const button = event.target.closest(".match-info-button");
+    if (!button) return;
+    window.showMatchPlayerInfo(button);
+  });
 
   const match = matches[index];
   const prevMatch = index > 0 ? matches[index - 1] : null;
@@ -359,32 +311,6 @@ Promise.all([
     return map[Number(shirtNumber || 0)] || "";
   }
 
-
-  function milestoneReached(before, after, step) {
-    const labels = [];
-    for (let n = step; n <= after; n += step) {
-      if (before < n && after >= n) labels.push(n);
-    }
-    return labels;
-  }
-
-  function playerCareerStatsBefore(playerId, competitiveOnly = false) {
-    let appsCount = 0;
-    let goalsCount = 0;
-
-    apps.forEach(row => {
-      if (String(row.player_id).trim() !== String(playerId).trim()) return;
-      const matchRecord = matches.find(m => String(m.id).trim() === String(row.match_id).trim());
-      if (!matchRecord || !isKnownScore(matchRecord)) return;
-      if (competitiveOnly && isFriendly(matchRecord)) return;
-      if (!isBeforeCurrentMatch(matchRecord)) return;
-      appsCount++;
-      goalsCount += Number(row.goals || 0);
-    });
-
-    return { apps: appsCount, goals: goalsCount };
-  }
-
   function getPlayerMilestones(a) {
     const playerId = String(a.player_id).trim();
     const currentGoals = Number(a.goals || 0);
@@ -444,6 +370,15 @@ Promise.all([
     return "ℹ️";
   }
 
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
   function groupedMilestoneHtml(groups) {
     const sections = [
       { key: "debut", title: "Debuts & Firsts" },
@@ -457,14 +392,10 @@ Promise.all([
         <h4>${section.title}</h4>
         <ul>
           ${groups[section.key].map(label => `
-            <li><span class="match-info-modal-icon">${milestoneIcon(label)}</span><span>${label}</span></li>
+            <li><span class="match-info-modal-icon">${milestoneIcon(label)}</span><span>${escapeHtml(label)}</span></li>
           `).join("")}
         </ul>
       `).join("");
-  }
-
-  function encodeMilestones(groups) {
-    return encodeURIComponent(JSON.stringify(groups));
   }
 
   function playerInfoButton(a) {
@@ -473,16 +404,13 @@ Promise.all([
 
     if (!labels.length) return "";
 
-    const title = labels.join(" | ");
-    const encoded = encodeMilestones(groups);
-
     return `
       <button class="match-info-button"
               type="button"
-              title="${title}"
+              title="${escapeHtml(labels.join(" | "))}"
               aria-label="Show player milestones"
-              data-player="${playerName(a.player_id).replace(/"/g, "&quot;")}"
-              data-info="${encoded}">
+              data-player="${escapeHtml(playerName(a.player_id))}"
+              data-info="${encodeURIComponent(JSON.stringify(groups))}">
         i
       </button>
     `;
@@ -498,12 +426,16 @@ Promise.all([
       groups = {};
     }
 
+    const oldModal = document.getElementById("matchInfoModal");
+    if (oldModal) oldModal.remove();
+
     const modal = document.createElement("div");
+    modal.id = "matchInfoModal";
     modal.className = "match-info-modal-backdrop";
 
     modal.innerHTML = `
       <div class="match-info-modal" role="dialog" aria-modal="true" aria-label="Player milestone details">
-        <h3>${playerNameText}</h3>
+        <h3>${escapeHtml(playerNameText)}</h3>
         ${groupedMilestoneHtml(groups)}
         <button class="archive-button match-info-close" type="button">Close</button>
       </div>
@@ -520,13 +452,7 @@ Promise.all([
     document.body.appendChild(modal);
   };
 
-  document.addEventListener("click", event => {
-    const button = event.target.closest(".match-info-button");
-    if (!button) return;
-    window.showMatchPlayerInfo(button);
-  });
-
-  function playerIcons(a)  function playerIcons(a) {
+  function playerIcons(a) {
     const captain = Number(a.captain || 0) === 1 ? `<span class="captain-icon" title="Captain">Ⓒ</span>` : "";
     const goals = "⚽".repeat(Number(a.goals || 0));
     const yellows = "🟨".repeat(Number(a.yellow || 0));
