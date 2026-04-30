@@ -1003,3 +1003,83 @@ button:hover {
     max-width: 100px;
   }
 }
+
+
+/* Match page player milestone info button and popup */
+.match-info-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  margin-left: 3px;
+  border-radius: 50%;
+  border: 1px solid #8b0000;
+  background: #c51616;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  font-family: Arial, Helvetica, sans-serif;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+
+.match-info-button:hover {
+  background: #9f1010;
+  text-decoration: none;
+}
+
+.match-info-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(31, 22, 13, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.match-info-modal {
+  width: min(420px, 92vw);
+  background: #fbf3df;
+  border: 2px solid #9d8152;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  padding: 16px 18px;
+  color: #1f160d;
+}
+
+.match-info-modal h3 {
+  margin: 0 0 12px 0;
+}
+
+.match-info-modal h4 {
+  margin: 12px 0 7px 0;
+}
+
+.match-info-modal ul {
+  margin: 0 0 10px 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.match-info-modal li {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.35;
+}
+
+.match-info-modal-icon {
+  display: inline-block;
+  min-width: 22px;
+  text-align: center;
+}
+
+.match-info-close {
+  margin: 8px 0 0 0;
+}
