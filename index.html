@@ -49,6 +49,69 @@
   }
 </style>
 
+
+<style>
+  .archive-stats-help {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-left: 8px;
+    border-radius: 50%;
+    background: #4a321b;
+    color: #f7ecd5;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: help;
+    position: relative;
+  }
+
+  .archive-stats-help:hover::after {
+    content: "Incomplete means: players with no appearances; matches marked Incomplete = Y; or matches where the date is missing / not in dd/mm/yyyy format.";
+    position: absolute;
+    left: 28px;
+    top: -8px;
+    width: 330px;
+    background: #4a321b;
+    color: #f7ecd5;
+    border: 1px solid #c5aa78;
+    padding: 10px 12px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    z-index: 20;
+    font-weight: 400;
+    line-height: 1.35;
+  }
+
+  .archive-table tbody tr.percent-green td {
+    background: #d9ead3 !important;
+    font-weight: 700;
+  }
+
+  .archive-table tbody tr.percent-warning td {
+    background: #f4cccc !important;
+    font-weight: 700;
+  }
+
+  .missing-info-toggle-wrap {
+    margin-top: 14px;
+  }
+
+  #homeMissingMatchesPanel {
+    margin-top: 16px;
+  }
+
+  .home-missing-table th,
+  .home-missing-table td {
+    vertical-align: middle;
+  }
+
+  .home-missing-result {
+    white-space: nowrap;
+  }
+</style>
+
 </head>
 <body>
 
@@ -77,14 +140,35 @@
     <div class="content-box">
       <h2>About This Site</h2>
       <p class="home-intro">
-        A complete record of Margate and Thanet United FC - from the club's
-        foundation to the present day.<br><br>
-        <span id="welcomeStats">Loading site statistics...</span>
-        <br><br>
-        To see which confirmed matches are missing information - line-ups and / or goals - click
-        <a href="missingmatchinfo.html">here</a>.
+        A Margate and Thanet United FC archive - from the club's foundation to the present day.<br><br>
+        
       </p>
+    
+    <div class="content-box">
+      <h2>Current Archive Statistics <span class="archive-stats-help" title="Incomplete means: players with no appearances; matches marked Incomplete = Y; or matches where the date is missing / not in dd/mm/yyyy format.">?</span></h2>
+
+      <table class="archive-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Players</th>
+            <th>Competitive Matches</th>
+            <th>Friendly Matches</th>
+            <th>All Matches</th>
+          </tr>
+        </thead>
+        <tbody id="archiveStatsTable"></tbody>
+      </table>
+
+      <div class="missing-info-toggle-wrap">
+        <button id="showMissingMatchesBtn" class="archive-button" type="button">
+          Click here to see matches that are missing information
+        </button>
+      </div>
+
+      <div id="homeMissingMatchesPanel" style="display:none;"></div>
     </div>
+</div>
 
     <div class="home-grid home-grid-equal">
 
@@ -139,78 +223,262 @@
   </div>
 
 
+
+
 <script>
 (function () {
-  const statsEl = document.getElementById("welcomeStats");
-  if (!statsEl) return;
-
   function isY(value) {
     return String(value || "").trim().toUpperCase() === "Y";
   }
 
-  function hasKnownScore(match) {
+  function isFriendly(match) {
+    const comp = String(match.competition || "").toLowerCase();
+    return comp.includes("friendly") || comp === "fr";
+  }
+
+  function hasStrictDate(match) {
+    return /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(String(match.date || "").trim());
+  }
+
+  function isDateMissing(match) {
+    const note = String(match.notes || "").toLowerCase();
+    const date = String(match.date || "").toLowerCase();
+
     return (
-      match &&
-      String(match.home_score).trim() !== "?" &&
-      String(match.away_score).trim() !== "?" &&
-      !Number.isNaN(Number(match.home_score)) &&
-      !Number.isNaN(Number(match.away_score))
+      !hasStrictDate(match) ||
+      note.includes("date of match unknown") ||
+      note.includes("unknown date") ||
+      date.includes("date of match unknown") ||
+      date.includes("unknown date")
     );
   }
 
+  function isMatchIncomplete(match) {
+    return isY(match.incomplete) || isDateMissing(match);
+  }
+
+  function pct(a, b) {
+    return b ? Math.round((a / b) * 100) : 0;
+  }
+
+  function percentRowClass(allPct) {
+    return allPct === 100 ? "percent-green" : "percent-warning";
+  }
+
+  function parseDate(value) {
+    if (!hasStrictDate({ date: value })) return null;
+    const [d, m, y] = String(value).split("/").map(Number);
+    const parsed = new Date(y, m - 1, d);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function matchSortDate(match) {
+    if (isDateMissing(match)) return new Date(9999, 11, 31);
+    return parseDate(match.date) || new Date(9999, 11, 30);
+  }
+
+  function teamName(teamId, teams) {
+    const team = teams.find(t => String(t.id).trim() === String(teamId).trim());
+    return team ? team.name : teamId;
+  }
+
+  function matchApps(match, appearances) {
+    return appearances.filter(a =>
+      String(a.match_id || "").trim() === String(match.id || "").trim() &&
+      String(a.team || "").trim() === "t1"
+    );
+  }
+
+  function margateGoalsFor(match) {
+    if (String(match.home_team).trim() === "t1") return Number(match.home_score);
+    if (String(match.away_team).trim() === "t1") return Number(match.away_score);
+    return 0;
+  }
+
+  function lineUpMissing(match, appearances) {
+    return isY(match.incomplete) && matchApps(match, appearances).length < 11;
+  }
+
+  function goalscorersMissing(match, appearances) {
+    if (!isY(match.incomplete)) return false;
+
+    const score = margateGoalsFor(match);
+    if (Number.isNaN(score) || score <= 0) return false;
+
+    const knownGoalsFromApps = matchApps(match, appearances)
+      .reduce((sum, a) => sum + Number(a.goals || 0), 0);
+
+    const scorersArray = Array.isArray(match.scorers) ? match.scorers : [];
+    const knownGoalsFromScorers = scorersArray
+      .filter(s => String(s.player_id || "").trim().toLowerCase() !== "unknown")
+      .reduce((sum, s) => sum + Number(s.goals || 0), 0);
+
+    const knownGoals = Math.max(knownGoalsFromApps, knownGoalsFromScorers);
+    const scorerText = String(match.scorers_text || "").toLowerCase();
+
+    return scorerText.includes("?") || scorerText.includes("unknown") || knownGoals < score;
+  }
+
+  function missingReasons(match, appearances) {
+    const reasons = [];
+
+    if (lineUpMissing(match, appearances)) reasons.push("Line-up details missing");
+    if (goalscorersMissing(match, appearances)) reasons.push("Missing goalscorers");
+    if (isDateMissing(match)) reasons.push("Match date missing");
+
+    return reasons;
+  }
+
+  function renderMissingMatches(matches, teams, appearances) {
+    const panel = document.getElementById("homeMissingMatchesPanel");
+    if (!panel) return;
+
+    const rows = matches
+      .filter(match => !isY(match.abandoned))
+      .filter(match => {
+        const reasons = missingReasons(match, appearances);
+        return reasons.length > 0;
+      })
+      .sort((a, b) => matchSortDate(a) - matchSortDate(b));
+
+    if (!rows.length) {
+      panel.innerHTML = `
+        <p>No matches are currently missing information.</p>
+        <button id="hideMissingMatchesBtn" class="archive-button" type="button">Hide this list</button>
+      `;
+      return;
+    }
+
+    panel.innerHTML = `
+      <table class="archive-table home-missing-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Competition</th>
+            <th>Match</th>
+            <th>Missing Information</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((match, index) => {
+            const result = `${teamName(match.home_team, teams)} ${match.home_score}-${match.away_score} ${teamName(match.away_team, teams)}`;
+            const dateText = isDateMissing(match) ? (match.date || "Date unknown") : match.date;
+            const comp = `${match.competition || ""}${match.round ? ` - ${match.round}` : ""}`;
+
+            return `
+              <tr>
+                <td>#${String(index + 1).padStart(3, "0")}</td>
+                <td>${dateText}</td>
+                <td>${comp}</td>
+                <td class="home-missing-result"><a href="match.html?id=${match.id}">${result}</a></td>
+                <td>${missingReasons(match, appearances).join(", ")}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+
+      <button id="hideMissingMatchesBtn" class="archive-button" type="button">Hide this list</button>
+    `;
+
+    const hideBtn = document.getElementById("hideMissingMatchesBtn");
+    if (hideBtn) {
+      hideBtn.addEventListener("click", () => {
+        panel.style.display = "none";
+        const showBtn = document.getElementById("showMissingMatchesBtn");
+        if (showBtn) showBtn.style.display = "inline-block";
+      });
+    }
+  }
+
   Promise.all([
-    fetch("data/players.json").then(response => {
-      if (!response.ok) throw new Error("Could not load players.json");
-      return response.json();
-    }),
-    fetch("data/matches.json").then(response => {
-      if (!response.ok) throw new Error("Could not load matches.json");
-      return response.json();
-    })
-  ])
-  .then(([players, matches]) => {
-    const playerCount = Array.isArray(players) ? players.length : 0;
-    const matchList = Array.isArray(matches) ? matches : [];
+    fetch("data/players.json").then(r => r.json()),
+    fetch("data/matches.json").then(r => r.json()),
+    fetch("data/appearances.json").then(r => r.json()),
+    fetch("data/teams.json").then(r => r.json())
+  ]).then(([players, matches, appearances, teams]) => {
 
-   function isDateUnknown(match) {
-  const note = String(match.notes || "").trim().toLowerCase();
+    const playerApps = {};
+    appearances.forEach(a => {
+      playerApps[a.player_id] = (playerApps[a.player_id] || 0) + 1;
+    });
 
-  return (
-    note.includes("date of match unknown") ||
-    !match.date ||
-    String(match.date).trim() === ""
-  );
-}
+    const playersComplete = players.filter(p => playerApps[p.id] > 0).length;
+    const playersIncomplete = players.length - playersComplete;
 
-const confirmedMatches = matchList.filter(match =>
-  !isY(match.abandoned) &&
-  hasKnownScore(match)
-);
+    let compComplete = 0, compIncomplete = 0;
+    let frComplete = 0, frIncomplete = 0;
 
-const completeMatches = confirmedMatches.filter(match => {
-  const dateText = String(match.date || "").trim();
-  const hasStrictDate = /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateText);
+    matches.forEach(match => {
+      const complete = !isMatchIncomplete(match);
+      const friendly = isFriendly(match);
 
-  return (
-    !isY(match.incomplete) &&
-    hasStrictDate &&
-    !isDateUnknown(match)
-  );
-});
+      if (friendly) {
+        if (complete) frComplete++;
+        else frIncomplete++;
+      } else {
+        if (complete) compComplete++;
+        else compIncomplete++;
+      }
+    });
 
-    const percentage = confirmedMatches.length
-      ? Math.round((completeMatches.length / confirmedMatches.length) * 100)
-      : 0;
+    const allComplete = compComplete + frComplete;
+    const allIncomplete = compIncomplete + frIncomplete;
 
-    statsEl.textContent =
-      `The site currently has the details of ${playerCount} players and complete details of ${completeMatches.length} matches out of ${confirmedMatches.length} confirmed as being played. So there are complete records for ${percentage}% of all confirmed matches.`;
-  })
-  .catch(error => {
-    statsEl.textContent = "Unable to load site statistics. Please check data/players.json and data/matches.json.";
-    console.error("Welcome statistics error:", error);
+    const playersPct = pct(playersComplete, players.length);
+    const compPct = pct(compComplete, compComplete + compIncomplete);
+    const frPct = pct(frComplete, frComplete + frIncomplete);
+    const allPct = pct(allComplete, allComplete + allIncomplete);
+
+    const table = document.getElementById("archiveStatsTable");
+
+    table.innerHTML = `
+      <tr>
+        <td><strong>Complete</strong></td>
+        <td>${playersComplete}</td>
+        <td>${compComplete}</td>
+        <td>${frComplete}</td>
+        <td>${allComplete}</td>
+      </tr>
+      <tr>
+        <td><strong>Incomplete</strong></td>
+        <td>${playersIncomplete}</td>
+        <td>${compIncomplete}</td>
+        <td>${frIncomplete}</td>
+        <td>${allIncomplete}</td>
+      </tr>
+      <tr class="${percentRowClass(allPct)}">
+        <td><strong>% Complete</strong></td>
+        <td>${playersPct}%</td>
+        <td>${compPct}%</td>
+        <td>${frPct}%</td>
+        <td>${allPct}%</td>
+      </tr>
+    `;
+
+    renderMissingMatches(matches, teams, appearances);
+
+    const showBtn = document.getElementById("showMissingMatchesBtn");
+    const panel = document.getElementById("homeMissingMatchesPanel");
+
+    if (showBtn && panel) {
+      showBtn.addEventListener("click", () => {
+        panel.style.display = "block";
+        showBtn.style.display = "none";
+      });
+    }
+  }).catch(error => {
+    const table = document.getElementById("archiveStatsTable");
+    if (table) {
+      table.innerHTML = `<tr><td colspan="5">Unable to load archive statistics.</td></tr>`;
+    }
+    console.error("Archive statistics error:", error);
   });
 })();
 </script>
+
+
 
 
   <script src="js/home.js"></script>
