@@ -22,83 +22,8 @@ Promise.all([
     .player-icons-inline { margin-left: 4px; white-space: nowrap; }
     .player-landmarks { margin-left: auto; text-align: right; font-size: 0.9em; white-space: nowrap; }
     .landmark-label { font-weight: 700; margin: 0 2px; }
-    .match-lineups-grid {
-      display: block !important;
-      width: 100% !important;
-    }
-    .match-lineup-column {
-      width: 100% !important;
-      max-width: 100% !important;
-      box-sizing: border-box;
-    }
-
-    .lineup-player {
-      min-height: 26px;
-      align-items: center;
-    }
-    .lineup-player-main {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      min-width: 0;
-      flex-wrap: nowrap;
-      min-height: 24px;
-      line-height: 24px;
-    }
-    .lineup-position {
-      display: inline-flex;
-      align-items: center;
-      min-width: 28px;
-      height: 24px;
-      font-weight: 700;
-      color: #6c5431;
-    }
-    .player-icons-inline {
-      display: inline-flex;
-      align-items: center;
-      height: 24px;
-      line-height: 24px;
-      margin-left: 4px;
-      white-space: nowrap;
-      letter-spacing: 2px;
-      vertical-align: middle;
-    }
-    .match-info-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 17px;
-      height: 17px;
-      min-width: 17px;
-      min-height: 17px;
-      margin: 0 0 0 3px;
-      padding: 0;
-      border-radius: 50%;
-      border: 1px solid #8b0000;
-      background: #c51616;
-      color: #fff;
-      font-size: 12px;
-      font-weight: 800;
-      line-height: 17px;
-      cursor: pointer;
-      font-family: Arial, Helvetica, sans-serif;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.25);
-      vertical-align: middle;
-      flex-shrink: 0;
-    }
-    .match-info-button:hover { background: #9f1010; text-decoration: none; }
-    .lineup-player-main a {
-      display: inline-flex;
-      align-items: center;
-      min-height: 24px;
-    }  `;
+  `;
   document.head.appendChild(matchStyle);
-
-  document.addEventListener("click", event => {
-    const button = event.target.closest(".match-info-button");
-    if (!button) return;
-    window.showMatchPlayerInfo(button);
-  });
 
   const match = matches[index];
   const prevMatch = index > 0 ? matches[index - 1] : null;
@@ -371,7 +296,6 @@ Promise.all([
     return map[Number(shirtNumber || 0)] || "";
   }
 
-
   function milestoneReached(before, after, step) {
     const labels = [];
     for (let n = step; n <= after; n += step) {
@@ -386,15 +310,31 @@ Promise.all([
 
     apps.forEach(row => {
       if (String(row.player_id).trim() !== String(playerId).trim()) return;
-
-      const matchRecord = matches.find(m =>
-        String(m.id).trim() === String(row.match_id).trim()
-      );
-
+      const matchRecord = matches.find(m => String(m.id).trim() === String(row.match_id).trim());
       if (!matchRecord || !isKnownScore(matchRecord)) return;
       if (competitiveOnly && isFriendly(matchRecord)) return;
       if (!isBeforeCurrentMatch(matchRecord)) return;
+      appsCount++;
+      goalsCount += Number(row.goals || 0);
+    });
 
+    return { apps: appsCount, goals: goalsCount };
+  }
+
+  function isAfterCurrentMatch(matchRecord) {
+    return matchSortValue(matchRecord) > matchSortValue(match);
+  }
+
+  function playerCareerStatsAfter(playerId, competitiveOnly = false) {
+    let appsCount = 0;
+    let goalsCount = 0;
+
+    apps.forEach(row => {
+      if (String(row.player_id).trim() !== String(playerId).trim()) return;
+      const matchRecord = matches.find(m => String(m.id).trim() === String(row.match_id).trim());
+      if (!matchRecord || !isKnownScore(matchRecord)) return;
+      if (competitiveOnly && isFriendly(matchRecord)) return;
+      if (!isAfterCurrentMatch(matchRecord)) return;
       appsCount++;
       goalsCount += Number(row.goals || 0);
     });
@@ -442,6 +382,20 @@ Promise.all([
         milestoneReached(compBefore.goals, compBefore.goals + currentGoals, 25)
           .forEach(n => groups.goal.push(`${n}th Competitive Goal`));
       }
+    }
+
+    const allAfter = playerCareerStatsAfter(playerId, false);
+    const compAfter = playerCareerStatsAfter(playerId, true);
+
+    if (allAfter.apps === 0) groups.appearance.push("Final Appearance");
+    if (currentIsCompetitive && compAfter.apps === 0) groups.appearance.push("Final Competitive Appearance");
+
+    if (currentGoals > 0 && allAfter.goals === 0) {
+      groups.goal.push(currentGoals > 1 ? "Final Goals" : "Final Goal");
+    }
+
+    if (currentGoals > 0 && currentIsCompetitive && compAfter.goals === 0) {
+      groups.goal.push(currentGoals > 1 ? "Final Competitive Goals" : "Final Competitive Goal");
     }
 
     return groups;
@@ -542,6 +496,12 @@ Promise.all([
 
     document.body.appendChild(modal);
   };
+
+  document.addEventListener("click", event => {
+    const button = event.target.closest(".match-info-button");
+    if (!button) return;
+    window.showMatchPlayerInfo(button);
+  });
 
   function playerIcons(a) {
     const captain = Number(a.captain || 0) === 1 ? `<span class="captain-icon" title="Captain">Ⓒ</span>` : "";
