@@ -402,6 +402,32 @@ Promise.all([
     return { apps: appsCount, goals: goalsCount };
   }
 
+  function isAfterCurrentMatch(matchRecord) {
+    return matchSortValue(matchRecord) > matchSortValue(match);
+  }
+
+  function playerCareerStatsAfter(playerId, competitiveOnly = false) {
+    let appsCount = 0;
+    let goalsCount = 0;
+
+    apps.forEach(row => {
+      if (String(row.player_id).trim() !== String(playerId).trim()) return;
+
+      const matchRecord = matches.find(m =>
+        String(m.id).trim() === String(row.match_id).trim()
+      );
+
+      if (!matchRecord || !isKnownScore(matchRecord)) return;
+      if (competitiveOnly && isFriendly(matchRecord)) return;
+      if (!isAfterCurrentMatch(matchRecord)) return;
+
+      appsCount++;
+      goalsCount += Number(row.goals || 0);
+    });
+
+    return { apps: appsCount, goals: goalsCount };
+  }
+
   function getPlayerMilestones(a) {
     const playerId = String(a.player_id).trim();
     const currentGoals = Number(a.goals || 0);
@@ -442,6 +468,25 @@ Promise.all([
         milestoneReached(compBefore.goals, compBefore.goals + currentGoals, 25)
           .forEach(n => groups.goal.push(`${n}th Competitive Goal`));
       }
+    }
+
+    const allAfter = playerCareerStatsAfter(playerId, false);
+    const compAfter = playerCareerStatsAfter(playerId, true);
+
+    if (allAfter.apps === 0) {
+      groups.appearance.push("Final Appearance");
+    }
+
+    if (currentIsCompetitive && compAfter.apps === 0) {
+      groups.appearance.push("Final Competitive Appearance");
+    }
+
+    if (currentGoals > 0 && allAfter.goals === 0) {
+      groups.goal.push(currentGoals > 1 ? "Final Goals" : "Final Goal");
+    }
+
+    if (currentGoals > 0 && currentIsCompetitive && compAfter.goals === 0) {
+      groups.goal.push(currentGoals > 1 ? "Final Competitive Goals" : "Final Competitive Goal");
     }
 
     return groups;
