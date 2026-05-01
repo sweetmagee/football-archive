@@ -312,16 +312,19 @@ Promise.all([
   const homeScoreNum = Number(match.home_score || 0);
   const awayScoreNum = Number(match.away_score || 0);
 
-  let homeResultClass = "match-team-draw";
-  let awayResultClass = "match-team-draw";
+  let homeResultClass = "";
+  let awayResultClass = "";
 
-  if (!Number.isNaN(homeScoreNum) && !Number.isNaN(awayScoreNum)) {
+  if (hasKnownResultForMargateColour(match)) {
     if (homeScoreNum > awayScoreNum) {
       homeResultClass = "match-team-winner";
       awayResultClass = "match-team-loser";
     } else if (awayScoreNum > homeScoreNum) {
       homeResultClass = "match-team-loser";
       awayResultClass = "match-team-winner";
+    } else {
+      homeResultClass = "match-team-draw";
+      awayResultClass = "match-team-draw";
     }
   }
 
