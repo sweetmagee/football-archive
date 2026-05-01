@@ -31,6 +31,23 @@
 
   <div class="content-box">
     <h2 id="managerHeading">Manager</h2>
+    <div id="recordGameFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+      <label class="stats-toggle">
+        <input type="checkbox" id="recordAllGames" checked>
+        All Games
+      </label>
+
+      <label class="stats-toggle">
+        <input type="checkbox" id="recordHomeGamesOnly">
+        Home Games Only
+      </label>
+
+      <label class="stats-toggle">
+        <input type="checkbox" id="recordAwayGamesOnly">
+        Away Games Only
+      </label>
+    </div>
+
     <table class="archive-table">
       <thead>
         <tr>
@@ -43,7 +60,7 @@
   </div>
 
   <div class="content-box">
-    <h2>Overall Record</h2>
+    <h2>Match Record</h2>
     <table class="archive-table">
       <thead>
         <tr>
@@ -99,6 +116,21 @@
     <h2>Matches</h2>
 
     <div id="matchFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+      <label class="stats-toggle">
+        <input type="checkbox" id="allGamesMatches" checked>
+        All Games
+      </label>
+
+      <label class="stats-toggle">
+        <input type="checkbox" id="homeGamesOnlyMatches">
+        Home Games Only
+      </label>
+
+      <label class="stats-toggle">
+        <input type="checkbox" id="awayGamesOnlyMatches">
+        Away Games Only
+      </label>
+
       <label class="stats-toggle">
         <input type="checkbox" id="competitiveOnlyMatches">
         Competitive Games Only
