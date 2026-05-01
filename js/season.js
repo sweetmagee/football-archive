@@ -19,6 +19,14 @@ Promise.all([
   const managerHeading = document.getElementById("managerHeading");
   const overallRecordTable = document.getElementById("overallRecordTable");
 
+  const recordAllGames = document.getElementById("recordAllGames");
+  const recordHomeGamesOnly = document.getElementById("recordHomeGamesOnly");
+  const recordAwayGamesOnly = document.getElementById("recordAwayGamesOnly");
+
+  const allGamesMatches = document.getElementById("allGamesMatches");
+  const homeGamesOnlyMatches = document.getElementById("homeGamesOnlyMatches");
+  const awayGamesOnlyMatches = document.getElementById("awayGamesOnlyMatches");
+
   const competitiveOnlyMatches = document.getElementById("competitiveOnlyMatches");
   const friendlyOnlyMatches = document.getElementById("friendlyOnlyMatches");
   const excludeUnknownResults = document.getElementById("excludeUnknownResults");
@@ -166,6 +174,63 @@ Promise.all([
     return comp === "friendly" || comp === "friendlies" || comp === "fr" || comp.includes("friendly");
   }
 
+  function isT1Home(match) {
+    return String(match.home_team).trim() === "t1";
+  }
+
+  function isT1Away(match) {
+    return String(match.away_team).trim() === "t1";
+  }
+
+  function filterByHomeAway(matchList, homeOnlyBox, awayOnlyBox) {
+    if (homeOnlyBox && homeOnlyBox.checked) {
+      return matchList.filter(isT1Home);
+    }
+
+    if (awayOnlyBox && awayOnlyBox.checked) {
+      return matchList.filter(isT1Away);
+    }
+
+    return matchList;
+  }
+
+  function setupGameTickboxes(allBox, homeBox, awayBox, onChange) {
+    if (!allBox || !homeBox || !awayBox) return;
+
+    allBox.addEventListener("change", () => {
+      if (allBox.checked) {
+        homeBox.checked = false;
+        awayBox.checked = false;
+      } else if (!homeBox.checked && !awayBox.checked) {
+        allBox.checked = true;
+      }
+
+      onChange();
+    });
+
+    homeBox.addEventListener("change", () => {
+      if (homeBox.checked) {
+        allBox.checked = false;
+        awayBox.checked = false;
+      } else if (!awayBox.checked) {
+        allBox.checked = true;
+      }
+
+      onChange();
+    });
+
+    awayBox.addEventListener("change", () => {
+      if (awayBox.checked) {
+        allBox.checked = false;
+        homeBox.checked = false;
+      } else if (!homeBox.checked) {
+        allBox.checked = true;
+      }
+
+      onChange();
+    });
+  }
+
   function parseUkDate(value) {
     if (!value) return null;
     const cleaned = String(value).trim().replace(/-/g, "/").replace(/\./g, "/");
@@ -311,14 +376,16 @@ Promise.all([
   function renderOverallRecord(matchList) {
     if (!overallRecordTable) return;
 
-    const competitive = buildOverallRecord(matchList.filter(m => !isFriendly(m)));
-    const friendly = buildOverallRecord(matchList.filter(m => isFriendly(m)));
-    const overall = buildOverallRecord(matchList);
+    const filteredMatchList = filterByHomeAway(matchList, recordHomeGamesOnly, recordAwayGamesOnly);
+
+    const competitive = buildOverallRecord(filteredMatchList.filter(m => !isFriendly(m)));
+    const friendly = buildOverallRecord(filteredMatchList.filter(m => isFriendly(m)));
+    const overall = buildOverallRecord(filteredMatchList);
 
     overallRecordTable.innerHTML = `
       ${recordRow("Competitive Record", competitive)}
       ${recordRow("Friendly Record", friendly)}
-      ${recordRow("Overall Record", overall)}
+      ${recordRow("Match Record", overall)}
     `;
   }
 
@@ -523,6 +590,8 @@ Promise.all([
     matchesEl.innerHTML = "";
 
     let shownMatches = [...seasonMatches];
+
+    shownMatches = filterByHomeAway(shownMatches, homeGamesOnlyMatches, awayGamesOnlyMatches);
 
     if (competitiveOnlyMatches && competitiveOnlyMatches.checked) {
       shownMatches = shownMatches.filter(m => !isFriendly(m));
@@ -788,6 +857,12 @@ Promise.all([
   renderTable(buildTable(leagueMatches));
   renderMatches();
   renderSeasonStats();
+
+  setupGameTickboxes(recordAllGames, recordHomeGamesOnly, recordAwayGamesOnly, () => {
+    renderOverallRecord(countableSeasonMatches);
+  });
+
+  setupGameTickboxes(allGamesMatches, homeGamesOnlyMatches, awayGamesOnlyMatches, renderMatches);
 
   if (competitiveOnlyMatches) {
     competitiveOnlyMatches.addEventListener("change", () => {
