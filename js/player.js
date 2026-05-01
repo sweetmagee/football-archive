@@ -428,9 +428,13 @@ function statSetFor(playerId) {
   el.innerHTML = `
     <style>
       .player-card {
-        grid-template-columns: minmax(260px, 300px) 1fr;
+        grid-template-columns: minmax(195px, 225px) 1fr;
         align-items: start;
         column-gap: 24px;
+      }
+
+      .player-card img {
+        max-width: 195px;
       }
 
       .player-photo-meta {
@@ -457,7 +461,7 @@ function statSetFor(playerId) {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 10px;
-        margin-bottom: 18px;
+        margin: 14px 0 18px;
       }
 
       .player-stat-box {
@@ -577,12 +581,6 @@ function statSetFor(playerId) {
         <div class="player-meta">
           <h2>${player.name}</h2>
 
-          <div class="player-stats-grid">
-            ${recordBox("Competitive Record", "competitive", compStats)}
-            ${recordBox("Friendly Record", "friendly", frStats)}
-            ${recordBox("Total Record", "total", totalStats)}
-          </div>
-
           <div class="player-career-fields">
             <p><strong>Debut:</strong> ${debutText}</p>
             <p><strong>Competitive Debut:</strong> ${competitiveDebutText}</p>
@@ -590,6 +588,12 @@ function statSetFor(playerId) {
             <p><strong>Last Competitive Appearance:</strong> ${lastCompetitiveAppearanceText}</p>
             ${totalStats.apps > 1 ? `<p><strong>Appearance Span (All matches):</strong> ${appearanceSpanText}</p>` : ""}
             ${totalStats.apps > 1 ? `<p><strong>Longest Gap Between Appearances:</strong> ${longestGapText}</p>` : ""}
+          </div>
+
+          <div class="player-stats-grid">
+            ${recordBox("Competitive Record", "competitive", compStats)}
+            ${recordBox("Friendly Record", "friendly", frStats)}
+            ${recordBox("Total Record", "total", totalStats)}
           </div>
         </div>
       </div>
