@@ -100,7 +100,24 @@ Promise.all([
       background: #f8e3e3 !important;
     }
 
-    .match-team-line.match-result-draw {
+    .match-team-line.match-result-win,
+    .match-team-line.match-team-winner.match-result-win,
+    .match-team-line.match-team-loser.match-result-win,
+    .match-team-line.match-team-draw.match-result-win {
+      background: #e7f4e4 !important;
+    }
+
+    .match-team-line.match-result-defeat,
+    .match-team-line.match-team-winner.match-result-defeat,
+    .match-team-line.match-team-loser.match-result-defeat,
+    .match-team-line.match-team-draw.match-result-defeat {
+      background: #f8e3e3 !important;
+    }
+
+    .match-team-line.match-result-draw,
+    .match-team-line.match-team-winner.match-result-draw,
+    .match-team-line.match-team-loser.match-result-draw,
+    .match-team-line.match-team-draw.match-result-draw {
       background: #f6edd2 !important;
     }
 
@@ -357,6 +374,22 @@ Promise.all([
   }
 
   const margateResultClass = margateMatchResultClass(match);
+
+  function opponentResultClass(resultClass) {
+    if (resultClass === "match-result-win") return "match-result-defeat";
+    if (resultClass === "match-result-defeat") return "match-result-win";
+    return resultClass;
+  }
+
+  const homeLineResultClass =
+    String(match.home_team).trim() === "t1"
+      ? margateResultClass
+      : opponentResultClass(margateResultClass);
+
+  const awayLineResultClass =
+    String(match.away_team).trim() === "t1"
+      ? margateResultClass
+      : opponentResultClass(margateResultClass);
 
   const homeScoreNum = Number(match.home_score || 0);
   const awayScoreNum = Number(match.away_score || 0);
@@ -770,12 +803,12 @@ Promise.all([
         ${competitionBadgeHtml(match.competition)}
         <div class="match-header-main">
           <div class="match-score-header">
-            <div class="match-team-line ${homeResultClass} ${margateResultClass}">
+            <div class="match-team-line ${homeResultClass} ${homeLineResultClass}">
               ${teamBadgeHtml(match.home_team, "team-badge-medium")}
               <span class="match-line-text">${homeLine}</span>
             </div>
 
-            <div class="match-team-line ${awayResultClass} ${margateResultClass}">
+            <div class="match-team-line ${awayResultClass} ${awayLineResultClass}">
               ${teamBadgeHtml(match.away_team, "team-badge-medium")}
               <span class="match-line-text">${awayLine}</span>
             </div>
