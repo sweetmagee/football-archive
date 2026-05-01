@@ -323,7 +323,11 @@ Promise.all([
       else drawn++;
     });
 
-    return { played, won, drawn, lost, gf, ga, gd: gf - ga };
+    return { played, won, drawn, lost, gf, ga, gd: gf - ga, winPct: played ? (won / played) * 100 : 0 };
+  }
+
+  function formatWinPct(value) {
+    return `${Number(value || 0).toFixed(1)}%`;
   }
 
   function recordRow(title, r) {
@@ -337,6 +341,7 @@ Promise.all([
         <td>${r.gf}</td>
         <td>${r.ga}</td>
         <td>${r.gd}</td>
+        <td>${formatWinPct(r.winPct)}</td>
       </tr>
     `;
   }
@@ -344,6 +349,171 @@ Promise.all([
   const competitiveRecord = buildRecord(countedMatches.filter(m => !isFriendly(m)));
   const friendlyRecord = buildRecord(countedMatches.filter(m => isFriendly(m)));
   const overallRecord = buildRecord(countedMatches);
+
+  function matchesForManager(managerId) {
+    return matches.filter(m =>
+      normalise(m.home_manager_id) === normalise(managerId) ||
+      normalise(m.away_manager_id) === normalise(managerId)
+    );
+  }
+
+  function buildRecordForManager(managerId, matchList) {
+    let played = 0;
+    let won = 0;
+    let drawn = 0;
+    let lost = 0;
+
+    matchList.forEach(match => {
+      const teamId =
+        normalise(match.home_manager_id) === normalise(managerId)
+          ? match.home_team
+          : normalise(match.away_manager_id) === normalise(managerId)
+            ? match.away_team
+            : "";
+
+      const isHome = normalise(match.home_team) === normalise(teamId);
+      const teamGoals = isHome ? Number(match.home_score) : Number(match.away_score);
+      const oppGoals = isHome ? Number(match.away_score) : Number(match.home_score);
+
+      played++;
+
+      if (teamGoals > oppGoals) won++;
+      else if (teamGoals < oppGoals) lost++;
+      else drawn++;
+    });
+
+    return {
+      played,
+      won,
+      drawn,
+      lost,
+      winPct: played ? (won / played) * 100 : 0
+    };
+  }
+
+  function ordinalRank(n) {
+    const v = n % 100;
+    if (v >= 11 && v <= 13) return `${n}th`;
+    switch (n % 10) {
+      case 1: return `${n}st`;
+      case 2: return `${n}nd`;
+      case 3: return `${n}rd`;
+      default: return `${n}th`;
+    }
+  }
+
+  function managerRecordRank(type) {
+    const rows = managers.map(mgr => {
+      const managerMatchList = matchesForManager(mgr.id).filter(isCountableMatch);
+      const filtered = type === "competitive"
+        ? managerMatchList.filter(m => !isFriendly(m))
+        : type === "friendly"
+          ? managerMatchList.filter(m => isFriendly(m))
+          : managerMatchList;
+
+      const rec = buildRecordForManager(mgr.id, filtered);
+
+      return {
+        id: mgr.id,
+        name: mgr.name,
+        played: rec.played,
+        winPct: rec.winPct
+      };
+    }).filter(row => row.played > 0);
+
+    rows.sort((a, b) =>
+      b.winPct - a.winPct ||
+      b.played - a.played ||
+      a.name.localeCompare(b.name)
+    );
+
+    const current = rows.find(row => normalise(row.id) === normalise(manager.id));
+    if (!current) return { text: "Unranked", rank: null, total: rows.length };
+
+    const higher = rows.filter(row => row.winPct > current.winPct).length;
+    const tied = rows.filter(row => row.winPct === current.winPct).length;
+    const rank = higher + 1;
+    const rankText = tied > 1 ? `Joint ${ordinalRank(rank)} of ${rows.length}` : `${ordinalRank(rank)} of ${rows.length}`;
+
+    return { text: rankText, rank, total: rows.length };
+  }
+
+  function rankedWinPctLine(label, record, type) {
+    const rank = managerRecordRank(type);
+    const star = rank.rank === 1 ? `<span class="gold-star">★</span>` : "";
+
+    return `<p><strong>${label}:</strong> ${formatWinPct(record.winPct)}${star} (${rank.text})</p>`;
+  }
+
+  let managerRecordSort = { key: "record", direction: "asc" };
+
+  function recordSortArrow(key) {
+    if (managerRecordSort.key !== key) return `<span class="sort-muted">↕</span>`;
+    return managerRecordSort.direction === "asc" ? "▲" : "▼";
+  }
+
+  function recordHeader(label, key) {
+    return `<th class="sortable manager-record-sort" data-sort="${key}">${label} ${recordSortArrow(key)}</th>`;
+  }
+
+  function getManagerRecordRows() {
+    return [
+      { title: "Competitive Record", ...competitiveRecord },
+      { title: "Friendly Record", ...friendlyRecord },
+      { title: "Overall Record", ...overallRecord }
+    ];
+  }
+
+  function renderManagerRecordTable() {
+    const tableWrap = document.getElementById("managerRecordTableWrap");
+    if (!tableWrap) return;
+
+    const rows = getManagerRecordRows().sort((a, b) => {
+      let av = managerRecordSort.key === "record" ? a.title : a[managerRecordSort.key];
+      let bv = managerRecordSort.key === "record" ? b.title : b[managerRecordSort.key];
+
+      if (typeof av === "string") av = av.toLowerCase();
+      if (typeof bv === "string") bv = bv.toLowerCase();
+
+      if (av < bv) return managerRecordSort.direction === "asc" ? -1 : 1;
+      if (av > bv) return managerRecordSort.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    tableWrap.innerHTML = `
+      <table class="archive-table manager-record-table">
+        <thead>
+          <tr>
+            ${recordHeader("Record", "record")}
+            ${recordHeader("P", "played")}
+            ${recordHeader("W", "won")}
+            ${recordHeader("D", "drawn")}
+            ${recordHeader("L", "lost")}
+            ${recordHeader("GF", "gf")}
+            ${recordHeader("GA", "ga")}
+            ${recordHeader("GD", "gd")}
+            ${recordHeader("Win %", "winPct")}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(row => recordRow(row.title, row)).join("")}
+        </tbody>
+      </table>
+    `;
+
+    document.querySelectorAll(".manager-record-sort").forEach(th => {
+      th.addEventListener("click", () => {
+        const key = th.dataset.sort;
+        if (managerRecordSort.key === key) {
+          managerRecordSort.direction = managerRecordSort.direction === "asc" ? "desc" : "asc";
+        } else {
+          managerRecordSort.key = key;
+          managerRecordSort.direction = key === "record" ? "asc" : "desc";
+        }
+        renderManagerRecordTable();
+      });
+    });
+  }
 
   const hasUnknownMatches = managerMatches.some(hasUnknownResult);
   const hasAbandonedMatches = managerMatches.some(isAbandoned);
@@ -354,7 +524,9 @@ Promise.all([
 
     let shownMatches = [...managerMatches];
 
-    const competitiveOnly = document.getElementById("competitiveOnlyManaged");
+    renderManagerRecordTable();
+
+  const competitiveOnly = document.getElementById("competitiveOnlyManaged");
     const friendlyOnly = document.getElementById("friendlyOnlyManaged");
     const excludeUnknown = document.getElementById("excludeUnknownManaged");
     const excludeAbandoned = document.getElementById("excludeAbandonedManaged");
@@ -476,6 +648,15 @@ Promise.all([
         text-align: left !important;
       }
 
+      .manager-record-sort {
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .manager-record-sort:hover {
+        text-decoration: underline;
+      }
+
       @media (max-width: 900px) {
         .manager-matches-table {
           display: block;
@@ -559,37 +740,22 @@ Promise.all([
           <p><strong>First Match:</strong> ${firstDate}</p>
           <p><strong>Last Match:</strong> ${lastDate}</p>
           <p><strong>Management Span (All matches):</strong> ${managementSpan}</p>
+          ${rankedWinPctLine("Win Percentage (Competitive Matches)", competitiveRecord, "competitive")}
+          ${rankedWinPctLine("Win Percentage (Friendly Matches)", friendlyRecord, "friendly")}
+          ${rankedWinPctLine("Win Percentage (All Matches)", overallRecord, "overall")}
+          <p><strong>Biography:</strong> ${manager.bio || "No biography available."}</p>
         </div>
       </div>
     </div>
 
     <div class="content-box">
-      <h3>Biography</h3>
-      <p>${manager.bio || "No biography available."}</p>
+      <h3>Honours Won / FA Cup Runs</h3>
+      <p>${manager.honours || manager.fa_cup_runs || manager.honours_won || "No honours or FA Cup run information available."}</p>
     </div>
 
     <div class="content-box">
       <h3>Managerial Record</h3>
-
-      <table class="archive-table manager-record-table">
-        <thead>
-          <tr>
-            <th>Record</th>
-            <th>P</th>
-            <th>W</th>
-            <th>D</th>
-            <th>L</th>
-            <th>GF</th>
-            <th>GA</th>
-            <th>GD</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${recordRow("Competitive Record", competitiveRecord)}
-          ${recordRow("Friendly Record", friendlyRecord)}
-          ${recordRow("Overall Record", overallRecord)}
-        </tbody>
-      </table>
+      <div id="managerRecordTableWrap"></div>
     </div>
 
     <div class="content-box">
@@ -636,6 +802,8 @@ Promise.all([
       </table>
     </div>
   `;
+
+  renderManagerRecordTable();
 
   const competitiveOnly = document.getElementById("competitiveOnlyManaged");
   const friendlyOnly = document.getElementById("friendlyOnlyManaged");
