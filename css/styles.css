@@ -145,8 +145,8 @@ tbody tr:hover {
   justify-content: center;
   background: linear-gradient(
     to bottom,
-    rgba(11, 18, 32, 0.04),
-    rgba(11, 18, 32, 0.45)
+    rgba(11, 18, 32, 0.10),
+    rgba(11, 18, 32, 0.58)
   );
   padding: 0 20px 18px;
   box-sizing: border-box;
@@ -187,8 +187,9 @@ tbody tr:hover {
 }
 
 .nav-links a:hover {
-  background: #1d4ed8;   /* same blue hover as stats buttons */
-  color: #ffffff;
+  background: #6b421f;
+  color: #fff7dc;
+  text-decoration: none;
 }
 .content-box {
   border: 1px solid #b8c9ea;
@@ -667,15 +668,11 @@ tbody tr:hover {
 }
 
 .archive-button {
-  background: #2563eb;        /* blue */
-  border: 1px solid #1e40af;
-  color: #ffffff;
-}
-
-.archive-button:hover {
-  background: #f59e0b;        /* amber */
-  border-color: #b45309;
-  color: #ffffff;
+  padding: 8px 14px;
+  border: 1px solid #8aa9dd;
+  background: #dbe8ff;
+  color: #14213d;
+  font-weight: 700;
 }
 
 .archive-button:hover,
@@ -1055,12 +1052,70 @@ button:hover {
   align-items: center;
   min-height: 24px;
 }
-/* Universal amber hover (matches player.html behaviour) */
+
+
+/* === Blue / amber colour test refinements: buttons, menu hover, seasons page controls === */
+
+/* Slightly stronger header overlay tint - colour only */
+.site-header-overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(11, 18, 32, 0.12),
+    rgba(11, 18, 32, 0.64)
+  );
+}
+
+/* Shared transition only; does not change size/layout */
+.nav-links a,
+.archive-button,
+button,
+.stats-button,
+input[type="button"],
+input[type="submit"] {
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+/* Normal state for site buttons, including seasons.html buttons */
+.archive-button,
+button {
+  background: #2563eb !important;
+  border-color: #1e40af !important;
+  color: #ffffff !important;
+}
+
+/* Normal state for statistics.html buttons */
+.stats-button {
+  background: rgba(18, 59, 122, 0.88) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  color: #ffffff !important;
+}
+
+/* Normal state for menu buttons */
+.nav-links a {
+  background: rgba(18, 59, 122, 0.88) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* Amber hover lift for menu, statistics buttons and page buttons */
+.nav-links a:hover,
 .archive-button:hover,
 button:hover,
 .stats-button:hover,
-.nav-links a:hover {
-  background: #f59e0b !important;   /* amber */
+input[type="button"]:hover,
+input[type="submit"]:hover {
+  background: #f59e0b !important;
   border-color: #b45309 !important;
   color: #ffffff !important;
+  text-decoration: none !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 47, 122, 0.22);
+}
+
+/* Keep disabled-looking controls stable if ever used */
+button:disabled,
+.archive-button:disabled {
+  transform: none;
+  box-shadow: none;
+  opacity: 0.65;
 }
