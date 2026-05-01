@@ -485,6 +485,8 @@ Promise.all([
       return;
     }
 
+    let filteredMatchCounter = 0;
+
     matchesWrap.innerHTML = Object.entries(grouped)
       .sort((a, b) => normalise(a[0]).localeCompare(normalise(b[0])))
       .map(([seasonId, matchList]) => {
@@ -504,7 +506,11 @@ Promise.all([
               </tr>
             </thead>
             <tbody>
-              ${matchList.map((match, index) => matchLine(match, index)).join("")}
+              ${matchList.map(match => {
+                const line = matchLine(match, filteredMatchCounter);
+                filteredMatchCounter++;
+                return line;
+              }).join("")}
             </tbody>
           </table>
         `;
