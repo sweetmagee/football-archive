@@ -116,6 +116,30 @@ Promise.all([
       font-variant-numeric: tabular-nums;
     }
 
+    .season-matches-table tbody tr.season-result-win td {
+      background: #e7f4e4 !important;
+    }
+
+    .season-matches-table tbody tr.season-result-defeat td {
+      background: #f8e3e3 !important;
+    }
+
+    .season-matches-table tbody tr.season-result-draw td {
+      background: #f6edd2 !important;
+    }
+
+    .season-matches-table tbody tr.season-result-win:hover td {
+      background: #d9ecd5 !important;
+    }
+
+    .season-matches-table tbody tr.season-result-defeat:hover td {
+      background: #f1d4d4 !important;
+    }
+
+    .season-matches-table tbody tr.season-result-draw:hover td {
+      background: #efe0b9 !important;
+    }
+
     .season-match-competition img {
       margin-right: 4px;
     }
@@ -573,14 +597,22 @@ Promise.all([
     `;
   }
 
-  function matchSortDate(match) {
-    const note = String(match.notes || "").toLowerCase();
-    if (note.includes("date of match unknown")) {
-      return new Date(9999, 11, 31);
-    }
+  function margateResultClass(match) {
+    if (!isCountableMatch(match)) return "";
 
-    const d = parseUkDate(match.date);
-    return d || new Date(9999, 11, 30);
+    const homeScore = Number(match.home_score);
+    const awayScore = Number(match.away_score);
+    const margateHome = String(match.home_team).trim() === "t1";
+    const margateAway = String(match.away_team).trim() === "t1";
+
+    if (!margateHome && !margateAway) return "";
+
+    const margateScore = margateHome ? homeScore : awayScore;
+    const opponentScore = margateHome ? awayScore : homeScore;
+
+    if (margateScore > opponentScore) return "season-result-win";
+    if (margateScore < opponentScore) return "season-result-defeat";
+    return "season-result-draw";
   }
 
 
@@ -635,8 +667,10 @@ Promise.all([
             const comp = `${competitionBadgeHtml(m.competition)} ${m.competition || ""}${m.round ? ` - ${m.round}` : ""}${abandonedText}`;
             const scorers = matchScorersText(m);
 
+            const resultClass = margateResultClass(m);
+
             return `
-              <tr>
+              <tr class="${resultClass}">
                 <td class="season-match-number">${matchNumber}</td>
                 <td>${m.date || ""}</td>
                 <td class="season-match-competition">${comp}</td>

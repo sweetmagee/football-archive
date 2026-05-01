@@ -87,6 +87,18 @@ Promise.all([
       flex-shrink: 0;
     }
     .match-info-button:hover { background: #9f1010; text-decoration: none; }
+    .match-team-line.match-result-win {
+      background: #e7f4e4 !important;
+    }
+
+    .match-team-line.match-result-defeat {
+      background: #f8e3e3 !important;
+    }
+
+    .match-team-line.match-result-draw {
+      background: #f6edd2 !important;
+    }
+
     .lineup-player-main a {
       display: inline-flex;
       align-items: center;
@@ -308,6 +320,41 @@ Promise.all([
       : `${awayName} ${match.away_score}`;
 
   const manager = margateManagerForMatch(match);
+
+  function isAbandonedMatch(matchRecord) {
+    return String(matchRecord.abandoned || "").trim().toUpperCase() === "Y";
+  }
+
+  function hasKnownResult(matchRecord) {
+    return (
+      matchRecord &&
+      String(matchRecord.home_score).trim() !== "?" &&
+      String(matchRecord.away_score).trim() !== "?" &&
+      !Number.isNaN(Number(matchRecord.home_score)) &&
+      !Number.isNaN(Number(matchRecord.away_score)) &&
+      !isAbandonedMatch(matchRecord)
+    );
+  }
+
+  function margateMatchResultClass(matchRecord) {
+    if (!hasKnownResult(matchRecord)) return "";
+
+    const homeScore = Number(matchRecord.home_score);
+    const awayScore = Number(matchRecord.away_score);
+    const margateHome = String(matchRecord.home_team).trim() === "t1";
+    const margateAway = String(matchRecord.away_team).trim() === "t1";
+
+    if (!margateHome && !margateAway) return "";
+
+    const margateScore = margateHome ? homeScore : awayScore;
+    const opponentScore = margateHome ? awayScore : homeScore;
+
+    if (margateScore > opponentScore) return "match-result-win";
+    if (margateScore < opponentScore) return "match-result-defeat";
+    return "match-result-draw";
+  }
+
+  const margateResultClass = margateMatchResultClass(match);
 
   const homeScoreNum = Number(match.home_score || 0);
   const awayScoreNum = Number(match.away_score || 0);
@@ -721,12 +768,12 @@ Promise.all([
         ${competitionBadgeHtml(match.competition)}
         <div class="match-header-main">
           <div class="match-score-header">
-            <div class="match-team-line ${homeResultClass}">
+            <div class="match-team-line ${homeResultClass} ${margateResultClass}">
               ${teamBadgeHtml(match.home_team, "team-badge-medium")}
               <span class="match-line-text">${homeLine}</span>
             </div>
 
-            <div class="match-team-line ${awayResultClass}">
+            <div class="match-team-line ${awayResultClass} ${margateResultClass}">
               ${teamBadgeHtml(match.away_team, "team-badge-medium")}
               <span class="match-line-text">${awayLine}</span>
             </div>
