@@ -100,6 +100,79 @@ Promise.all([
     return comp === "friendly" || comp === "friendlies" || comp === "fr" || comp.includes("friendly");
   }
 
+  function isT1Home(match) {
+    return normalise(match.home_team) === "t1";
+  }
+
+  function isT1Away(match) {
+    return normalise(match.away_team) === "t1";
+  }
+
+  function filterByHomeAway(matchList, homeOnlyBox, awayOnlyBox) {
+    if (homeOnlyBox && homeOnlyBox.checked) {
+      return matchList.filter(isT1Home);
+    }
+
+    if (awayOnlyBox && awayOnlyBox.checked) {
+      return matchList.filter(isT1Away);
+    }
+
+    return matchList;
+  }
+
+  function setupGameTickboxes(allBox, homeBox, awayBox, onChange) {
+    if (!allBox || !homeBox || !awayBox) return;
+
+    allBox.addEventListener("change", () => {
+      if (allBox.checked) {
+        homeBox.checked = false;
+        awayBox.checked = false;
+      } else if (!homeBox.checked && !awayBox.checked) {
+        allBox.checked = true;
+      }
+
+      onChange();
+    });
+
+    homeBox.addEventListener("change", () => {
+      if (homeBox.checked) {
+        allBox.checked = false;
+        awayBox.checked = false;
+      } else if (!awayBox.checked) {
+        allBox.checked = true;
+      }
+
+      onChange();
+    });
+
+    awayBox.addEventListener("change", () => {
+      if (awayBox.checked) {
+        allBox.checked = false;
+        homeBox.checked = false;
+      } else if (!homeBox.checked) {
+        allBox.checked = true;
+      }
+
+      onChange();
+    });
+  }
+
+  function margateResultClass(match) {
+    if (!isCountableMatch(match)) return "";
+
+    const margateHome = isT1Home(match);
+    const margateAway = isT1Away(match);
+
+    if (!margateHome && !margateAway) return "";
+
+    const margateScore = margateHome ? Number(match.home_score) : Number(match.away_score);
+    const opponentScore = margateHome ? Number(match.away_score) : Number(match.home_score);
+
+    if (margateScore > opponentScore) return "manager-result-win";
+    if (margateScore < opponentScore) return "manager-result-defeat";
+    return "manager-result-draw";
+  }
+
   function isAbandoned(match) {
     return normalise(match.abandoned).toUpperCase() === "Y";
   }
@@ -346,9 +419,17 @@ Promise.all([
     `;
   }
 
-  const competitiveRecord = buildRecord(countedMatches.filter(m => !isFriendly(m)));
-  const friendlyRecord = buildRecord(countedMatches.filter(m => isFriendly(m)));
-  const overallRecord = buildRecord(countedMatches);
+  let competitiveRecord = buildRecord(countedMatches.filter(m => !isFriendly(m)));
+  let friendlyRecord = buildRecord(countedMatches.filter(m => isFriendly(m)));
+  let overallRecord = buildRecord(countedMatches);
+
+  function currentManagerRecordMatches() {
+    return filterByHomeAway(
+      countedMatches,
+      document.getElementById("recordHomeGamesOnlyManaged"),
+      document.getElementById("recordAwayGamesOnlyManaged")
+    );
+  }
 
   function matchesForManager(managerId) {
     return matches.filter(m =>
@@ -457,6 +538,12 @@ Promise.all([
   }
 
   function getManagerRecordRows() {
+    const recordMatches = currentManagerRecordMatches();
+
+    competitiveRecord = buildRecord(recordMatches.filter(m => !isFriendly(m)));
+    friendlyRecord = buildRecord(recordMatches.filter(m => isFriendly(m)));
+    overallRecord = buildRecord(recordMatches);
+
     return [
       { title: "Competitive Record", ...competitiveRecord },
       { title: "Friendly Record", ...friendlyRecord },
@@ -524,9 +611,13 @@ Promise.all([
 
     let shownMatches = [...managerMatches];
 
-    renderManagerRecordTable();
+    const allGames = document.getElementById("allGamesManaged");
+    const homeGamesOnly = document.getElementById("homeGamesOnlyManaged");
+    const awayGamesOnly = document.getElementById("awayGamesOnlyManaged");
 
-  const competitiveOnly = document.getElementById("competitiveOnlyManaged");
+    shownMatches = filterByHomeAway(shownMatches, homeGamesOnly, awayGamesOnly);
+
+    const competitiveOnly = document.getElementById("competitiveOnlyManaged");
     const friendlyOnly = document.getElementById("friendlyOnlyManaged");
     const excludeUnknown = document.getElementById("excludeUnknownManaged");
     const excludeAbandoned = document.getElementById("excludeAbandonedManaged");
@@ -558,8 +649,10 @@ Promise.all([
       const abandonedText = isAbandoned(match) ? " - Abandoned" : "";
       const scorers = matchScorersText(match);
 
+      const resultClass = margateResultClass(match);
+
       return `
-        <tr>
+        <tr class="${resultClass}">
           <td class="manager-match-number">#${String(index + 1).padStart(3, "0")}</td>
           <td>${match.date || ""}</td>
           <td>${match.competition || ""}${match.round ? ` - ${match.round}` : ""}${abandonedText}</td>
@@ -646,6 +739,30 @@ Promise.all([
 
       .manager-match-scorers {
         text-align: left !important;
+      }
+
+      .manager-matches-table tbody tr.manager-result-win td {
+        background: #e7f4e4 !important;
+      }
+
+      .manager-matches-table tbody tr.manager-result-defeat td {
+        background: #f8e3e3 !important;
+      }
+
+      .manager-matches-table tbody tr.manager-result-draw td {
+        background: #f6edd2 !important;
+      }
+
+      .manager-matches-table tbody tr.manager-result-win:hover td {
+        background: #d9ecd5 !important;
+      }
+
+      .manager-matches-table tbody tr.manager-result-defeat:hover td {
+        background: #f1d4d4 !important;
+      }
+
+      .manager-matches-table tbody tr.manager-result-draw:hover td {
+        background: #efe0b9 !important;
       }
 
       .manager-record-sort {
@@ -755,6 +872,24 @@ Promise.all([
 
     <div class="content-box">
       <h3>Managerial Record</h3>
+
+      <div id="managerRecordGameFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+        <label class="stats-toggle">
+          <input type="checkbox" id="recordAllGamesManaged" checked>
+          All Games
+        </label>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="recordHomeGamesOnlyManaged">
+          Home Games Only
+        </label>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="recordAwayGamesOnlyManaged">
+          Away Games Only
+        </label>
+      </div>
+
       <div id="managerRecordTableWrap"></div>
     </div>
 
@@ -762,6 +897,21 @@ Promise.all([
       <h3>Matches Managed</h3>
 
       <div id="managerMatchFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+        <label class="stats-toggle">
+          <input type="checkbox" id="allGamesManaged" checked>
+          All Games
+        </label>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="homeGamesOnlyManaged">
+          Home Games Only
+        </label>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="awayGamesOnlyManaged">
+          Away Games Only
+        </label>
+
         <label class="stats-toggle">
           <input type="checkbox" id="competitiveOnlyManaged">
           Competitive Games Only
@@ -804,6 +954,17 @@ Promise.all([
   `;
 
   renderManagerRecordTable();
+
+  const recordAllGames = document.getElementById("recordAllGamesManaged");
+  const recordHomeGamesOnly = document.getElementById("recordHomeGamesOnlyManaged");
+  const recordAwayGamesOnly = document.getElementById("recordAwayGamesOnlyManaged");
+
+  const allGames = document.getElementById("allGamesManaged");
+  const homeGamesOnly = document.getElementById("homeGamesOnlyManaged");
+  const awayGamesOnly = document.getElementById("awayGamesOnlyManaged");
+
+  setupGameTickboxes(recordAllGames, recordHomeGamesOnly, recordAwayGamesOnly, renderManagerRecordTable);
+  setupGameTickboxes(allGames, homeGamesOnly, awayGamesOnly, renderManagedMatches);
 
   const competitiveOnly = document.getElementById("competitiveOnlyManaged");
   const friendlyOnly = document.getElementById("friendlyOnlyManaged");

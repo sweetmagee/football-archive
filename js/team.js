@@ -28,6 +28,79 @@ Promise.all([
     return comp === "friendly" || comp === "friendlies" || comp === "fr" || comp.includes("friendly");
   }
 
+  function isT1Home(match) {
+    return normalise(match.home_team) === "t1";
+  }
+
+  function isT1Away(match) {
+    return normalise(match.away_team) === "t1";
+  }
+
+  function filterByHomeAway(matchList, homeOnlyBox, awayOnlyBox) {
+    if (homeOnlyBox && homeOnlyBox.checked) {
+      return matchList.filter(isT1Home);
+    }
+
+    if (awayOnlyBox && awayOnlyBox.checked) {
+      return matchList.filter(isT1Away);
+    }
+
+    return matchList;
+  }
+
+  function setupGameTickboxes(allBox, homeBox, awayBox, onChange) {
+    if (!allBox || !homeBox || !awayBox) return;
+
+    allBox.addEventListener("change", () => {
+      if (allBox.checked) {
+        homeBox.checked = false;
+        awayBox.checked = false;
+      } else if (!homeBox.checked && !awayBox.checked) {
+        allBox.checked = true;
+      }
+
+      onChange();
+    });
+
+    homeBox.addEventListener("change", () => {
+      if (homeBox.checked) {
+        allBox.checked = false;
+        awayBox.checked = false;
+      } else if (!awayBox.checked) {
+        allBox.checked = true;
+      }
+
+      onChange();
+    });
+
+    awayBox.addEventListener("change", () => {
+      if (awayBox.checked) {
+        allBox.checked = false;
+        homeBox.checked = false;
+      } else if (!homeBox.checked) {
+        allBox.checked = true;
+      }
+
+      onChange();
+    });
+  }
+
+  function margateResultClass(match) {
+    if (!isCountableMatch(match)) return "";
+
+    const margateHome = isT1Home(match);
+    const margateAway = isT1Away(match);
+
+    if (!margateHome && !margateAway) return "";
+
+    const margateScore = margateHome ? Number(match.home_score) : Number(match.away_score);
+    const opponentScore = margateHome ? Number(match.away_score) : Number(match.home_score);
+
+    if (margateScore > opponentScore) return "team-result-win";
+    if (margateScore < opponentScore) return "team-result-defeat";
+    return "team-result-draw";
+  }
+
   function isAbandoned(match) {
     return normalise(match.abandoned).toUpperCase() === "Y";
   }
@@ -413,8 +486,10 @@ Promise.all([
     const abandonedText = isAbandoned(match) ? " - Abandoned" : "";
     const scorers = matchScorersText(match);
 
+    const resultClass = margateResultClass(match);
+
     return `
-      <tr>
+      <tr class="${resultClass}">
         <td class="team-match-number">${matchNumber}</td>
         <td>${match.date || ""}</td>
         <td>${match.competition || ""}${match.round ? ` - ${match.round}` : ""}${abandonedText}</td>
@@ -430,7 +505,13 @@ Promise.all([
     const includedText = document.getElementById("includedTeamsText");
 
     if (recordWrap) {
-      recordWrap.innerHTML = recordTableHtml(getCountableTeamMatches());
+      const recordMatches = filterByHomeAway(
+        getCountableTeamMatches(),
+        document.getElementById("recordHomeGamesOnlyTeam"),
+        document.getElementById("recordAwayGamesOnlyTeam")
+      );
+
+      recordWrap.innerHTML = recordTableHtml(recordMatches);
     }
 
     if (includedText) {
@@ -450,6 +531,12 @@ Promise.all([
     if (!matchesWrap) return;
 
     let shownMatches = [...getAllTeamMatches()];
+
+    const allGames = document.getElementById("allGamesMatches");
+    const homeGamesOnly = document.getElementById("homeGamesOnlyMatches");
+    const awayGamesOnly = document.getElementById("awayGamesOnlyMatches");
+
+    shownMatches = filterByHomeAway(shownMatches, homeGamesOnly, awayGamesOnly);
 
     const competitiveOnly = document.getElementById("competitiveOnlyMatches");
     const friendlyOnly = document.getElementById("friendlyOnlyMatches");
@@ -617,6 +704,24 @@ Promise.all([
         <div class="team-header-text" style="width:100%;">
           <h2>${team.name}</h2>
           ${combineDropdownsHtml()}
+
+          <div id="teamRecordGameFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+            <label class="stats-toggle">
+              <input type="checkbox" id="recordAllGamesTeam" checked>
+              All Games
+            </label>
+
+            <label class="stats-toggle">
+              <input type="checkbox" id="recordHomeGamesOnlyTeam">
+              Home Games Only
+            </label>
+
+            <label class="stats-toggle">
+              <input type="checkbox" id="recordAwayGamesOnlyTeam">
+              Away Games Only
+            </label>
+          </div>
+
           <div id="teamRecordWrap"></div>
         </div>
       </div>
@@ -646,6 +751,21 @@ Promise.all([
       <h3>Matches</h3>
 
       <div id="matchFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+        <label class="stats-toggle">
+          <input type="checkbox" id="allGamesMatches" checked>
+          All Games
+        </label>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="homeGamesOnlyMatches">
+          Home Games Only
+        </label>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="awayGamesOnlyMatches">
+          Away Games Only
+        </label>
+
         <label class="stats-toggle">
           <input type="checkbox" id="competitiveOnlyMatches">
           Competitive Games Only
@@ -724,6 +844,17 @@ Promise.all([
       }
     });
   });
+
+  const recordAllGames = document.getElementById("recordAllGamesTeam");
+  const recordHomeGamesOnly = document.getElementById("recordHomeGamesOnlyTeam");
+  const recordAwayGamesOnly = document.getElementById("recordAwayGamesOnlyTeam");
+
+  const allGames = document.getElementById("allGamesMatches");
+  const homeGamesOnly = document.getElementById("homeGamesOnlyMatches");
+  const awayGamesOnly = document.getElementById("awayGamesOnlyMatches");
+
+  setupGameTickboxes(recordAllGames, recordHomeGamesOnly, recordAwayGamesOnly, renderHeaderRecord);
+  setupGameTickboxes(allGames, homeGamesOnly, awayGamesOnly, renderMatches);
 
   const competitiveOnly = document.getElementById("competitiveOnlyMatches");
   const friendlyOnly = document.getElementById("friendlyOnlyMatches");
