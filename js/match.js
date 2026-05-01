@@ -20,14 +20,22 @@ Promise.all([
     .lineup-player-main { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
     .lineup-position { display: inline-block; min-width: 28px; font-weight: 700; color: #6c5431; }
     .player-icons-inline { margin-left: 4px; white-space: nowrap; }
-    .player-landmarks { margin-left: 8px; text-align: left; font-size: 0.9em; white-space: nowrap; }
+    .player-landmarks { margin-left: auto; text-align: right; font-size: 0.9em; white-space: nowrap; }
     .landmark-label { font-weight: 700; margin: 0 2px; }
+    .match-lineups-grid {
+      display: block !important;
+      width: 100% !important;
+    }
+    .match-lineup-column {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
+    }
 
     .lineup-player {
       min-height: 26px;
       align-items: center;
     }
-
     .lineup-player-main {
       display: inline-flex;
       align-items: center;
@@ -37,7 +45,6 @@ Promise.all([
       min-height: 24px;
       line-height: 24px;
     }
-
     .lineup-position {
       display: inline-flex;
       align-items: center;
@@ -46,7 +53,6 @@ Promise.all([
       font-weight: 700;
       color: #6c5431;
     }
-
     .player-icons-inline {
       display: inline-flex;
       align-items: center;
@@ -57,7 +63,6 @@ Promise.all([
       letter-spacing: 2px;
       vertical-align: middle;
     }
-
     .match-info-button {
       display: inline-flex;
       align-items: center;
@@ -81,73 +86,12 @@ Promise.all([
       vertical-align: middle;
       flex-shrink: 0;
     }
-
-    .match-info-button:hover {
-      background: #9f1010;
-      text-decoration: none;
-    }
-
+    .match-info-button:hover { background: #9f1010; text-decoration: none; }
     .lineup-player-main a {
       display: inline-flex;
       align-items: center;
       min-height: 24px;
-    }
-
-    .match-info-modal-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: rgba(11, 18, 32, 0.65);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
-    .match-info-modal {
-      width: min(420px, 92vw);
-      background: #ffffff;
-      border: 2px solid #8aa9dd;
-      border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-      padding: 16px 18px;
-      color: #14213d;
-    }
-
-    .match-info-modal h3 {
-      margin: 0 0 12px 0;
-    }
-
-    .match-info-modal h4 {
-      margin: 12px 0 7px 0;
-    }
-
-    .match-info-modal ul {
-      margin: 0 0 10px 0;
-      padding-left: 0;
-      list-style: none;
-    }
-
-    .match-info-modal li {
-      margin-bottom: 8px;
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-      line-height: 1.35;
-    }
-
-    .match-info-modal-icon {
-      display: inline-block;
-      min-width: 22px;
-      text-align: center;
-    }
-
-    .match-info-close {
-      margin: 8px 0 0 0;
-    }
-
-  `;
+    }  `;
   document.head.appendChild(matchStyle);
 
   document.addEventListener("click", event => {
@@ -428,6 +372,62 @@ Promise.all([
   }
 
 
+  function milestoneReached(before, after, step) {
+    const labels = [];
+    for (let n = step; n <= after; n += step) {
+      if (before < n && after >= n) labels.push(n);
+    }
+    return labels;
+  }
+
+  function playerCareerStatsBefore(playerId, competitiveOnly = false) {
+    let appsCount = 0;
+    let goalsCount = 0;
+
+    apps.forEach(row => {
+      if (String(row.player_id).trim() !== String(playerId).trim()) return;
+
+      const matchRecord = matches.find(m =>
+        String(m.id).trim() === String(row.match_id).trim()
+      );
+
+      if (!matchRecord || !isKnownScore(matchRecord)) return;
+      if (competitiveOnly && isFriendly(matchRecord)) return;
+      if (!isBeforeCurrentMatch(matchRecord)) return;
+
+      appsCount++;
+      goalsCount += Number(row.goals || 0);
+    });
+
+    return { apps: appsCount, goals: goalsCount };
+  }
+
+  function isAfterCurrentMatch(matchRecord) {
+    return matchSortValue(matchRecord) > matchSortValue(match);
+  }
+
+  function playerCareerStatsAfter(playerId, competitiveOnly = false) {
+    let appsCount = 0;
+    let goalsCount = 0;
+
+    apps.forEach(row => {
+      if (String(row.player_id).trim() !== String(playerId).trim()) return;
+
+      const matchRecord = matches.find(m =>
+        String(m.id).trim() === String(row.match_id).trim()
+      );
+
+      if (!matchRecord || !isKnownScore(matchRecord)) return;
+      if (competitiveOnly && isFriendly(matchRecord)) return;
+      if (!isAfterCurrentMatch(matchRecord)) return;
+
+      appsCount++;
+      goalsCount += Number(row.goals || 0);
+    });
+
+    return { apps: appsCount, goals: goalsCount };
+  }
+
   function getPlayerMilestones(a) {
     const playerId = String(a.player_id).trim();
     const currentGoals = Number(a.goals || 0);
@@ -482,11 +482,11 @@ Promise.all([
     }
 
     if (currentGoals > 0 && allAfter.goals === 0) {
-      groups.goal.push(currentGoals > 1 ? "Last Goals" : "Last Goal");
+      groups.goal.push(currentGoals > 1 ? "Final Goals" : "Final Goal");
     }
 
     if (currentGoals > 0 && currentIsCompetitive && compAfter.goals === 0) {
-      groups.goal.push(currentGoals > 1 ? "Last Competitive Goals" : "Last Competitive Goal");
+      groups.goal.push(currentGoals > 1 ? "Final Competitive Goals" : "Final Competitive Goal");
     }
 
     return groups;
