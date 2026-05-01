@@ -84,6 +84,23 @@ Promise.all([
 
   const margateResultRowClassName = margateResultRowClass(match);
 
+  function opponentResultRowClass(resultClass) {
+    if (resultClass === "match-margate-win") return "match-margate-defeat";
+    if (resultClass === "match-margate-defeat") return "match-margate-win";
+    if (resultClass === "match-margate-draw") return "match-margate-draw";
+    return "";
+  }
+
+  const homeResultRowClassName =
+    String(match.home_team).trim() === "t1"
+      ? margateResultRowClassName
+      : opponentResultRowClass(margateResultRowClassName);
+
+  const awayResultRowClassName =
+    String(match.away_team).trim() === "t1"
+      ? margateResultRowClassName
+      : opponentResultRowClass(margateResultRowClassName);
+
   const prevMatch = index > 0 ? matches[index - 1] : null;
   const nextMatch = index < matches.length - 1 ? matches[index + 1] : null;
 
@@ -539,12 +556,12 @@ Promise.all([
         ${competitionBadgeHtml(match.competition)}
         <div class="match-header-main">
           <div class="match-score-header">
-            <div class="match-team-line ${homeResultClass} ${margateResultRowClassName}">
+            <div class="match-team-line ${homeResultClass} ${homeResultRowClassName}">
               ${teamBadgeHtml(match.home_team, "team-badge-medium")}
               <span class="match-line-text">${homeLine}</span>
             </div>
 
-            <div class="match-team-line ${awayResultClass} ${margateResultRowClassName}">
+            <div class="match-team-line ${awayResultClass} ${awayResultRowClassName}">
               ${teamBadgeHtml(match.away_team, "team-badge-medium")}
               <span class="match-line-text">${awayLine}</span>
             </div>
