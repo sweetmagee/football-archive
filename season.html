@@ -31,7 +31,21 @@
 
   <div class="content-box">
     <h2 id="managerHeading">Manager</h2>
-    <div id="recordGameFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+    
+    <table class="archive-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Span of Matches</th>
+        </tr>
+      </thead>
+      <tbody id="seasonManagersTable"></tbody>
+    </table>
+  </div>
+
+  <div class="content-box">
+    <h2>Match Record</h2>
+<div id="recordGameFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
       <label class="stats-toggle">
         <input type="checkbox" id="recordAllGames" checked>
         All Games
@@ -47,20 +61,6 @@
         Away Games Only
       </label>
     </div>
-
-    <table class="archive-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Span of Matches</th>
-        </tr>
-      </thead>
-      <tbody id="seasonManagersTable"></tbody>
-    </table>
-  </div>
-
-  <div class="content-box">
-    <h2>Match Record</h2>
     <table class="archive-table">
       <thead>
         <tr>
