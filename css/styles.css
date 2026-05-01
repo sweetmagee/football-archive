@@ -1119,3 +1119,29 @@ button:disabled,
   box-shadow: none;
   opacity: 0.65;
 }
+/* === FORCE seasons.html buttons to new style === */
+.season-links a,
+.seasons a,
+a.archive-button {
+  background: #2563eb !important;
+  border: 1px solid #1e40af !important;
+  color: #ffffff !important;
+}
+
+/* === UNIVERSAL BUTTON HOVER (AMBER + BLACK TEXT) === */
+.nav-links a:hover,
+.archive-button:hover,
+button:hover,
+.stats-button:hover,
+.season-links a:hover,
+.seasons a:hover,
+a.archive-button:hover {
+  background: #f59e0b !important;   /* amber */
+  border-color: #b45309 !important;
+  color: #000000 !important;        /* black text */
+  text-decoration: none !important;
+
+  /* subtle lift */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
