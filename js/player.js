@@ -43,6 +43,79 @@ Promise.all([
   );
 }
 
+  function isT1Home(match) {
+    return String(match.home_team).trim() === "t1";
+  }
+
+  function isT1Away(match) {
+    return String(match.away_team).trim() === "t1";
+  }
+
+  function filterByHomeAway(rows, homeOnlyBox, awayOnlyBox) {
+    if (homeOnlyBox && homeOnlyBox.checked) {
+      return rows.filter(row => isT1Home(row.match));
+    }
+
+    if (awayOnlyBox && awayOnlyBox.checked) {
+      return rows.filter(row => isT1Away(row.match));
+    }
+
+    return rows;
+  }
+
+  function setupGameTickboxes(allBox, homeBox, awayBox, render) {
+    if (!allBox || !homeBox || !awayBox) return;
+
+    allBox.addEventListener("change", () => {
+      if (allBox.checked) {
+        homeBox.checked = false;
+        awayBox.checked = false;
+      } else if (!homeBox.checked && !awayBox.checked) {
+        allBox.checked = true;
+      }
+
+      render();
+    });
+
+    homeBox.addEventListener("change", () => {
+      if (homeBox.checked) {
+        allBox.checked = false;
+        awayBox.checked = false;
+      } else if (!awayBox.checked) {
+        allBox.checked = true;
+      }
+
+      render();
+    });
+
+    awayBox.addEventListener("change", () => {
+      if (awayBox.checked) {
+        allBox.checked = false;
+        homeBox.checked = false;
+      } else if (!homeBox.checked) {
+        allBox.checked = true;
+      }
+
+      render();
+    });
+  }
+
+  function matchResultClass(match) {
+    if (!validMatch(match)) return "";
+
+    const margateHome = isT1Home(match);
+    const margateAway = isT1Away(match);
+
+    if (!margateHome && !margateAway) return "";
+
+    const margateScore = margateHome ? Number(match.home_score) : Number(match.away_score);
+    const opponentScore = margateHome ? Number(match.away_score) : Number(match.home_score);
+
+    if (margateScore > opponentScore) return "player-result-win";
+    if (margateScore < opponentScore) return "player-result-defeat";
+    return "player-result-draw";
+  }
+
   function parseDate(value) {
     if (!value) return null;
     const parts = String(value).trim().replace(/\./g, "/").replace(/-/g, "/").split("/");
@@ -450,6 +523,31 @@ function statSetFor(playerId) {
         font-weight:bold;
       }
       .position-row { margin:6px 0; }
+
+      .archive-table tbody tr.player-result-win td {
+        background: #e7f4e4 !important;
+      }
+
+      .archive-table tbody tr.player-result-defeat td {
+        background: #f8e3e3 !important;
+      }
+
+      .archive-table tbody tr.player-result-draw td {
+        background: #f6edd2 !important;
+      }
+
+      .archive-table tbody tr.player-result-win:hover td {
+        background: #d9ecd5 !important;
+      }
+
+      .archive-table tbody tr.player-result-defeat:hover td {
+        background: #f1d4d4 !important;
+      }
+
+      .archive-table tbody tr.player-result-draw:hover td {
+        background: #efe0b9 !important;
+      }
+
 @media (max-width: 800px) {
         .player-card {
           grid-template-columns: 1fr;
@@ -531,6 +629,33 @@ function statSetFor(playerId) {
       </div>
 
       <div id="fullRecord" style="display:none;">
+        <div id="playerMatchFilters" style="display:flex; gap:18px; flex-wrap:wrap; align-items:center; margin-bottom:12px;">
+          <label class="stats-toggle">
+            <input type="checkbox" id="allGamesPlayer" checked>
+            All Games
+          </label>
+
+          <label class="stats-toggle">
+            <input type="checkbox" id="homeGamesOnlyPlayer">
+            Home Games Only
+          </label>
+
+          <label class="stats-toggle">
+            <input type="checkbox" id="awayGamesOnlyPlayer">
+            Away Games Only
+          </label>
+
+          <label class="stats-toggle">
+            <input type="checkbox" id="competitiveOnlyPlayer">
+            Competitive Games Only
+          </label>
+
+          <label class="stats-toggle">
+            <input type="checkbox" id="friendlyOnlyPlayer">
+            Friendly Games Only
+          </label>
+        </div>
+
         <table class="archive-table">
           <thead>
             <tr>
@@ -551,19 +676,76 @@ function statSetFor(playerId) {
 
   const rows = document.getElementById("playerMatchRows");
 
-  orderedMatches.forEach(({ app, match }, index) => {
-    const num = index + 1;
-    rows.innerHTML += `
-      <tr class="${milestoneClass(num)}">
-        <td>#${String(num).padStart(3, "0")}</td>
-        <td>${match.date || ""}</td>
-        <td><a href="match.html?id=${match.id}">${matchLine(match)}</a></td>
-        <td>${match.competition || ""}</td>
-        <td>${Number(app.is_starting) === 1 ? "Start" : "Sub"}</td>
-        <td>${Number(app.goals || 0)}</td>
-      </tr>
-    `;
-  });
+  function renderPlayerMatchRows() {
+    if (!rows) return;
+
+    const allGames = document.getElementById("allGamesPlayer");
+    const homeGamesOnly = document.getElementById("homeGamesOnlyPlayer");
+    const awayGamesOnly = document.getElementById("awayGamesOnlyPlayer");
+    const competitiveOnly = document.getElementById("competitiveOnlyPlayer");
+    const friendlyOnly = document.getElementById("friendlyOnlyPlayer");
+
+    let filteredRows = [...orderedMatches];
+
+    filteredRows = filterByHomeAway(filteredRows, homeGamesOnly, awayGamesOnly);
+
+    if (competitiveOnly && competitiveOnly.checked) {
+      filteredRows = filteredRows.filter(row => !isFriendly(row.match));
+    }
+
+    if (friendlyOnly && friendlyOnly.checked) {
+      filteredRows = filteredRows.filter(row => isFriendly(row.match));
+    }
+
+    if (!filteredRows.length) {
+      rows.innerHTML = `<tr><td colspan="6">No match records found.</td></tr>`;
+      return;
+    }
+
+    rows.innerHTML = filteredRows.map(({ app, match }, index) => {
+      const num = index + 1;
+      const resultClass = matchResultClass(match);
+
+      return `
+        <tr class="${milestoneClass(num)} ${resultClass}">
+          <td>#${String(num).padStart(3, "0")}</td>
+          <td>${match.date || ""}</td>
+          <td><a href="match.html?id=${match.id}">${matchLine(match)}</a></td>
+          <td>${match.competition || ""}</td>
+          <td>${Number(app.is_starting) === 1 ? "Start" : "Sub"}</td>
+          <td>${Number(app.goals || 0)}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  renderPlayerMatchRows();
+
+  const allGamesPlayer = document.getElementById("allGamesPlayer");
+  const homeGamesOnlyPlayer = document.getElementById("homeGamesOnlyPlayer");
+  const awayGamesOnlyPlayer = document.getElementById("awayGamesOnlyPlayer");
+  const competitiveOnlyPlayer = document.getElementById("competitiveOnlyPlayer");
+  const friendlyOnlyPlayer = document.getElementById("friendlyOnlyPlayer");
+
+  setupGameTickboxes(allGamesPlayer, homeGamesOnlyPlayer, awayGamesOnlyPlayer, renderPlayerMatchRows);
+
+  if (competitiveOnlyPlayer) {
+    competitiveOnlyPlayer.addEventListener("change", () => {
+      if (competitiveOnlyPlayer.checked && friendlyOnlyPlayer) {
+        friendlyOnlyPlayer.checked = false;
+      }
+      renderPlayerMatchRows();
+    });
+  }
+
+  if (friendlyOnlyPlayer) {
+    friendlyOnlyPlayer.addEventListener("change", () => {
+      if (friendlyOnlyPlayer.checked && competitiveOnlyPlayer) {
+        competitiveOnlyPlayer.checked = false;
+      }
+      renderPlayerMatchRows();
+    });
+  }
 
   const bioToggle = document.getElementById("bioToggle");
   const bioText = document.getElementById("bioText");
