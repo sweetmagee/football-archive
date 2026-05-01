@@ -87,6 +87,11 @@ Promise.all([
       flex-shrink: 0;
     }
     .match-info-button:hover { background: #9f1010; text-decoration: none; }
+    .lineup-player-main a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+
     .match-team-line.match-result-win {
       background: #e7f4e4 !important;
     }
@@ -99,10 +104,6 @@ Promise.all([
       background: #f6edd2 !important;
     }
 
-    .lineup-player-main a {
-      display: inline-flex;
-      align-items: center;
-      min-height: 24px;
     }  `;
   document.head.appendChild(matchStyle);
 
@@ -321,23 +322,24 @@ Promise.all([
 
   const manager = margateManagerForMatch(match);
 
-  function isAbandonedMatch(matchRecord) {
+
+  function isAbandonedMatchForResult(matchRecord) {
     return String(matchRecord.abandoned || "").trim().toUpperCase() === "Y";
   }
 
-  function hasKnownResult(matchRecord) {
+  function hasKnownResultForColour(matchRecord) {
     return (
       matchRecord &&
       String(matchRecord.home_score).trim() !== "?" &&
       String(matchRecord.away_score).trim() !== "?" &&
       !Number.isNaN(Number(matchRecord.home_score)) &&
       !Number.isNaN(Number(matchRecord.away_score)) &&
-      !isAbandonedMatch(matchRecord)
+      !isAbandonedMatchForResult(matchRecord)
     );
   }
 
   function margateMatchResultClass(matchRecord) {
-    if (!hasKnownResult(matchRecord)) return "";
+    if (!hasKnownResultForColour(matchRecord)) return "";
 
     const homeScore = Number(matchRecord.home_score);
     const awayScore = Number(matchRecord.away_score);

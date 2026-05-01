@@ -116,6 +116,11 @@ Promise.all([
       font-variant-numeric: tabular-nums;
     }
 
+    .season-match-competition img {
+      margin-right: 4px;
+    }
+
+
     .season-matches-table tbody tr.season-result-win td {
       background: #e7f4e4 !important;
     }
@@ -138,10 +143,6 @@ Promise.all([
 
     .season-matches-table tbody tr.season-result-draw:hover td {
       background: #efe0b9 !important;
-    }
-
-    .season-match-competition img {
-      margin-right: 4px;
     }
 
     @media (max-width: 900px) {
@@ -597,6 +598,18 @@ Promise.all([
     `;
   }
 
+  function matchSortDate(match) {
+    const note = String(match.notes || "").toLowerCase();
+    if (note.includes("date of match unknown")) {
+      return new Date(9999, 11, 31);
+    }
+
+    const d = parseUkDate(match.date);
+    return d || new Date(9999, 11, 30);
+  }
+
+
+
   function margateResultClass(match) {
     if (!isCountableMatch(match)) return "";
 
@@ -614,7 +627,6 @@ Promise.all([
     if (margateScore < opponentScore) return "season-result-defeat";
     return "season-result-draw";
   }
-
 
   function renderMatches() {
     if (!matchesEl) return;
