@@ -187,9 +187,8 @@ tbody tr:hover {
 }
 
 .nav-links a:hover {
-  background: #6b421f;
-  color: #fff7dc;
-  text-decoration: none;
+  background: #1d4ed8;   /* same blue hover as stats buttons */
+  color: #ffffff;
 }
 .content-box {
   border: 1px solid #b8c9ea;
@@ -668,11 +667,15 @@ tbody tr:hover {
 }
 
 .archive-button {
-  padding: 8px 14px;
-  border: 1px solid #8aa9dd;
-  background: #dbe8ff;
-  color: #14213d;
-  font-weight: 700;
+  background: #2563eb;        /* blue */
+  border: 1px solid #1e40af;
+  color: #ffffff;
+}
+
+.archive-button:hover {
+  background: #f59e0b;        /* amber */
+  border-color: #b45309;
+  color: #ffffff;
 }
 
 .archive-button:hover,
@@ -1051,4 +1054,13 @@ button:hover {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
+}
+/* Universal amber hover (matches player.html behaviour) */
+.archive-button:hover,
+button:hover,
+.stats-button:hover,
+.nav-links a:hover {
+  background: #f59e0b !important;   /* amber */
+  border-color: #b45309 !important;
+  color: #ffffff !important;
 }
