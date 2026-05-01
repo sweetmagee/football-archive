@@ -92,32 +92,15 @@ Promise.all([
       align-items: center;
       min-height: 24px;
 
-    .match-team-line.match-result-win {
+    .match-team-line.match-row-win {
       background: #e7f4e4 !important;
     }
 
-    .match-team-line.match-result-defeat {
+    .match-team-line.match-row-defeat {
       background: #f8e3e3 !important;
     }
 
-    .match-team-line.match-result-win,
-    .match-team-line.match-team-winner.match-result-win,
-    .match-team-line.match-team-loser.match-result-win,
-    .match-team-line.match-team-draw.match-result-win {
-      background: #e7f4e4 !important;
-    }
-
-    .match-team-line.match-result-defeat,
-    .match-team-line.match-team-winner.match-result-defeat,
-    .match-team-line.match-team-loser.match-result-defeat,
-    .match-team-line.match-team-draw.match-result-defeat {
-      background: #f8e3e3 !important;
-    }
-
-    .match-team-line.match-result-draw,
-    .match-team-line.match-team-winner.match-result-draw,
-    .match-team-line.match-team-loser.match-result-draw,
-    .match-team-line.match-team-draw.match-result-draw {
+    .match-team-line.match-row-draw {
       background: #f6edd2 !important;
     }
 
@@ -319,6 +302,42 @@ Promise.all([
     return managers.find(m => String(m.id).trim() === managerId) || null;
   }
 
+
+  function isAbandonedMatchForRowColour(matchRecord) {
+    return String(matchRecord.abandoned || "").trim().toUpperCase() === "Y";
+  }
+
+  function hasKnownScoreForRowColour(matchRecord) {
+    return (
+      matchRecord &&
+      String(matchRecord.home_score).trim() !== "?" &&
+      String(matchRecord.away_score).trim() !== "?" &&
+      !Number.isNaN(Number(matchRecord.home_score)) &&
+      !Number.isNaN(Number(matchRecord.away_score)) &&
+      !isAbandonedMatchForRowColour(matchRecord)
+    );
+  }
+
+  function matchRowResultClass(matchRecord) {
+    if (!hasKnownScoreForRowColour(matchRecord)) return "";
+
+    const homeScore = Number(matchRecord.home_score);
+    const awayScore = Number(matchRecord.away_score);
+    const margateHome = String(matchRecord.home_team).trim() === "t1";
+    const margateAway = String(matchRecord.away_team).trim() === "t1";
+
+    if (!margateHome && !margateAway) return "";
+
+    const margateScore = margateHome ? homeScore : awayScore;
+    const opponentScore = margateHome ? awayScore : homeScore;
+
+    if (margateScore > opponentScore) return "match-row-win";
+    if (margateScore < opponentScore) return "match-row-defeat";
+    return "match-row-draw";
+  }
+
+  const matchRowClass = matchRowResultClass(match);
+
   const home = resolveTeam(match.home_team);
   const away = resolveTeam(match.away_team);
 
@@ -339,63 +358,11 @@ Promise.all([
 
   const manager = margateManagerForMatch(match);
 
-
-  function isAbandonedMatchForResult(matchRecord) {
-    return String(matchRecord.abandoned || "").trim().toUpperCase() === "Y";
-  }
-
-  function hasKnownResultForColour(matchRecord) {
-    return (
-      matchRecord &&
-      String(matchRecord.home_score).trim() !== "?" &&
-      String(matchRecord.away_score).trim() !== "?" &&
-      !Number.isNaN(Number(matchRecord.home_score)) &&
-      !Number.isNaN(Number(matchRecord.away_score)) &&
-      !isAbandonedMatchForResult(matchRecord)
-    );
-  }
-
-  function margateMatchResultClass(matchRecord) {
-    if (!hasKnownResultForColour(matchRecord)) return "";
-
-    const homeScore = Number(matchRecord.home_score);
-    const awayScore = Number(matchRecord.away_score);
-    const margateHome = String(matchRecord.home_team).trim() === "t1";
-    const margateAway = String(matchRecord.away_team).trim() === "t1";
-
-    if (!margateHome && !margateAway) return "";
-
-    const margateScore = margateHome ? homeScore : awayScore;
-    const opponentScore = margateHome ? awayScore : homeScore;
-
-    if (margateScore > opponentScore) return "match-result-win";
-    if (margateScore < opponentScore) return "match-result-defeat";
-    return "match-result-draw";
-  }
-
-  const margateResultClass = margateMatchResultClass(match);
-
-  function opponentResultClass(resultClass) {
-    if (resultClass === "match-result-win") return "match-result-defeat";
-    if (resultClass === "match-result-defeat") return "match-result-win";
-    return resultClass;
-  }
-
-  const homeLineResultClass =
-    String(match.home_team).trim() === "t1"
-      ? margateResultClass
-      : opponentResultClass(margateResultClass);
-
-  const awayLineResultClass =
-    String(match.away_team).trim() === "t1"
-      ? margateResultClass
-      : opponentResultClass(margateResultClass);
-
   const homeScoreNum = Number(match.home_score || 0);
   const awayScoreNum = Number(match.away_score || 0);
 
-  let homeResultClass = "match-team-draw";
-  let awayResultClass = "match-team-draw";
+  let homeResultClass = "";
+  let awayResultClass = "";
 
   if (!Number.isNaN(homeScoreNum) && !Number.isNaN(awayScoreNum)) {
     if (homeScoreNum > awayScoreNum) {
@@ -803,12 +770,12 @@ Promise.all([
         ${competitionBadgeHtml(match.competition)}
         <div class="match-header-main">
           <div class="match-score-header">
-            <div class="match-team-line ${homeResultClass} ${homeLineResultClass}">
+            <div class="match-team-line ${matchRowClass}">
               ${teamBadgeHtml(match.home_team, "team-badge-medium")}
               <span class="match-line-text">${homeLine}</span>
             </div>
 
-            <div class="match-team-line ${awayResultClass} ${awayLineResultClass}">
+            <div class="match-team-line ${matchRowClass}">
               ${teamBadgeHtml(match.away_team, "team-badge-medium")}
               <span class="match-line-text">${awayLine}</span>
             </div>
