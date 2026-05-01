@@ -34,9 +34,16 @@
     flex: 1;
   }
 
+  .home-grid-equal #featuredPlayer {
+    display: flex;
+    flex-direction: column;
+  }
+
   .random-player-box {
     display: flex;
     flex-direction: column;
+    height: auto;
+    transform: none !important;
   }
 
   .random-player-footer {
@@ -46,6 +53,10 @@
 
   .featured-player-card {
     height: 100%;
+  }
+
+  .random-player-box .featured-player-card {
+    flex: 1;
   }
 
   .home-missing-section {
@@ -163,14 +174,21 @@
 
 
 <style>
-.archive-table tbody tr.percent-green td {
-    background: #d9ead3 !important;
+.archive-table tbody tr.percent-row td {
+    background: #ffffff !important;
     font-weight: 700;
   }
 
-  .archive-table tbody tr.percent-warning td {
+  .archive-table tbody tr.percent-row td.percent-red {
     background: #f4cccc !important;
-    font-weight: 700;
+  }
+
+  .archive-table tbody tr.percent-row td.percent-amber {
+    background: #fce5cd !important;
+  }
+
+  .archive-table tbody tr.percent-row td.percent-green {
+    background: #d9ead3 !important;
   }
 
   .missing-info-toggle-wrap {
@@ -352,8 +370,10 @@
     return b ? Math.round((a / b) * 100) : 0;
   }
 
-  function percentRowClass(allPct) {
-    return allPct === 100 ? "percent-green" : "percent-warning";
+  function percentCellClass(value) {
+    if (value < 50) return "percent-red";
+    if (value < 100) return "percent-amber";
+    return "percent-green";
   }
 
   function parseDate(value) {
@@ -693,12 +713,12 @@
         <td>${frIncomplete}</td>
         <td>${allIncomplete}</td>
       </tr>
-      <tr class="${percentRowClass(allPct)}">
+      <tr class="percent-row">
         <td><strong>% Complete</strong></td>
-        <td>${playersPct}%</td>
-        <td>${compPct}%</td>
-        <td>${frPct}%</td>
-        <td>${allPct}%</td>
+        <td class="${percentCellClass(playersPct)}">${playersPct}%</td>
+        <td class="${percentCellClass(compPct)}">${compPct}%</td>
+        <td class="${percentCellClass(frPct)}">${frPct}%</td>
+        <td class="${percentCellClass(allPct)}">${allPct}%</td>
       </tr>
     `;
 
