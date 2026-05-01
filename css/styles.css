@@ -1,7 +1,7 @@
 body {
   font-family: Arial, Helvetica, sans-serif;
-  background: #f3f7ff;
-  color: #14213d;
+  background: #efe2c5;
+  color: #1f160d;
   margin: 0;
   padding: 0;
 }
@@ -17,7 +17,7 @@ h2,
 h3,
 h4 {
   margin-top: 0;
-  color: #14213d;
+  color: #1f160d;
 }
 
 p {
@@ -25,12 +25,12 @@ p {
 }
 
 a {
-  color: #1d4ed8;
+  color: #6b3f14;
   text-decoration: none;
 }
 
 a:hover {
-  color: #0f2f7a;
+  color: #9a5a1e;
   text-decoration: underline;
 }
 
@@ -40,9 +40,9 @@ button {
   font-size: 14px;
   padding: 6px 8px;
   margin: 0 8px 12px 0;
-  border: 1px solid #9db8e8;
-  background: #ffffff;
-  color: #14213d;
+  border: 1px solid #b79a66;
+  background: #fff8e8;
+  color: #1f160d;
 }
 
 button,
@@ -59,23 +59,23 @@ table {
 
 th,
 td {
-  border: 1px solid #b8c9ea;
+  border: 1px solid #c5aa78;
   padding: 6px 8px;
   text-align: left;
   vertical-align: top;
 }
 
 th {
-  background: #123b7a;
-  color: #ffffff;
+  background: #4a321b;
+  color: #f7ecd5;
 }
 
 tbody tr:nth-child(even) {
-  background: #eef4ff;
+  background: #f4e7cb;
 }
 
 tbody tr:hover {
-  background: #dbe8ff;
+  background: #ead8b4;
 }
 
 .archive-table {
@@ -87,18 +87,18 @@ tbody tr:hover {
 
 .archive-table th,
 .archive-table td {
-  border: 1px solid #b8c9ea;
+  border: 1px solid #c5aa78;
   padding: 6px 8px;
   text-align: center;
 }
 
 .archive-table th {
-  background: #123b7a;
-  color: #ffffff;
+  background: #4a321b;
+  color: #f7ecd5;
 }
 
 .archive-table td {
-  background: #ffffff;
+  background: #fff8e8;
 }
 
 .archive-table td.team-col,
@@ -107,15 +107,15 @@ tbody tr:hover {
 }
 
 .archive-table tbody tr:nth-child(even) td {
-  background: #eef4ff;
+  background: #f4e7cb;
 }
 
 .archive-table tbody tr:hover td {
-  background: #dbe8ff;
+  background: #ead8b4;
 }
 
 .archive-table tbody tr.top-row td {
-  background: #f7c948;
+  background: #d8bd85;
   font-weight: bold;
 }
 
@@ -134,7 +134,7 @@ tbody tr:hover {
   background-repeat: no-repeat;
   min-height: 330px;
   padding: 0;
-  border-bottom: 4px solid #0b1220;
+  border-bottom: 4px solid #3a2817;
   position: relative;
 }
 
@@ -145,8 +145,8 @@ tbody tr:hover {
   justify-content: center;
   background: linear-gradient(
     to bottom,
-    rgba(11, 18, 32, 0.10),
-    rgba(11, 18, 32, 0.58)
+    rgba(35, 22, 10, 0.04),
+    rgba(35, 22, 10, 0.45)
   );
   padding: 0 20px 18px;
   box-sizing: border-box;
@@ -173,7 +173,7 @@ tbody tr:hover {
   min-height: 42px;
   box-sizing: border-box;
 
-  background: rgba(18, 59, 122, 0.88);
+  background: rgba(45, 30, 15, 0.88);
   color: #f5ead4;
   text-decoration: none;
   font-weight: 700;
@@ -181,7 +181,7 @@ tbody tr:hover {
 
   padding: 9px 7px;         /* side padding halved */
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(245, 234, 212, 0.55);
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.28);
   text-align: center;
 }
@@ -192,11 +192,11 @@ tbody tr:hover {
   text-decoration: none;
 }
 .content-box {
-  border: 1px solid #b8c9ea;
-  background: #ffffff;
+  border: 1px solid #c5aa78;
+  background: #fbf3df;
   padding: 16px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(15, 47, 122, 0.12);
+  box-shadow: 0 1px 3px rgba(63, 43, 21, 0.15);
 }
 
 .section-block {
@@ -214,14 +214,14 @@ tbody tr:hover {
 }
 
 .match-row {
-  border: 1px solid #b8c9ea;
+  border: 1px solid #c5aa78;
   padding: 10px 12px;
-  background: #ffffff;
+  background: #fbf3df;
 }
 
 .match-date {
   font-size: 12px;
-  color: #475569;
+  color: #6c5431;
   margin-bottom: 3px;
 }
 
@@ -256,7 +256,7 @@ tbody tr:hover {
 
 .match-meta {
   font-size: 12px;
-  color: #475569;
+  color: #6c5431;
 }
 
 .season-grid {
@@ -271,8 +271,8 @@ tbody tr:hover {
 }
 
 .season-side {
-  border: 1px solid #b8c9ea;
-  background: #ffffff;
+  border: 1px solid #c5aa78;
+  background: #fbf3df;
   padding: 14px;
 }
 
@@ -287,7 +287,7 @@ tbody tr:hover {
   grid-template-columns: 28px 1fr 36px;
   gap: 8px;
   align-items: center;
-  border-bottom: 1px solid #f7c948;
+  border-bottom: 1px solid #d8bd85;
   padding-bottom: 6px;
 }
 
@@ -297,7 +297,7 @@ tbody tr:hover {
 }
 
 .scorer-pos {
-  color: #475569;
+  color: #6c5431;
 }
 
 .scorer-name {
@@ -310,7 +310,7 @@ tbody tr:hover {
 }
 
 .empty-note {
-  color: #475569;
+  color: #6c5431;
   font-style: italic;
 }
 
@@ -326,8 +326,8 @@ tbody tr:hover {
   width: 100%;
   max-width: 260px;
   height: auto;
-  border: 1px solid #8aa9dd;
-  background: #f8fbff;
+  border: 1px solid #9d8152;
+  background: #f8f0dc;
   display: block;
 }
 
@@ -370,8 +370,8 @@ tbody tr:hover {
 }
 
 .player-stat-box {
-  border: 1px solid #b8c9ea;
-  background: #ffffff;
+  border: 1px solid #c5aa78;
+  background: #fff8e8;
   padding: 10px 12px;
   min-width: 0;
 }
@@ -395,11 +395,11 @@ tbody tr:hover {
 }
 
 .gold-star {
-  color: #f5b301;
+  color: #ffd700;
   font-size: 1.25em;
   font-weight: 900;
   margin-left: 4px;
-  text-shadow: 0 0 3px #fff2b8, 0 0 8px #f5b301, 0 0 13px #f59e0b;
+  text-shadow: 0 0 3px #fff6a6, 0 0 8px #ffd700, 0 0 13px #ffb300;
 }
 
 .list-block div {
@@ -412,7 +412,7 @@ tbody tr:hover {
 
 .timeline-event {
   padding: 4px 0;
-  border-bottom: 1px solid #f7c948;
+  border-bottom: 1px solid #d8bd85;
 }
 
 .timeline-event:last-child {
@@ -435,8 +435,8 @@ tbody tr:hover {
   width: 42px;
   height: 42px;
   object-fit: contain;
-  border: 1px solid #b8c9ea;
-  background: #ffffff;
+  border: 1px solid #c5aa78;
+  background: #fff8e8;
   padding: 4px;
   flex-shrink: 0;
 }
@@ -494,8 +494,8 @@ tbody tr:hover {
   min-height: 72px;
   object-fit: contain;
   display: block;
-  border: 1px solid #b8c9ea;
-  background: #ffffff;
+  border: 1px solid #c5aa78;
+  background: #fff8e8;
   padding: 4px;
   align-self: flex-start;
   flex-shrink: 0;
@@ -526,7 +526,7 @@ tbody tr:hover {
   padding: 8px 10px;
   font-size: 1.2rem;
   font-weight: 700;
-  border-bottom: 1px solid #f7c948;
+  border-bottom: 1px solid #d8bd85;
   border-radius: 4px;
   margin-bottom: 6px;
 }
@@ -541,15 +541,15 @@ tbody tr:hover {
 }
 
 .match-team-winner {
-  background: #dbeafe;
+  background: #e4d4a8;
 }
 
 .match-team-loser {
-  background: #fee2e2;
+  background: #ead2c0;
 }
 
 .match-team-draw {
-  background: #f1f5f9;
+  background: #eee0c4;
 }
 
 .match-lineups-grid {
@@ -584,7 +584,7 @@ tbody tr:hover {
 }
 
 .sub-minute {
-  color: #475569;
+  color: #6c5431;
   font-size: 0.9rem;
   margin-left: 6px;
 }
@@ -618,7 +618,7 @@ tbody tr:hover {
 }
 
 .sort-muted {
-  color: #64748b;
+  color: #8b744d;
   font-size: 0.85em;
 }
 
@@ -645,8 +645,8 @@ tbody tr:hover {
 }
 
 .programme-card {
-  border: 1px solid #b8c9ea;
-  background: #ffffff;
+  border: 1px solid #c5aa78;
+  background: #fff8e8;
   padding: 10px;
   text-align: center;
 }
@@ -657,31 +657,31 @@ tbody tr:hover {
   object-fit: cover;
   display: block;
   margin-bottom: 8px;
-  background: #f8fbff;
+  background: #f8f0dc;
 }
 
 .player-count {
   margin: 12px 0 14px 0;
   font-size: 0.95rem;
-  color: #475569;
+  color: #6c5431;
   font-weight: 600;
 }
 
 .archive-button {
   padding: 8px 14px;
-  border: 1px solid #8aa9dd;
-  background: #dbe8ff;
-  color: #14213d;
+  border: 1px solid #9d8152;
+  background: #ead8b4;
+  color: #1f160d;
   font-weight: 700;
 }
 
 .archive-button:hover,
 button:hover {
-  background: #f7c948;
+  background: #d8bd85;
 }
 
 .date-added {
-  color: #475569;
+  color: #6c5431;
   font-size: 0.9em;
 }
 
@@ -742,18 +742,18 @@ button:hover {
 
 .match-nav a {
   display: inline-block;
-  background: #dbe8ff;
-  border: 1px solid #8aa9dd;
+  background: #ead8b4;
+  border: 1px solid #9d8152;
   padding: 8px 12px;
   font-weight: 700;
   font-size: 14px;
-  color: #14213d;
+  color: #1f160d;
   text-decoration: none;
   border-radius: 4px;
 }
 
 .match-nav a:hover {
-  background: #f7c948;
+  background: #d8bd85;
   border-color: #6b421f;
   text-decoration: none;
 }
@@ -845,9 +845,9 @@ button:hover {
   justify-content: center;
   min-width: 220px;
   padding: 14px 18px;
-  background: #123b7a;   /* matches header */
+  background: #0d1b2a;   /* matches header */
   color: #fff !important;
-  border: 1px solid #0b1220;
+  border: 1px solid #08111b;
   border-radius: 8px;
   font-weight: bold;
   text-align: center;
@@ -855,7 +855,7 @@ button:hover {
 }
 
 .stats-button:hover {
-  background: #1d4ed8;
+  background: #16293f;
   color: #fff !important;
 }
 
@@ -869,16 +869,16 @@ button:hover {
 }
 /* Statistics page buttons - match header nav buttons */
 .stats-button {
-  background: rgba(18, 59, 122, 0.82) !important;
+  background: rgba(45, 25, 10, 0.82) !important;
   color: #fff7e6 !important;
-  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  border: 1px solid rgba(255, 245, 220, 0.45) !important;
   border-radius: 999px !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 5px rgba(0,0,0,0.35) !important;
   text-shadow: 0 1px 2px rgba(0,0,0,0.9);
 }
 
 .stats-button:hover {
-  background: rgba(29, 78, 216, 0.9) !important;
+  background: rgba(65, 38, 16, 0.9) !important;
   color: #fff !important;
   text-decoration: none !important;
 }
@@ -961,7 +961,7 @@ button:hover {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: rgba(11, 18, 32, 0.65);
+  background: rgba(31, 22, 13, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -971,12 +971,12 @@ button:hover {
 
 .match-info-modal {
   width: min(420px, 92vw);
-  background: #ffffff;
-  border: 2px solid #8aa9dd;
+  background: #fbf3df;
+  border: 2px solid #9d8152;
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.35);
   padding: 16px 18px;
-  color: #14213d;
+  color: #1f160d;
 }
 
 .match-info-modal h3 {
@@ -1054,94 +1054,55 @@ button:hover {
 }
 
 
-/* === Blue / amber colour test refinements: buttons, menu hover, seasons page controls === */
-
-/* Slightly stronger header overlay tint - colour only */
-.site-header-overlay {
-  background: linear-gradient(
-    to bottom,
-    rgba(11, 18, 32, 0.12),
-    rgba(11, 18, 32, 0.64)
-  );
-}
-
-/* Shared transition only; does not change size/layout */
-.nav-links a,
-.archive-button,
-button,
-.stats-button,
-input[type="button"],
-input[type="submit"] {
-  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
-}
-
-/* Normal state for site buttons, including seasons.html buttons */
-.archive-button,
-button {
-  background: #2563eb !important;
-  border-color: #1e40af !important;
-  color: #ffffff !important;
-}
-
-/* Normal state for statistics.html buttons */
-.stats-button {
-  background: rgba(18, 59, 122, 0.88) !important;
-  border-color: rgba(255, 255, 255, 0.45) !important;
-  color: #ffffff !important;
-}
-
-/* Normal state for menu buttons */
-.nav-links a {
-  background: rgba(18, 59, 122, 0.88) !important;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.55) !important;
-}
-
-/* Amber hover lift for menu, statistics buttons and page buttons */
-.nav-links a:hover,
-.archive-button:hover,
-button:hover,
-.stats-button:hover,
-input[type="button"]:hover,
-input[type="submit"]:hover {
-  background: #f59e0b !important;
-  border-color: #b45309 !important;
-  color: #ffffff !important;
-  text-decoration: none !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(15, 47, 122, 0.22);
-}
-
-/* Keep disabled-looking controls stable if ever used */
-button:disabled,
-.archive-button:disabled {
-  transform: none;
-  box-shadow: none;
-  opacity: 0.65;
-}
-/* === FORCE seasons.html buttons to new style === */
+/* === Seasons page button colour override: match header menu buttons === */
+/* Targets the season buttons shown on seasons.html without altering their size/layout. */
+.season-button,
+.season-link,
 .season-links a,
-.seasons a,
-a.archive-button {
-  background: #2563eb !important;
-  border: 1px solid #1e40af !important;
+.seasons-list a,
+.season-list a,
+#seasonButtons a,
+#seasonList a,
+#seasons a,
+a[href^="season.html?id="] {
+  background: rgba(18, 59, 122, 0.88) !important;
   color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 2px 7px rgba(0,0,0,0.28) !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.75);
 }
 
-/* === UNIVERSAL BUTTON HOVER (AMBER + BLACK TEXT) === */
+/* Universal softened amber hover with black text */
 .nav-links a:hover,
 .archive-button:hover,
 button:hover,
 .stats-button:hover,
+.season-button:hover,
+.season-link:hover,
 .season-links a:hover,
-.seasons a:hover,
-a.archive-button:hover {
-  background: #f59e0b !important;   /* amber */
-  border-color: #b45309 !important;
-  color: #000000 !important;        /* black text */
+.seasons-list a:hover,
+.season-list a:hover,
+#seasonButtons a:hover,
+#seasonList a:hover,
+#seasons a:hover,
+a[href^="season.html?id="]:hover {
+  background: #d79a2b !important;
+  border-color: #9a6418 !important;
+  color: #111111 !important;
+  text-shadow: none !important;
   text-decoration: none !important;
-
-  /* subtle lift */
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.22) !important;
+}
+
+/* Soften existing amber accents site-wide, without changing layout */
+.gold-star {
+  color: #d79a2b !important;
+  text-shadow: 0 0 3px rgba(0,0,0,0.25), 0 0 7px rgba(215,154,43,0.45) !important;
+}
+
+.archive-table tbody tr.top-row td,
+.milestone-row,
+.milestone-row td {
+  background: #f4d89a !important;
 }
