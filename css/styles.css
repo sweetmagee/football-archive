@@ -1263,29 +1263,22 @@ button:hover,
   margin-top: 0.75rem;
 }
 
-/* Homepage On This Day / Random Player card alignment fix */
-.home-grid-equal > .content-box,
-#onThisDayCard,
-.on-this-day-section.content-box {
+/* === V5 HOMEPAGE FIX: On This Day card === */
+.home-card.on-this-day-section,
+.content-box.on-this-day-section,
+.on-this-day-section {
   border: 1px solid #b8c9ea !important;
   background: #ffffff !important;
   padding: 22px !important;
   margin-bottom: 20px !important;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14) !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.14) !important;
   box-sizing: border-box !important;
 }
-
-.home-grid-equal > .content-box:hover,
-#onThisDayCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18) !important;
+.home-grid-equal > .content-box.on-this-day-section,
+.home-grid-equal > .home-card.on-this-day-section {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100% !important;
 }
-
-.on-this-day-section {
-  margin-top: 0 !important;
-}
-
-.home-grid-equal #on-this-day,
-.home-grid-equal #featuredPlayer {
-  flex: 1;
-}
+.on-this-day-section h2 { margin-top: 0 !important; }
+/* === End V5 HOMEPAGE FIX === */
