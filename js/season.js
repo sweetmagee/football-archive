@@ -18,6 +18,10 @@ Promise.all([
   const seasonManagersTable = document.getElementById("seasonManagersTable");
   const managerHeading = document.getElementById("managerHeading");
   const overallRecordTable = document.getElementById("overallRecordTable");
+  const seasonTopNav = document.getElementById("seasonTopNav");
+  const seasonBottomNav = document.getElementById("seasonBottomNav");
+  const seasonCompetitionFilter = document.getElementById("seasonCompetitionFilter");
+  const leagueTableSection = document.getElementById("leagueTableSection");
 
   const recordAllGames = document.getElementById("recordAllGames");
   const recordHomeGamesOnly = document.getElementById("recordHomeGamesOnly");
@@ -120,6 +124,52 @@ Promise.all([
       margin-right: 4px;
     }
 
+    .season-matches-heading {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .season-matches-heading h2 {
+      margin: 0;
+    }
+
+    .season-matches-heading select {
+      margin-bottom: 0;
+    }
+
+    .league-table-section-hidden {
+      display: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .season-matches-table tbody tr.season-result-win td {
+      background: #e7f4e4 !important;
+    }
+
+    .season-matches-table tbody tr.season-result-defeat td {
+      background: #f8e3e3 !important;
+    }
+
+    .season-matches-table tbody tr.season-result-draw td {
+      background: #f6edd2 !important;
+    }
+
+    .season-matches-table tbody tr.season-result-win:hover td {
+      background: #d9ecd5 !important;
+    }
+
+    .season-matches-table tbody tr.season-result-defeat:hover td {
+      background: #f1d4d4 !important;
+    }
+
+    .season-matches-table tbody tr.season-result-draw:hover td {
+      background: #efe0b9 !important;
+    }
+
     .league-table-section {
       overflow: hidden;
       transition: opacity 0.28s ease, max-height 0.32s ease, margin 0.32s ease, padding 0.32s ease;
@@ -169,6 +219,56 @@ Promise.all([
   document.head.appendChild(seasonStyle);
 
   const friendlyOnlySeason = String(season.name).trim() === "1896/97";
+
+  const sortedSeasons = [...seasons].sort((a, b) =>
+    Number(a.start_year || 0) - Number(b.start_year || 0) ||
+    Number(a.end_year || 0) - Number(b.end_year || 0) ||
+    String(a.name || "").localeCompare(String(b.name || ""))
+  );
+
+  const seasonIndex = sortedSeasons.findIndex(s => String(s.id).trim() === String(season.id).trim());
+  const previousSeason = seasonIndex > 0 ? sortedSeasons[seasonIndex - 1] : null;
+  const nextSeason = seasonIndex >= 0 && seasonIndex < sortedSeasons.length - 1 ? sortedSeasons[seasonIndex + 1] : null;
+
+  function seasonNavHtml() {
+    return `
+      <div class="match-nav">
+        <div class="match-nav-left">
+          ${previousSeason ? `<a href="season.html?id=${previousSeason.id}">← Previous</a>` : ``}
+        </div>
+        <div class="match-nav-right">
+          ${nextSeason ? `<a href="season.html?id=${nextSeason.id}">Next →</a>` : ``}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderSeasonNav() {
+    const html = seasonNavHtml();
+    if (seasonTopNav) seasonTopNav.innerHTML = html;
+    if (seasonBottomNav) seasonBottomNav.innerHTML = html;
+  }
+
+  function competitionValue(match) {
+    return String(match.competition || "Unknown").trim() || "Unknown";
+  }
+
+  function populateCompetitionFilter() {
+    if (!seasonCompetitionFilter) return;
+
+    const currentValue = seasonCompetitionFilter.value || "all";
+    const competitions = Array.from(new Set(seasonMatches.map(competitionValue)))
+      .sort((a, b) => a.localeCompare(b));
+
+    seasonCompetitionFilter.innerHTML = `
+      <option value="all">All Competitions</option>
+      ${competitions.map(comp => `<option value="${String(comp).replace(/"/g, "&quot;")}">${comp}</option>`).join("")}
+    `;
+
+    if (currentValue === "all" || competitions.includes(currentValue)) {
+      seasonCompetitionFilter.value = currentValue;
+    }
+  }
 
   function isAbandoned(match) {
     return String(match.abandoned || "").trim().toUpperCase() === "Y";
@@ -459,12 +559,16 @@ Promise.all([
   function renderTable(rows) {
     if (!tableBody) return;
 
+    const leagueSection = leagueTableSection || tableBody.closest(".content-box");
+
     tableBody.innerHTML = "";
 
     if (!rows.length) {
-      tableBody.innerHTML = `<tr><td colspan="10">No league matches found for this season.</td></tr>`;
+      if (leagueSection) leagueSection.classList.add("league-table-section-hidden");
       return;
     }
+
+    if (leagueSection) leagueSection.classList.remove("league-table-section-hidden");
 
     rows.forEach((row, i) => {
       tableBody.innerHTML += `
@@ -591,6 +695,24 @@ Promise.all([
     `;
   }
 
+  function margateResultClass(match) {
+    if (!isCountableMatch(match)) return "";
+
+    const homeScore = Number(match.home_score);
+    const awayScore = Number(match.away_score);
+    const margateHome = String(match.home_team).trim() === "t1";
+    const margateAway = String(match.away_team).trim() === "t1";
+
+    if (!margateHome && !margateAway) return "";
+
+    const margateScore = margateHome ? homeScore : awayScore;
+    const opponentScore = margateHome ? awayScore : homeScore;
+
+    if (margateScore > opponentScore) return "season-result-win";
+    if (margateScore < opponentScore) return "season-result-defeat";
+    return "season-result-draw";
+  }
+
   function matchSortDate(match) {
     const note = String(match.notes || "").toLowerCase();
     if (note.includes("date of match unknown")) {
@@ -617,6 +739,10 @@ Promise.all([
 
     if (friendlyOnlyMatches && friendlyOnlyMatches.checked) {
       shownMatches = shownMatches.filter(m => isFriendly(m));
+    }
+
+    if (seasonCompetitionFilter && seasonCompetitionFilter.value !== "all") {
+      shownMatches = shownMatches.filter(m => competitionValue(m) === seasonCompetitionFilter.value);
     }
 
     if (excludeUnknownResults && excludeUnknownResults.checked) {
@@ -652,9 +778,10 @@ Promise.all([
             const abandonedText = isAbandoned(m) ? " - Abandoned" : "";
             const comp = `${competitionBadgeHtml(m.competition)} ${m.competition || ""}${m.round ? ` - ${m.round}` : ""}${abandonedText}`;
             const scorers = matchScorersText(m);
+            const resultClass = margateResultClass(m);
 
             return `
-              <tr>
+              <tr class="${resultClass}">
                 <td class="season-match-number">${matchNumber}</td>
                 <td>${m.date || ""}</td>
                 <td class="season-match-competition">${comp}</td>
@@ -870,6 +997,9 @@ Promise.all([
     if (friendlyRadio) friendlyRadio.checked = true;
   }
 
+  renderSeasonNav();
+  populateCompetitionFilter();
+
   renderManagers();
   renderOverallRecord(countableSeasonMatches);
   renderTable(buildTable(leagueMatches));
@@ -881,6 +1011,10 @@ Promise.all([
   });
 
   setupGameTickboxes(allGamesMatches, homeGamesOnlyMatches, awayGamesOnlyMatches, renderMatches);
+
+  if (seasonCompetitionFilter) {
+    seasonCompetitionFilter.addEventListener("change", renderMatches);
+  }
 
   if (competitiveOnlyMatches) {
     competitiveOnlyMatches.addEventListener("change", () => {
