@@ -2,6 +2,8 @@ async function loadOnThisDay() {
   const container = document.getElementById("on-this-day");
   if (!container) return;
 
+  const INITIAL_LIMIT = 5;
+
   const today = new Date();
   const todayDay = today.getDate();
   const todayMonth = today.getMonth() + 1;
@@ -14,21 +16,23 @@ async function loadOnThisDay() {
   ]);
 
   const teamMap = {};
-  teams.forEach(t => teamMap[t.id] = t.name);
+  teams.forEach(t => {
+    teamMap[t.id] = t.name;
+  });
 
   function parseDate(value) {
     if (!value) return null;
 
     // DD/MM/YYYY
     if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value)) {
-      const [d, m, y] = value.split("/").map(Number);
-      return { day: d, month: m, year: y };
+      const [day, month, year] = value.split("/").map(Number);
+      return { day, month, year };
     }
 
     // YYYY-MM-DD
     if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(value)) {
-      const [y, m, d] = value.split("-").map(Number);
-      return { day: d, month: m, year: y };
+      const [year, month, day] = value.split("-").map(Number);
+      return { day, month, year };
     }
 
     return null;
@@ -49,55 +53,53 @@ async function loadOnThisDay() {
     const d = parseDate(match.date);
     if (!sameDay(d)) return;
 
-    const home = teamMap[match.home_team] || match.home_team;
-    const away = teamMap[match.away_team] || match.away_team;
+    const home = teamMap[match.home_team] || match.home_team || "";
+    const away = teamMap[match.away_team] || match.away_team || "";
 
     let score = "";
-    if (match.home_score !== "?" && match.away_score !== "?") {
+    if (
+      match.home_score !== undefined &&
+      match.away_score !== undefined &&
+      match.home_score !== "?" &&
+      match.away_score !== "?"
+    ) {
       score = ` ${match.home_score}-${match.away_score}`;
     }
 
     items.push({
       year: d.year,
-      type: "match",
       html: `
-        <li>
-          <strong>${d.year}</strong> — 
-          <a href="match.html?id=${match.id}">${home}${score} ${away}</a>
-          ${match.competition ? `<span class="otd-detail">(${match.competition})</span>` : ""}
-          <span class="otd-years">${yearsAgo(d.year)}</span>
-        </li>
+        <strong>${d.year}</strong> —
+        <a href="match.html?id=${match.id}">${home}${score} ${away}</a>
+        ${match.competition ? `<span class="otd-detail">(${match.competition})</span>` : ""}
+        <span class="otd-years">${yearsAgo(d.year)}</span>
       `
     });
   });
 
   players.forEach(player => {
     const birth = parseDate(player.dob || player.date_of_birth);
+
     if (sameDay(birth)) {
       items.push({
         year: birth.year,
-        type: "birth",
         html: `
-          <li>
-            <strong>${birth.year}</strong> — 
-            Born: <a href="player.html?id=${player.id}">${player.name}</a>
-            <span class="otd-years">${yearsAgo(birth.year)}</span>
-          </li>
+          <strong>${birth.year}</strong> —
+          Born: <a href="player.html?id=${player.id}">${player.name}</a>
+          <span class="otd-years">${yearsAgo(birth.year)}</span>
         `
       });
     }
 
     const death = parseDate(player.dod || player.date_of_death || player.death_date);
+
     if (sameDay(death)) {
       items.push({
         year: death.year,
-        type: "death",
         html: `
-          <li>
-            <strong>${death.year}</strong> — 
-            Died: <a href="player.html?id=${player.id}">${player.name}</a>
-            <span class="otd-years">${yearsAgo(death.year)}</span>
-          </li>
+          <strong>${death.year}</strong> —
+          Died: <a href="player.html?id=${player.id}">${player.name}</a>
+          <span class="otd-years">${yearsAgo(death.year)}</span>
         `
       });
     }
@@ -112,13 +114,36 @@ async function loadOnThisDay() {
 
   container.innerHTML = `
     <ul class="on-this-day-list">
-      ${items.map(i => i.html).join("")}
+      ${items.map((item, index) => `
+        <li class="${index >= INITIAL_LIMIT ? "otd-hidden" : ""}">
+          ${item.html}
+        </li>
+      `).join("")}
     </ul>
+
+    ${items.length > INITIAL_LIMIT ? `
+      <button id="otd-show-more" class="archive-button">Show more</button>
+    ` : ""}
   `;
+
+  const showMoreButton = document.getElementById("otd-show-more");
+
+  if (showMoreButton) {
+    showMoreButton.addEventListener("click", () => {
+      document
+        .querySelectorAll(".on-this-day-list .otd-hidden")
+        .forEach(item => item.classList.remove("otd-hidden"));
+
+      showMoreButton.remove();
+    });
+  }
 }
 
-loadOnThisDay().catch(err => {
-  console.error("Error loading On This Day:", err);
+loadOnThisDay().catch(error => {
+  console.error("Error loading On This Day:", error);
+
   const container = document.getElementById("on-this-day");
-  if (container) container.innerHTML = "<p>Unable to load On This Day.</p>";
+  if (container) {
+    container.innerHTML = "<p>Unable to load On This Day.</p>";
+  }
 });
