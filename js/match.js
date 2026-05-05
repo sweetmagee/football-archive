@@ -20,85 +20,87 @@ Promise.all([
     .lineup-player-main { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
     .lineup-position { display: inline-block; min-width: 28px; font-weight: 700; color: #6c5431; }
     .player-icons-inline { margin-left: 4px; white-space: nowrap; }
-    .player-landmarks { margin-left: 8px; text-align: left; font-size: 0.9em; white-space: nowrap; }
+    .player-landmarks { margin-left: auto; text-align: right; font-size: 0.9em; white-space: nowrap; }
     .landmark-label { font-weight: 700; margin: 0 2px; }
-
-    .match-team-line.match-margate-win,
-    .match-team-line.match-team-winner.match-margate-win,
-    .match-team-line.match-team-loser.match-margate-win,
-    .match-team-line.match-team-draw.match-margate-win {
-      background: #e7f4e4 !important;
+    .match-lineups-grid {
+      display: block !important;
+      width: 100% !important;
+    }
+    .match-lineup-column {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box;
     }
 
-    .match-team-line.match-margate-defeat,
-    .match-team-line.match-team-winner.match-margate-defeat,
-    .match-team-line.match-team-loser.match-margate-defeat,
-    .match-team-line.match-team-draw.match-margate-defeat {
-      background: #f8e3e3 !important;
+    .lineup-player {
+      min-height: 26px;
+      align-items: center;
     }
-
-    .match-team-line.match-margate-draw,
-    .match-team-line.match-team-winner.match-margate-draw,
-    .match-team-line.match-team-loser.match-margate-draw,
-    .match-team-line.match-team-draw.match-margate-draw {
-      background: #f6edd2 !important;
+    .lineup-player-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      flex-wrap: nowrap;
+      min-height: 24px;
+      line-height: 24px;
     }
-
-  `;
+    .lineup-position {
+      display: inline-flex;
+      align-items: center;
+      min-width: 28px;
+      height: 24px;
+      font-weight: 700;
+      color: #6c5431;
+    }
+    .player-icons-inline {
+      display: inline-flex;
+      align-items: center;
+      height: 24px;
+      line-height: 24px;
+      margin-left: 4px;
+      white-space: nowrap;
+      letter-spacing: 2px;
+      vertical-align: middle;
+    }
+    .match-info-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 17px;
+      height: 17px;
+      min-width: 17px;
+      min-height: 17px;
+      margin: 0 0 0 3px;
+      padding: 0;
+      border-radius: 50%;
+      border: 1px solid #8b0000;
+      background: #c51616;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 17px;
+      cursor: pointer;
+      font-family: Arial, Helvetica, sans-serif;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.25);
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .match-info-button:hover { background: #9f1010; text-decoration: none; }
+    .lineup-player-main a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+    }  `;
   document.head.appendChild(matchStyle);
 
+  document.addEventListener("click", event => {
+    const button = event.target.closest(".match-info-button");
+    if (!button) return;
+    window.showMatchPlayerInfo(button);
+  });
+
   const match = matches[index];
-
-  function isAbandonedForMargateColour(matchRecord) {
-    return String(matchRecord.abandoned || "").trim().toUpperCase() === "Y";
-  }
-
-  function hasKnownResultForMargateColour(matchRecord) {
-    return (
-      matchRecord &&
-      String(matchRecord.home_score).trim() !== "?" &&
-      String(matchRecord.away_score).trim() !== "?" &&
-      !Number.isNaN(Number(matchRecord.home_score)) &&
-      !Number.isNaN(Number(matchRecord.away_score)) &&
-      !isAbandonedForMargateColour(matchRecord)
-    );
-  }
-
-  function margateResultRowClass(matchRecord) {
-    if (!hasKnownResultForMargateColour(matchRecord)) return "";
-
-    const homeScore = Number(matchRecord.home_score);
-    const awayScore = Number(matchRecord.away_score);
-    const margateHome = String(matchRecord.home_team).trim() === "t1";
-    const margateAway = String(matchRecord.away_team).trim() === "t1";
-
-    if (!margateHome && !margateAway) return "";
-
-    const margateScore = margateHome ? homeScore : awayScore;
-    const opponentScore = margateHome ? awayScore : homeScore;
-
-    if (margateScore > opponentScore) return "match-margate-win";
-    if (margateScore < opponentScore) return "match-margate-defeat";
-    return "match-margate-draw";
-  }
-
-  function opponentResultRowClass(resultClass) {
-    if (resultClass === "match-margate-win") return "match-margate-defeat";
-    if (resultClass === "match-margate-defeat") return "match-margate-win";
-    if (resultClass === "match-margate-draw") return "match-margate-draw";
-    return "";
-  }
-
-  const margateResultRowClassName = margateResultRowClass(match);
-  const homeResultRowClassName =
-    String(match.home_team).trim() === "t1"
-      ? margateResultRowClassName
-      : opponentResultRowClass(margateResultRowClassName);
-  const awayResultRowClassName =
-    String(match.away_team).trim() === "t1"
-      ? margateResultRowClassName
-      : opponentResultRowClass(margateResultRowClassName);
-
   const prevMatch = index > 0 ? matches[index - 1] : null;
   const nextMatch = index < matches.length - 1 ? matches[index + 1] : null;
 
@@ -310,19 +312,16 @@ Promise.all([
   const homeScoreNum = Number(match.home_score || 0);
   const awayScoreNum = Number(match.away_score || 0);
 
-  let homeResultClass = "";
-  let awayResultClass = "";
+  let homeResultClass = "match-team-draw";
+  let awayResultClass = "match-team-draw";
 
-  if (hasKnownResultForMargateColour(match)) {
+  if (!Number.isNaN(homeScoreNum) && !Number.isNaN(awayScoreNum)) {
     if (homeScoreNum > awayScoreNum) {
       homeResultClass = "match-team-winner";
       awayResultClass = "match-team-loser";
     } else if (awayScoreNum > homeScoreNum) {
       homeResultClass = "match-team-loser";
       awayResultClass = "match-team-winner";
-    } else {
-      homeResultClass = "match-team-draw";
-      awayResultClass = "match-team-draw";
     }
   }
 
@@ -372,9 +371,6 @@ Promise.all([
     return map[Number(shirtNumber || 0)] || "";
   }
 
-  function starLabel(text) {
-    return `<span class="gold-star">★</span><span class="landmark-label">${text}</span><span class="gold-star">★</span>`;
-  }
 
   function milestoneReached(before, after, step) {
     const labels = [];
@@ -390,10 +386,15 @@ Promise.all([
 
     apps.forEach(row => {
       if (String(row.player_id).trim() !== String(playerId).trim()) return;
-      const matchRecord = matches.find(m => String(m.id).trim() === String(row.match_id).trim());
+
+      const matchRecord = matches.find(m =>
+        String(m.id).trim() === String(row.match_id).trim()
+      );
+
       if (!matchRecord || !isKnownScore(matchRecord)) return;
       if (competitiveOnly && isFriendly(matchRecord)) return;
       if (!isBeforeCurrentMatch(matchRecord)) return;
+
       appsCount++;
       goalsCount += Number(row.goals || 0);
     });
@@ -401,28 +402,191 @@ Promise.all([
     return { apps: appsCount, goals: goalsCount };
   }
 
-  function playerLandmarkLabels(a) {
+  function isAfterCurrentMatch(matchRecord) {
+    return matchSortValue(matchRecord) > matchSortValue(match);
+  }
+
+  function playerCareerStatsAfter(playerId, competitiveOnly = false) {
+    let appsCount = 0;
+    let goalsCount = 0;
+
+    apps.forEach(row => {
+      if (String(row.player_id).trim() !== String(playerId).trim()) return;
+
+      const matchRecord = matches.find(m =>
+        String(m.id).trim() === String(row.match_id).trim()
+      );
+
+      if (!matchRecord || !isKnownScore(matchRecord)) return;
+      if (competitiveOnly && isFriendly(matchRecord)) return;
+      if (!isAfterCurrentMatch(matchRecord)) return;
+
+      appsCount++;
+      goalsCount += Number(row.goals || 0);
+    });
+
+    return { apps: appsCount, goals: goalsCount };
+  }
+
+  function getPlayerMilestones(a) {
     const playerId = String(a.player_id).trim();
     const currentGoals = Number(a.goals || 0);
     const currentIsCompetitive = !isFriendly(match);
     const allBefore = playerCareerStatsBefore(playerId, false);
     const compBefore = playerCareerStatsBefore(playerId, true);
-    const labels = [];
 
-    if (allBefore.apps === 0) labels.push("Debut");
-    if (currentIsCompetitive && compBefore.apps === 0) labels.push("Competitive Debut");
-    if (currentGoals > 0 && allBefore.goals === 0) labels.push(currentGoals > 1 ? "First Goals" : "First Goal");
-    if (currentGoals > 0 && currentIsCompetitive && compBefore.goals === 0) labels.push(currentGoals > 1 ? "First Competitive Goals" : "First Competitive Goal");
+    const groups = {
+      debut: [],
+      appearance: [],
+      goal: []
+    };
 
-    milestoneReached(allBefore.apps, allBefore.apps + 1, 50).forEach(n => labels.push(`${n}th Appearance`));
-    if (currentIsCompetitive) milestoneReached(compBefore.apps, compBefore.apps + 1, 50).forEach(n => labels.push(`${n}th Competitive Appearance`));
-    if (currentGoals > 0) {
-      milestoneReached(allBefore.goals, allBefore.goals + currentGoals, 25).forEach(n => labels.push(`${n}th Goal`));
-      if (currentIsCompetitive) milestoneReached(compBefore.goals, compBefore.goals + currentGoals, 25).forEach(n => labels.push(`${n}th Competitive Goal`));
+    if (allBefore.apps === 0) groups.debut.push("Debut");
+    if (currentIsCompetitive && compBefore.apps === 0) groups.debut.push("Competitive Debut");
+
+    if (currentGoals > 0 && allBefore.goals === 0) {
+      groups.debut.push(currentGoals > 1 ? "First Goals" : "First Goal");
     }
 
-    return labels.length ? `<span class="player-landmarks">${labels.map(starLabel).join(" ")}</span>` : "";
+    if (currentGoals > 0 && currentIsCompetitive && compBefore.goals === 0) {
+      groups.debut.push(currentGoals > 1 ? "First Competitive Goals" : "First Competitive Goal");
+    }
+
+    milestoneReached(allBefore.apps, allBefore.apps + 1, 50)
+      .forEach(n => groups.appearance.push(`${n}th Appearance`));
+
+    if (currentIsCompetitive) {
+      milestoneReached(compBefore.apps, compBefore.apps + 1, 50)
+        .forEach(n => groups.appearance.push(`${n}th Competitive Appearance`));
+    }
+
+    if (currentGoals > 0) {
+      milestoneReached(allBefore.goals, allBefore.goals + currentGoals, 25)
+        .forEach(n => groups.goal.push(`${n}th Goal`));
+
+      if (currentIsCompetitive) {
+        milestoneReached(compBefore.goals, compBefore.goals + currentGoals, 25)
+          .forEach(n => groups.goal.push(`${n}th Competitive Goal`));
+      }
+    }
+
+    const allAfter = playerCareerStatsAfter(playerId, false);
+    const compAfter = playerCareerStatsAfter(playerId, true);
+
+    if (allAfter.apps === 0) {
+      groups.appearance.push("Final Appearance");
+    }
+
+    if (currentIsCompetitive && compAfter.apps === 0) {
+      groups.appearance.push("Final Competitive Appearance");
+    }
+
+    if (currentGoals > 0 && allAfter.goals === 0) {
+      groups.goal.push(currentGoals > 1 ? "Final Goals" : "Final Goal");
+    }
+
+    if (currentGoals > 0 && currentIsCompetitive && compAfter.goals === 0) {
+      groups.goal.push(currentGoals > 1 ? "Final Competitive Goals" : "Final Competitive Goal");
+    }
+
+    return groups;
   }
+
+  function flattenMilestones(groups) {
+    return [
+      ...(groups.debut || []),
+      ...(groups.appearance || []),
+      ...(groups.goal || [])
+    ];
+  }
+
+  function milestoneIcon(label) {
+    if (/goal/i.test(label)) return "⚽";
+    if (/appearance|debut/i.test(label)) return "🏁";
+    return "ℹ️";
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function groupedMilestoneHtml(groups) {
+    const sections = [
+      { key: "debut", title: "Debuts & Firsts" },
+      { key: "appearance", title: "Appearance Landmarks" },
+      { key: "goal", title: "Goal Landmarks" }
+    ];
+
+    return sections
+      .filter(section => groups[section.key] && groups[section.key].length)
+      .map(section => `
+        <h4>${section.title}</h4>
+        <ul>
+          ${groups[section.key].map(label => `
+            <li><span class="match-info-modal-icon">${milestoneIcon(label)}</span><span>${escapeHtml(label)}</span></li>
+          `).join("")}
+        </ul>
+      `).join("");
+  }
+
+  function playerInfoButton(a) {
+    const groups = getPlayerMilestones(a);
+    const labels = flattenMilestones(groups);
+
+    if (!labels.length) return "";
+
+    return `
+      <button class="match-info-button"
+              type="button"
+              title="${escapeHtml(labels.join(" | "))}"
+              aria-label="Show player milestones"
+              data-player="${escapeHtml(playerName(a.player_id))}"
+              data-info="${encodeURIComponent(JSON.stringify(groups))}">
+        i
+      </button>
+    `;
+  }
+
+  window.showMatchPlayerInfo = function(button) {
+    const playerNameText = button.getAttribute("data-player") || "Player";
+    let groups = {};
+
+    try {
+      groups = JSON.parse(decodeURIComponent(button.getAttribute("data-info") || "{}"));
+    } catch (err) {
+      groups = {};
+    }
+
+    const oldModal = document.getElementById("matchInfoModal");
+    if (oldModal) oldModal.remove();
+
+    const modal = document.createElement("div");
+    modal.id = "matchInfoModal";
+    modal.className = "match-info-modal-backdrop";
+
+    modal.innerHTML = `
+      <div class="match-info-modal" role="dialog" aria-modal="true" aria-label="Player milestone details">
+        <h3>${escapeHtml(playerNameText)}</h3>
+        ${groupedMilestoneHtml(groups)}
+        <button class="archive-button match-info-close" type="button">Close</button>
+      </div>
+    `;
+
+    modal.addEventListener("click", event => {
+      if (event.target === modal) modal.remove();
+    });
+
+    modal.querySelector(".match-info-close").addEventListener("click", () => {
+      modal.remove();
+    });
+
+    document.body.appendChild(modal);
+  };
 
   function playerIcons(a) {
     const captain = Number(a.captain || 0) === 1 ? `<span class="captain-icon" title="Captain">Ⓒ</span>` : "";
@@ -464,7 +628,7 @@ Promise.all([
   function playerLineHtml(a) {
     const position = positionFromShirt(a.shirt_number);
     const positionHtml = position ? `<span class="lineup-position">${position}</span>` : `<span class="lineup-position"></span>`;
-    const landmarks = playerLandmarkLabels(a);
+    const infoButton = playerInfoButton(a);
 
     return `
       <div class="lineup-player">
@@ -472,9 +636,9 @@ Promise.all([
           ${positionHtml}
           <a href="player.html?id=${a.player_id}">${playerName(a.player_id)}</a>
           ${playerIcons(a)}
+          ${infoButton}
           ${subMarker(a)}
         </span>
-        ${landmarks}
       </div>
     `;
   }
@@ -557,12 +721,12 @@ Promise.all([
         ${competitionBadgeHtml(match.competition)}
         <div class="match-header-main">
           <div class="match-score-header">
-            <div class="match-team-line ${homeResultClass} ${homeResultRowClassName}">
+            <div class="match-team-line ${homeResultClass}">
               ${teamBadgeHtml(match.home_team, "team-badge-medium")}
               <span class="match-line-text">${homeLine}</span>
             </div>
 
-            <div class="match-team-line ${awayResultClass} ${awayResultRowClassName}">
+            <div class="match-team-line ${awayResultClass}">
               ${teamBadgeHtml(match.away_team, "team-badge-medium")}
               <span class="match-line-text">${awayLine}</span>
             </div>
