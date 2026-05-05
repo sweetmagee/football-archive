@@ -102,20 +102,19 @@ Promise.all([
     if (!eraValue || eraValue === "all") return true;
 
     const first = parseDate(row.firstMatchDate);
+    const last = parseDate(row.lastMatchDate) || first;
 
     if (eraValue === "unknown") return !first;
     if (!first) return false;
 
-    const firstYear = first.getFullYear();
-
-    if (eraValue === "1890s") {
-      return firstYear >= 1890 && firstYear <= 1899;
-    }
-
     const startYear = Number(String(eraValue).replace("s", ""));
     const endYear = startYear + 9;
 
-    return firstYear >= startYear && firstYear <= endYear;
+    const firstYear = first.getFullYear();
+    const lastYear = last.getFullYear();
+
+    // Manager appears in every decade/era overlapped by their full known span.
+    return firstYear <= endYear && lastYear >= startYear;
   }
 
   function render() {
