@@ -168,7 +168,14 @@ Promise.all([
   }
 
   function formatDays(days) {
-    return days === 1 ? "1 day" : `${days} days`;
+    if (days <= 365) return days === 1 ? "1 day" : `${days} days`;
+
+    const years = Math.floor(days / 365);
+    const remainingDays = days % 365;
+
+    return remainingDays
+      ? `${years === 1 ? "1 year" : `${years} years`} ${remainingDays === 1 ? "1 day" : `${remainingDays} days`}`
+      : years === 1 ? "1 year" : `${years} years`;
   }
 
   function ordinal(n) {
