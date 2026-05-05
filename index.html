@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Margate & Thanet United FC Archive</title>
+  <base href="/football-archive/">
+  <link rel="stylesheet" href="css/styles.css">
+
+<style>
+  .home-grid-equal {
+    align-items: stretch;
+  }
+
+  .home-grid-equal > .content-box {
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+
+    display: flex;
+    flex-direction: column;
+    padding: 22px;
+    box-sizing: border-box;
+    min-height: 100%;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .home-grid-equal > .content-box h2 {
+    margin-top: 0;
+    min-height: 1.4em;
+    display: flex;
+    align-items: center;
+  }
+
+  .home-grid-equal #latestAdditions,
+  .home-grid-equal #featuredPlayer {
+    flex: 1;
+  }
+
+  .random-player-box {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    transform: none !important;
+  }
+
+  .home-grid-equal .random-player-box #featuredPlayer {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .random-player-footer {
+    margin-top: auto;
+    padding-top: 12px;
+  }
+
+  .featured-player-card {
+    height: 100%;
+  }
+
+  .random-player-box .featured-player-card {
+    flex: 1;
+    width: 100%;
+  }
+
+  .home-missing-section {
+    width: 120%;
+    max-width: 120%;
+    margin-left: -10%;
+  }
+
+  .home-missing-filters {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .home-missing-table {
+    width: 100%;
+    table-layout: auto;
+  }
+
+  .home-missing-table th,
+  .home-missing-table td {
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .home-missing-table th:nth-child(1),
+  .home-missing-table td:nth-child(1),
+  .home-missing-table th:nth-child(2),
+  .home-missing-table td:nth-child(2) {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .home-missing-table th:nth-child(5),
+  .home-missing-table td:nth-child(5) {
+    white-space: normal;
+    text-align: left;
+  }
+
+  .home-missing-number {
+    font-weight: normal;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  .home-missing-result-link {
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) 70px minmax(160px, 1fr);
+    align-items: center;
+    column-gap: 12px;
+    text-decoration: none;
+    width: 100%;
+  }
+
+  .home-missing-result-team {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .home-missing-result-home {
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .home-missing-result-away {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .home-missing-result-score {
+    text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .home-missing-scorers {
+    text-align: left !important;
+  }
+
+  @media (max-width: 900px) {
+    .home-missing-section {
+      width: 100%;
+      max-width: 100%;
+      margin-left: 0;
+    }
+
+    .home-missing-table th,
+    .home-missing-table td {
+      white-space: normal;
+    }
+
+    .home-missing-result-link {
+      grid-template-columns: 1fr;
+      row-gap: 4px;
+    }
+
+    .home-missing-result-home,
+    .home-missing-result-away {
+      justify-content: flex-start;
+      text-align: left;
+    }
+
+    .home-missing-result-score {
+      text-align: left;
+    }
+  }
+
+</style>
+
+
+<style>
+.archive-table tbody tr.percent-row td {
+    background: #ffffff !important;
+    font-weight: 700;
+  }
+
+  .archive-table tbody tr.percent-row td.percent-red {
+    background: #f4cccc !important;
+  }
+
+  .archive-table tbody tr.percent-row td.percent-amber {
+    background: #fce5cd !important;
+  }
+
+  .archive-table tbody tr.percent-row td.percent-green {
+    background: #d9ead3 !important;
+  }
+
+  .missing-info-toggle-wrap {
+    margin-top: 14px;
+  }
+
+  #homeMissingMatchesPanel {
+    margin-top: 16px;
+  }
+
+  .home-missing-table th,
+  .home-missing-table td {
+    vertical-align: middle;
+  }
+
+  .home-missing-result {
+    white-space: nowrap;
+  }
+</style>
+
+</head>
+<body>
+
+   <div class="header-bar site-header-image">
+  <div class="site-header-overlay">
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="players.html">Players</a>
+      <a href="managers.html">Managers</a>
+      <a href="seasons.html">Seasons</a>
+      <a href="opponents.html">Opponents</a>
+      <a href="statistics.html">Statistics</a>
+      <a href="records.html">Records</a>
+      <a href="honours.html">Honours</a>
+      <a href="history.html">History</a>
+      <a href="interactive.html">Interactive</a>
+
+    </div>
+  </div>
+</div>
+
+
+
+  <div class="page-wrap">
+
+    <div class="content-box">
+      <h2>Current Archive Statistics</h2>
+
+      <table class="archive-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Players</th>
+            <th>Competitive Matches</th>
+            <th>Friendly Matches</th>
+            <th>All Matches</th>
+          </tr>
+        </thead>
+        <tbody id="archiveStatsTable"></tbody>
+      </table>
+
+      <div class="missing-info-toggle-wrap">
+        <button id="showMissingMatchesBtn" class="archive-button" type="button">
+          Click here to see matches that are missing information
+        </button>
+      </div>
+
+      <div id="homeMissingMatchesPanel" style="display:none;"></div>
+    </div>
+
+
+    <div class="home-grid home-grid-equal">
+
+      <div class="content-box">
+        <h2>Latest Additions</h2>
+        <div id="latestAdditions">Loading...</div>
+      </div>
+
+      <div class="content-box random-player-box">
+        <h2>Random Player</h2>
+        <div id="featuredPlayer">Loading...</div>
+
+        <div class="random-player-footer">
+          <button id="randomPlayerBtn" class="archive-button" type="button">
+            Another Random Player
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="home-grid">
+
+      <div class="content-box">
+        <h2>Browse by Season</h2>
+        <p>Jump straight into the year-by-year record of the club.</p>
+        <p><a href="seasons.html">Browse all seasons</a></p>
+      </div>
+
+      <div class="content-box">
+        <h2>Programme Covers</h2>
+
+        <div class="programme-grid">
+          <div class="programme-card">
+            <img src="images/programmes/programme1.jpg"
+                 alt="Programme cover"
+                 onerror="this.style.display='none'">
+            <p>Historic programme cover</p>
+          </div>
+
+          <div class="programme-card">
+            <img src="images/programmes/programme2.jpg"
+                 alt="Programme cover"
+                 onerror="this.style.display='none'">
+            <p>More covers coming soon</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+
+
+<script>
+(function () {
+  function normalise(value) {
+    return String(value || "").trim();
+  }
+
+  function isY(value) {
+    return normalise(value).toUpperCase() === "Y";
+  }
+
+  function isFriendly(match) {
+    const comp = normalise(match.competition).toLowerCase();
+    return comp === "friendly" || comp === "friendlies" || comp === "fr" || comp.includes("friendly");
+  }
+
+  function hasKnownScore(match) {
+    return (
+      match &&
+      normalise(match.home_score) !== "?" &&
+      normalise(match.away_score) !== "?" &&
+      !Number.isNaN(Number(match.home_score)) &&
+      !Number.isNaN(Number(match.away_score))
+    );
+  }
+
+  function hasStrictDate(match) {
+    return /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(normalise(match.date));
+  }
+
+  function isDateMissing(match) {
+    const note = normalise(match.notes).toLowerCase();
+    const date = normalise(match.date).toLowerCase();
+
+    return (
+      !hasStrictDate(match) ||
+      note.includes("date of match unknown") ||
+      note.includes("unknown date") ||
+      date.includes("date of match unknown") ||
+      date.includes("unknown date")
+    );
+  }
+
+  function isIncludedInArchiveStats(match) {
+    return !isY(match.abandoned) && hasKnownScore(match);
+  }
+
+  function isMatchIncomplete(match) {
+    return isY(match.incomplete) || isDateMissing(match);
+  }
+
+  function pct(a, b) {
+    return b ? Math.round((a / b) * 100) : 0;
+  }
+
+  function percentCellClass(value) {
+    if (value < 50) return "percent-red";
+    if (value < 100) return "percent-amber";
+    return "percent-green";
+  }
+
+  function parseDate(value) {
+    if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(normalise(value))) return null;
+    const [d, m, y] = normalise(value).split("/").map(Number);
+    const parsed = new Date(y, m - 1, d);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function matchSortDate(match) {
+    if (isDateMissing(match)) return new Date(9999, 11, 31);
+    return parseDate(match.date) || new Date(9999, 11, 30);
+  }
+
+  function resolveTeam(teamValue, teams) {
+    return teams.find(t =>
+      normalise(t.id) === normalise(teamValue) ||
+      normalise(t.name) === normalise(teamValue)
+    );
+  }
+
+  function teamName(teamValue, teams) {
+    const team = resolveTeam(teamValue, teams);
+    return team ? team.name : teamValue;
+  }
+
+  function teamBadgeHtml(teamValue, teams) {
+    const team = resolveTeam(teamValue, teams);
+    const badgeId = team ? team.id : teamValue;
+
+    return `
+      <img class="team-badge-small"
+           src="images/teams/${badgeId}.png"
+           alt=""
+           onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';">
+    `;
+  }
+
+  function matchApps(match, appearances) {
+    return appearances.filter(a =>
+      normalise(a.match_id) === normalise(match.id) &&
+      normalise(a.team) === "t1"
+    );
+  }
+
+  function margateGoalsFor(match) {
+    if (normalise(match.home_team) === "t1") return Number(match.home_score);
+    if (normalise(match.away_team) === "t1") return Number(match.away_score);
+    return 0;
+  }
+
+  function lineUpMissing(match, appearances) {
+    return isY(match.incomplete) && matchApps(match, appearances).length < 11;
+  }
+
+  function goalscorersMissing(match, appearances) {
+    if (!isY(match.incomplete)) return false;
+
+    const score = margateGoalsFor(match);
+    if (Number.isNaN(score) || score <= 0) return false;
+
+    const knownGoalsFromApps = matchApps(match, appearances)
+      .reduce((sum, a) => sum + Number(a.goals || 0), 0);
+
+    const scorersArray = Array.isArray(match.scorers) ? match.scorers : [];
+    const knownGoalsFromScorers = scorersArray
+      .filter(s => normalise(s.player_id).toLowerCase() !== "unknown")
+      .reduce((sum, s) => sum + Number(s.goals || 0), 0);
+
+    const knownGoals = Math.max(knownGoalsFromApps, knownGoalsFromScorers);
+    const scorerText = normalise(match.scorers_text).toLowerCase();
+
+    return scorerText.includes("?") || scorerText.includes("unknown") || knownGoals < score;
+  }
+
+  function playerFor(playerId, players) {
+    return players.find(p => normalise(p.id) === normalise(playerId));
+  }
+
+  function shortScorerName(playerId, allIds, players) {
+    const p = playerFor(playerId, players);
+    if (!p) return playerId;
+
+    const parts = normalise(p.name).split(/\s+/);
+    const last = parts.pop() || p.name;
+    const first = parts.join(" ");
+
+    const sameSurname = allIds
+      .map(pid => playerFor(pid, players))
+      .filter(Boolean)
+      .filter(x => {
+        const bits = normalise(x.name).split(/\s+/);
+        const xLast = bits.pop() || "";
+        return xLast.toLowerCase() === last.toLowerCase();
+      });
+
+    return sameSurname.length > 1 && first ? `${first.charAt(0)}.${last}` : last;
+  }
+
+  function joinScorerNames(items) {
+    if (items.length === 0) return "";
+    if (items.length === 1) return items[0];
+    if (items.length === 2) return `${items[0]} & ${items[1]}`;
+    return `${items.slice(0, -1).join(", ")} & ${items[items.length - 1]}`;
+  }
+
+  function matchScorersText(match, appearances, players) {
+    const score = margateGoalsFor(match);
+    if (Number.isNaN(score) || score <= 0) return "";
+
+    const apps = matchApps(match, appearances);
+    const allIds = apps.map(a => a.player_id);
+
+    let rows = apps
+      .filter(a => Number(a.goals || 0) > 0)
+      .map(a => ({
+        name: shortScorerName(a.player_id, allIds, players),
+        surname: shortScorerName(a.player_id, allIds, players).replace(/^.*\./, ""),
+        goals: Number(a.goals || 0),
+        unknown: false
+      }));
+
+    if (!rows.length && Array.isArray(match.scorers)) {
+      rows = match.scorers
+        .filter(s => Number(s.goals || 0) > 0)
+        .map(s => ({
+          name: normalise(s.player_id).toLowerCase() === "unknown"
+            ? "Unknown"
+            : shortScorerName(s.player_id, match.scorers.map(x => x.player_id), players),
+          surname: normalise(s.player_id).toLowerCase() === "unknown"
+            ? "Unknown"
+            : shortScorerName(s.player_id, match.scorers.map(x => x.player_id), players).replace(/^.*\./, ""),
+          goals: Number(s.goals || 0),
+          unknown: normalise(s.player_id).toLowerCase() === "unknown"
+        }));
+    }
+
+    const knownGoals = rows.reduce((sum, r) => sum + r.goals, 0);
+    const unknownGoals = score - knownGoals;
+
+    if (unknownGoals > 0) {
+      rows.push({
+        name: "Unknown",
+        surname: "Unknown",
+        goals: unknownGoals,
+        unknown: true
+      });
+    }
+
+    rows.sort((a, b) => {
+      if (a.unknown && !b.unknown) return 1;
+      if (!a.unknown && b.unknown) return -1;
+
+      return (
+        b.goals - a.goals ||
+        a.surname.localeCompare(b.surname) ||
+        a.name.localeCompare(b.name)
+      );
+    });
+
+    return joinScorerNames(rows.map(r => r.goals > 1 ? `${r.name} (${r.goals})` : r.name));
+  }
+
+  function resultHtml(match, teams) {
+    return `
+      <a href="match.html?id=${match.id}" class="home-missing-result-link">
+        <span class="home-missing-result-team home-missing-result-home">
+          <span>${teamName(match.home_team, teams)}</span>
+          ${teamBadgeHtml(match.home_team, teams)}
+        </span>
+
+        <span class="home-missing-result-score">${match.home_score} - ${match.away_score}</span>
+
+        <span class="home-missing-result-team home-missing-result-away">
+          ${teamBadgeHtml(match.away_team, teams)}
+          <span>${teamName(match.away_team, teams)}</span>
+        </span>
+      </a>
+    `;
+  }
+
+  function renderMissingMatches(matches, teams, appearances, players) {
+    const panel = document.getElementById("homeMissingMatchesPanel");
+    if (!panel) return;
+
+    const showLineups = document.getElementById("homeLineupMissingFilter")?.checked ?? true;
+    const showScorers = document.getElementById("homeGoalscorersMissingFilter")?.checked ?? true;
+    const showDates = document.getElementById("homeDateMissingFilter")?.checked ?? true;
+
+    let rows = matches
+      .filter(isIncludedInArchiveStats)
+      .filter(match => {
+        const lineups = lineUpMissing(match, appearances);
+        const scorers = goalscorersMissing(match, appearances);
+        const dates = isDateMissing(match);
+
+        return (
+          (showLineups && lineups) ||
+          (showScorers && scorers) ||
+          (showDates && dates)
+        );
+      })
+      .sort((a, b) => matchSortDate(a) - matchSortDate(b));
+
+    panel.innerHTML = `
+      <h2>Missing Match Information</h2>
+
+      <div class="home-missing-filters">
+        <label class="stats-toggle">
+          <input type="checkbox" id="homeLineupMissingFilter" ${showLineups ? "checked" : ""}>
+          Line-up Details Missing
+        </label>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="homeGoalscorersMissingFilter" ${showScorers ? "checked" : ""}>
+          Missing Goalscorers
+        </label>
+
+        <label class="stats-toggle">
+          <input type="checkbox" id="homeDateMissingFilter" ${showDates ? "checked" : ""}>
+          Match Date Missing
+        </label>
+      </div>
+
+      <div class="player-count">${rows.length} match${rows.length === 1 ? "" : "es"} shown</div>
+
+      ${rows.length ? `
+        <table class="archive-table home-missing-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Competition</th>
+              <th>Result</th>
+              <th>Goalscorers</th>
+              <th>Att</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((match, index) => {
+              const matchNumber = `#${String(index + 1).padStart(3, "0")}`;
+              const dateText = isDateMissing(match) ? (match.date || "Date unknown") : match.date;
+              const comp = `${match.competition || ""}${match.round ? ` - ${match.round}` : ""}`;
+              const scorers = matchScorersText(match, appearances, players);
+
+              return `
+                <tr>
+                  <td class="home-missing-number">${matchNumber}</td>
+                  <td>${dateText || ""}</td>
+                  <td>${comp}</td>
+                  <td>${resultHtml(match, teams)}</td>
+                  <td class="home-missing-scorers">${scorers || ""}</td>
+                  <td>${match.attendance || ""}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      ` : `<div>No matches found.</div>`}
+
+      <button id="hideMissingMatchesBtn" class="archive-button" type="button">Hide this list</button>
+    `;
+
+    ["homeLineupMissingFilter", "homeGoalscorersMissingFilter", "homeDateMissingFilter"].forEach(id => {
+      const box = document.getElementById(id);
+      if (box) {
+        box.addEventListener("change", () => {
+          renderMissingMatches(matches, teams, appearances, players);
+          panel.style.display = "block";
+        });
+      }
+    });
+
+    const hideBtn = document.getElementById("hideMissingMatchesBtn");
+    if (hideBtn) {
+      hideBtn.addEventListener("click", () => {
+        panel.style.display = "none";
+        const showBtn = document.getElementById("showMissingMatchesBtn");
+        if (showBtn) showBtn.style.display = "inline-block";
+      });
+    }
+  }
+
+  Promise.all([
+    fetch("data/players.json").then(r => r.json()),
+    fetch("data/matches.json").then(r => r.json()),
+    fetch("data/appearances.json").then(r => r.json()),
+    fetch("data/teams.json").then(r => r.json())
+  ]).then(([players, matches, appearances, teams]) => {
+
+    const playerApps = {};
+    appearances.forEach(a => {
+      playerApps[a.player_id] = (playerApps[a.player_id] || 0) + 1;
+    });
+
+    const playersComplete = players.filter(p => playerApps[p.id] > 0).length;
+    const playersIncomplete = players.length - playersComplete;
+
+    let compComplete = 0, compIncomplete = 0;
+    let frComplete = 0, frIncomplete = 0;
+
+    matches.filter(isIncludedInArchiveStats).forEach(match => {
+      const complete = !isMatchIncomplete(match);
+      const friendly = isFriendly(match);
+
+      if (friendly) {
+        if (complete) frComplete++;
+        else frIncomplete++;
+      } else {
+        if (complete) compComplete++;
+        else compIncomplete++;
+      }
+    });
+
+    const allComplete = compComplete + frComplete;
+    const allIncomplete = compIncomplete + frIncomplete;
+
+    const playersPct = pct(playersComplete, players.length);
+    const compPct = pct(compComplete, compComplete + compIncomplete);
+    const frPct = pct(frComplete, frComplete + frIncomplete);
+    const allPct = pct(allComplete, allComplete + allIncomplete);
+
+    const table = document.getElementById("archiveStatsTable");
+
+    table.innerHTML = `
+      <tr>
+        <td><strong>Complete</strong></td>
+        <td>${playersComplete}</td>
+        <td>${compComplete}</td>
+        <td>${frComplete}</td>
+        <td>${allComplete}</td>
+      </tr>
+      <tr>
+        <td><strong>Incomplete</strong></td>
+        <td>${playersIncomplete}</td>
+        <td>${compIncomplete}</td>
+        <td>${frIncomplete}</td>
+        <td>${allIncomplete}</td>
+      </tr>
+      <tr class="percent-row">
+        <td><strong>% Complete</strong></td>
+        <td class="${percentCellClass(playersPct)}">${playersPct}%</td>
+        <td class="${percentCellClass(compPct)}">${compPct}%</td>
+        <td class="${percentCellClass(frPct)}">${frPct}%</td>
+        <td class="${percentCellClass(allPct)}">${allPct}%</td>
+      </tr>
+    `;
+
+    renderMissingMatches(matches, teams, appearances, players);
+
+    const showBtn = document.getElementById("showMissingMatchesBtn");
+    const panel = document.getElementById("homeMissingMatchesPanel");
+
+    if (showBtn && panel) {
+      showBtn.addEventListener("click", () => {
+        panel.style.display = "block";
+        showBtn.style.display = "none";
+      });
+    }
+  }).catch(error => {
+    const table = document.getElementById("archiveStatsTable");
+    if (table) {
+      table.innerHTML = `<tr><td colspan="5">Unable to load archive statistics.</td></tr>`;
+    }
+    console.error("Archive statistics error:", error);
+  });
+})();
+</script>
+
+
+
+
+
+  <script src="js/home.js"></script>
+</body>
+</html>
