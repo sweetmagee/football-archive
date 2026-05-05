@@ -168,14 +168,7 @@ Promise.all([
   }
 
   function formatDays(days) {
-    if (days <= 365) return days === 1 ? "1 day" : `${days} days`;
-
-    const years = Math.floor(days / 365);
-    const remainingDays = days % 365;
-
-    return remainingDays
-      ? `${years === 1 ? "1 year" : `${years} years`} ${remainingDays === 1 ? "1 day" : `${remainingDays} days`}`
-      : years === 1 ? "1 year" : `${years} years`;
+    return days === 1 ? "1 day" : `${days} days`;
   }
 
   function ordinal(n) {
@@ -186,6 +179,59 @@ Promise.all([
 
   function matchLine(match) {
     return `${teamName(match.home_team)} ${match.home_score}-${match.away_score} ${teamName(match.away_team)}`;
+  }
+
+  function resolveTeam(teamValue) {
+    return teams.find(t =>
+      String(t.id).trim() === String(teamValue).trim() ||
+      String(t.name).trim() === String(teamValue).trim()
+    );
+  }
+
+  function teamBadgeSmall(teamValue) {
+    const team = resolveTeam(teamValue);
+    const teamId = team ? team.id : teamValue;
+
+    return `
+      <img
+        class="team-badge-small"
+        src="images/teams/${teamId}.png"
+        alt=""
+        onerror="this.onerror=null;this.src='images/teams/defaultbadge.png';"
+      >
+    `;
+  }
+
+  function resultHtml(match) {
+    return `
+      <a href="match.html?id=${match.id}" class="season-result-link player-result-link">
+        <span class="season-result-team season-result-home">
+          <span>${teamName(match.home_team)}</span>
+          ${teamBadgeSmall(match.home_team)}
+        </span>
+
+        <span class="season-result-score">${match.home_score} - ${match.away_score}</span>
+
+        <span class="season-result-team season-result-away">
+          ${teamBadgeSmall(match.away_team)}
+          <span>${teamName(match.away_team)}</span>
+        </span>
+      </a>
+    `;
+  }
+
+  function competitionValue(match) {
+    return String(match.competition || "Unknown").trim() || "Unknown";
+  }
+
+  function competitionOptionsHtml(rows) {
+    const competitions = Array.from(new Set(rows.map(row => competitionValue(row.match))))
+      .sort((a, b) => a.localeCompare(b));
+
+    return `
+      <option value="all">All Competitions</option>
+      ${competitions.map(comp => `<option value="${comp.replace(/"/g, "&quot;")}">${comp}</option>`).join("")}
+    `;
   }
 
   function calcStats(rows) {
@@ -555,6 +601,75 @@ function statSetFor(playerId) {
         background: #f1d4d4 !important;
       }
 
+      .player-match-record-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+
+      .player-match-record-header h3 {
+        margin: 0;
+      }
+
+      .player-match-record-header select {
+        margin-bottom: 0;
+      }
+
+      .player-result-link {
+        display: grid;
+        grid-template-columns: minmax(160px, 1fr) 70px minmax(160px, 1fr);
+        align-items: center;
+        column-gap: 12px;
+        text-decoration: none;
+        width: 100%;
+      }
+
+      .season-result-team {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        white-space: nowrap;
+      }
+
+      .season-result-home {
+        justify-content: flex-end;
+        text-align: right;
+      }
+
+      .season-result-away {
+        justify-content: flex-start;
+        text-align: left;
+      }
+
+      .season-result-score {
+        text-align: center;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .player-start-tick,
+      .player-start-cross {
+        color: #b30000;
+        font-weight: 900;
+        font-size: 1.15em;
+      }
+
+      .player-match-competition {
+        white-space: nowrap;
+      }
+
+      .archive-table.player-match-record-table th,
+      .archive-table.player-match-record-table td {
+        vertical-align: middle;
+      }
+
+      .archive-table.player-match-record-table td:nth-child(4) {
+        min-width: 420px;
+      }
+
       .archive-table tbody tr.player-result-draw:hover td {
         background: #efe0b9 !important;
       }
@@ -617,7 +732,12 @@ function statSetFor(playerId) {
     ` : ""}
 
     <div class="content-box section-block">
-      <h3>Match Record</h3>
+      <div class="player-match-record-header">
+        <h3>Match Record</h3>
+        <select id="playerCompetitionFilter">
+          ${competitionOptionsHtml(orderedMatches)}
+        </select>
+      </div>
 
       <div id="seasonSummary">
         <table class="archive-table">
@@ -667,14 +787,14 @@ function statSetFor(playerId) {
           </label>
         </div>
 
-        <table class="archive-table">
+        <table class="archive-table player-match-record-table">
           <thead>
             <tr>
               <th>#</th>
               <th>Date</th>
-              <th>Match</th>
               <th>Competition</th>
-              <th>Apps</th>
+              <th>Result</th>
+              <th>Start ?</th>
               <th>Goals</th>
             </tr>
           </thead>
@@ -695,6 +815,7 @@ function statSetFor(playerId) {
     const awayGamesOnly = document.getElementById("awayGamesOnlyPlayer");
     const competitiveOnly = document.getElementById("competitiveOnlyPlayer");
     const friendlyOnly = document.getElementById("friendlyOnlyPlayer");
+    const competitionFilter = document.getElementById("playerCompetitionFilter");
 
     let filteredRows = [...orderedMatches];
 
@@ -708,6 +829,10 @@ function statSetFor(playerId) {
       filteredRows = filteredRows.filter(row => isFriendly(row.match));
     }
 
+    if (competitionFilter && competitionFilter.value !== "all") {
+      filteredRows = filteredRows.filter(row => competitionValue(row.match) === competitionFilter.value);
+    }
+
     if (!filteredRows.length) {
       rows.innerHTML = `<tr><td colspan="6">No match records found.</td></tr>`;
       return;
@@ -717,13 +842,18 @@ function statSetFor(playerId) {
       const num = index + 1;
       const resultClass = matchResultClass(match);
 
+      const started = Number(app.is_starting) === 1;
+      const startIcon = started
+        ? `<span class="player-start-tick" title="Started">✓</span>`
+        : `<span class="player-start-cross" title="Did not start">✗</span>`;
+
       return `
         <tr class="${milestoneClass(num)} ${resultClass}">
           <td>#${String(num).padStart(3, "0")}</td>
           <td>${match.date || ""}</td>
-          <td><a href="match.html?id=${match.id}">${matchLine(match)}</a></td>
-          <td>${match.competition || ""}</td>
-          <td>${Number(app.is_starting) === 1 ? "Start" : "Sub"}</td>
+          <td class="player-match-competition">${match.competition || ""}</td>
+          <td>${resultHtml(match)}</td>
+          <td>${startIcon}</td>
           <td>${Number(app.goals || 0)}</td>
         </tr>
       `;
@@ -739,6 +869,12 @@ function statSetFor(playerId) {
   const friendlyOnlyPlayer = document.getElementById("friendlyOnlyPlayer");
 
   setupGameTickboxes(allGamesPlayer, homeGamesOnlyPlayer, awayGamesOnlyPlayer, renderPlayerMatchRows);
+
+  const competitionFilterPlayer = document.getElementById("playerCompetitionFilter");
+
+  if (competitionFilterPlayer) {
+    competitionFilterPlayer.addEventListener("change", renderPlayerMatchRows);
+  }
 
   if (competitiveOnlyPlayer) {
     competitiveOnlyPlayer.addEventListener("change", () => {
