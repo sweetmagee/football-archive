@@ -5,17 +5,7 @@ Promise.all([
 ]).then(([managers, matches, teams]) => {
   const el = document.getElementById("managerList");
   const eraFilter = document.getElementById("managerEraFilter");
-  const includeFriendlies = document.getElementById("includeFriendliesManagers");
   const countEl = document.getElementById("managerCount");
-
-  let currentSort = {
-    key: "firstMatchSort",
-    direction: "asc"
-  };
-
-  function normalise(value) {
-    return String(value || "").trim();
-  }
 
   function parseDate(value) {
     if (!value) return null;
@@ -40,76 +30,26 @@ Promise.all([
     return d ? d.getTime() : Number.MAX_SAFE_INTEGER;
   }
 
-  function managerEra(row) {
-    if (!row || row.firstMatchSort === Number.MAX_SAFE_INTEGER) return "unknown";
-
-    const first = parseDate(row.firstMatchDate);
-    const last = parseDate(row.lastMatchDate) || first;
-
-    if (!first) return "unknown";
-
-    const firstYear = first.getFullYear();
-    const lastYear = last.getFullYear();
-
-    return { firstYear, lastYear };
-  }
-
-  function rowOverlapsEra(row, eraValue) {
-    if (!eraValue || eraValue === "all") return true;
-
-    const era = managerEra(row);
-    if (eraValue === "unknown") return era === "unknown";
-    if (era === "unknown") return false;
-
-    const startYear = Number(eraValue.replace("s", ""));
-    const endYear = startYear + 9;
-
-    return era.firstYear <= endYear && era.lastYear >= startYear;
-  }
-
-  function isFriendly(match) {
-    const comp = normalise(match.competition).toLowerCase();
-    return (
-      comp === "friendly" ||
-      comp === "friendlies" ||
-      comp === "fr" ||
-      comp.includes("friendly")
-    );
-  }
-
   function isCountableMatch(match) {
     return (
       match &&
-      normalise(match.abandoned).toUpperCase() !== "Y" &&
-      normalise(match.home_score) !== "?" &&
-      normalise(match.away_score) !== "?" &&
+      String(match.abandoned || "").trim().toUpperCase() !== "Y" &&
+      String(match.home_score).trim() !== "?" &&
+      String(match.away_score).trim() !== "?" &&
       !Number.isNaN(Number(match.home_score)) &&
       !Number.isNaN(Number(match.away_score))
     );
   }
 
-  function managedTeamId(match, managerId) {
-    if (normalise(match.home_manager_id) === normalise(managerId)) {
-      return match.home_team;
-    }
+  function sortMatches(matchList) {
+    return [...matchList].sort((a, b) => {
+      const dateDiff = dateSortValue(a.date) - dateSortValue(b.date);
+      if (dateDiff !== 0) return dateDiff;
 
-    if (normalise(match.away_manager_id) === normalise(managerId)) {
-      return match.away_team;
-    }
-
-    return "";
-  }
-
-  function resultForManager(match, managerId) {
-    const teamId = managedTeamId(match, managerId);
-    const isHome = normalise(match.home_team) === normalise(teamId);
-
-    const goalsFor = isHome ? Number(match.home_score) : Number(match.away_score);
-    const goalsAgainst = isHome ? Number(match.away_score) : Number(match.home_score);
-
-    if (goalsFor > goalsAgainst) return "W";
-    if (goalsFor < goalsAgainst) return "L";
-    return "D";
+      const aIndex = matches.findIndex(m => String(m.id).trim() === String(a.id).trim());
+      const bIndex = matches.findIndex(m => String(m.id).trim() === String(b.id).trim());
+      return aIndex - bIndex;
+    });
   }
 
   function formatSpanFromDates(startDateText, endDateText) {
@@ -129,124 +69,65 @@ Promise.all([
     return `${diff} day${diff !== 1 ? "s" : ""}`;
   }
 
-  function sortMatchesByKnownDate(matchList) {
-    return [...matchList].sort((a, b) => {
-      const aDate = dateSortValue(a.date);
-      const bDate = dateSortValue(b.date);
-
-      if (aDate !== bDate) return aDate - bDate;
-
-      const aIndex = matches.findIndex(m => normalise(m.id) === normalise(a.id));
-      const bIndex = matches.findIndex(m => normalise(m.id) === normalise(b.id));
-
-      return aIndex - bIndex;
-    });
-  }
-
   const baseRows = managers.map(mgr => {
-    const allMgrMatches = matches.filter(m =>
-      normalise(m.home_manager_id) === normalise(mgr.id) ||
-      normalise(m.away_manager_id) === normalise(mgr.id)
+    const mgrMatches = matches.filter(m =>
+      (
+        String(m.home_manager_id || "").trim() === String(mgr.id).trim() ||
+        String(m.away_manager_id || "").trim() === String(mgr.id).trim()
+      ) &&
+      isCountableMatch(m)
     );
 
-    const knownDateMatches = sortMatchesByKnownDate(
-      allMgrMatches.filter(m => parseDate(m.date))
-    );
+    const knownDateMatches = sortMatches(mgrMatches.filter(m => parseDate(m.date)));
+    const sortedMatches = sortMatches(mgrMatches);
 
-    const firstMatch = knownDateMatches[0] || sortMatchesByKnownDate(allMgrMatches)[0];
-    const lastMatch = knownDateMatches[knownDateMatches.length - 1] || sortMatchesByKnownDate(allMgrMatches).slice(-1)[0];
+    const firstMatch = knownDateMatches[0] || sortedMatches[0];
+    const lastMatch = knownDateMatches[knownDateMatches.length - 1] || sortedMatches[sortedMatches.length - 1];
 
     const firstMatchDate = firstMatch ? firstMatch.date : "";
     const lastMatchDate = lastMatch ? lastMatch.date : "";
-    const spanDays = parseDate(firstMatchDate) && parseDate(lastMatchDate)
-      ? Math.floor((parseDate(lastMatchDate) - parseDate(firstMatchDate)) / (1000 * 60 * 60 * 24))
-      : -1;
 
     return {
       ...mgr,
+      matchCount: mgrMatches.length,
       firstMatchDate,
       lastMatchDate,
       firstMatchSort: dateSortValue(firstMatchDate),
       lastMatchSort: dateSortValue(lastMatchDate),
-      matchSpan: formatSpanFromDates(firstMatchDate, lastMatchDate),
-      spanDays,
-      allMatches: allMgrMatches
+      matchSpan: formatSpanFromDates(firstMatchDate, lastMatchDate)
     };
-  });
+  }).sort((a, b) => a.firstMatchSort - b.firstMatchSort || String(a.name).localeCompare(String(b.name)));
 
-  function arrowFor(key) {
-    if (currentSort.key !== key) return `<span class="sort-muted">↕</span>`;
-    return currentSort.direction === "asc" ? "▲" : "▼";
-  }
+  function rowMatchesEra(row, eraValue) {
+    if (!eraValue || eraValue === "all") return true;
 
-  function sortableHeader(label, key) {
-    return `<th class="sortable" data-sort="${key}">${label} ${arrowFor(key)}</th>`;
-  }
+    const first = parseDate(row.firstMatchDate);
 
-  function compareValues(a, b, key) {
-    let av = a[key];
-    let bv = b[key];
+    if (eraValue === "unknown") return !first;
+    if (!first) return false;
 
-    if (typeof av === "string") av = av.toLowerCase();
-    if (typeof bv === "string") bv = bv.toLowerCase();
+    const firstYear = first.getFullYear();
 
-    if (av === undefined || av === null || av === "") av = Number.MAX_SAFE_INTEGER;
-    if (bv === undefined || bv === null || bv === "") bv = Number.MAX_SAFE_INTEGER;
+    if (eraValue === "1890s") {
+      return firstYear >= 1890 && firstYear <= 1899;
+    }
 
-    if (av < bv) return currentSort.direction === "asc" ? -1 : 1;
-    if (av > bv) return currentSort.direction === "asc" ? 1 : -1;
+    const startYear = Number(String(eraValue).replace("s", ""));
+    const endYear = startYear + 9;
 
-    return a.name.localeCompare(b.name);
-  }
-
-  function buildRows() {
-    const eraValue = eraFilter ? eraFilter.value : "all";
-    const includeFr = includeFriendlies.checked;
-
-    let rows = baseRows
-      .filter(row => rowOverlapsEra(row, eraValue))
-      .map(row => {
-      const validMatches = row.allMatches.filter(m =>
-        isCountableMatch(m) &&
-        (includeFr || !isFriendly(m))
-      );
-
-      let wins = 0;
-      let draws = 0;
-      let losses = 0;
-
-      validMatches.forEach(match => {
-        const result = resultForManager(match, row.id);
-        if (result === "W") wins++;
-        else if (result === "L") losses++;
-        else draws++;
-      });
-
-      const matchCount = validMatches.length;
-      const winPct = matchCount ? (wins / matchCount) * 100 : 0;
-
-      return {
-        ...row,
-        matchCount,
-        wins,
-        draws,
-        losses,
-        winPct
-      };
-    });
-
-    rows.sort((a, b) => compareValues(a, b, currentSort.key));
-
-    return rows;
+    return firstYear >= startYear && firstYear <= endYear;
   }
 
   function render() {
-    const rows = buildRows();
+    const eraValue = eraFilter ? eraFilter.value : "all";
+    const rows = baseRows.filter(row => rowMatchesEra(row, eraValue));
 
-    countEl.textContent = rows.length;
+    if (countEl) {
+      countEl.textContent = rows.length;
+    }
 
     if (!rows.length) {
-      el.innerHTML = "<p>No managers found.</p>";
+      el.innerHTML = "<p>No managers recorded.</p>";
       return;
     }
 
@@ -254,15 +135,11 @@ Promise.all([
       <table class="archive-table">
         <thead>
           <tr>
-            ${sortableHeader("Name", "name")}
-            ${sortableHeader("First Match", "firstMatchSort")}
-            ${sortableHeader("Last Match", "lastMatchSort")}
-            ${sortableHeader("Match Span", "spanDays")}
-            ${sortableHeader("Matches", "matchCount")}
-            ${sortableHeader("Win %", "winPct")}
-            ${sortableHeader("W", "wins")}
-            ${sortableHeader("D", "draws")}
-            ${sortableHeader("L", "losses")}
+            <th>Name</th>
+            <th>First Match</th>
+            <th>Last Match</th>
+            <th>Match Span</th>
+            <th>Matches</th>
           </tr>
         </thead>
         <tbody>
@@ -273,41 +150,20 @@ Promise.all([
               <td>${row.lastMatchDate || ""}</td>
               <td>${row.matchSpan || ""}</td>
               <td>${row.matchCount}</td>
-              <td>${row.matchCount ? `${row.winPct.toFixed(1)}%` : "0.0%"}</td>
-              <td>${row.wins}</td>
-              <td>${row.draws}</td>
-              <td>${row.losses}</td>
             </tr>
           `).join("")}
         </tbody>
       </table>
     `;
-
-    document.querySelectorAll("#managerList .sortable").forEach(th => {
-      th.addEventListener("click", () => {
-        const key = th.dataset.sort;
-
-        if (currentSort.key === key) {
-          currentSort.direction = currentSort.direction === "asc" ? "desc" : "asc";
-        } else {
-          currentSort.key = key;
-          currentSort.direction = key === "name" || key.includes("MatchSort") || key === "spanDays"
-            ? "asc"
-            : "desc";
-        }
-
-        render();
-      });
-    });
   }
 
-  if (eraFilter) eraFilter.addEventListener("change", render);
-  includeFriendlies.addEventListener("change", render);
+  if (eraFilter) {
+    eraFilter.addEventListener("change", render);
+  }
 
   render();
 
 }).catch(err => {
-  document.getElementById("managerList").innerHTML =
-    `<p>Error loading managers: ${err.message}</p>`;
+  document.getElementById("managerList").innerHTML = `<p>Error loading managers: ${err.message}</p>`;
   console.error(err);
 });
