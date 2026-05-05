@@ -1103,3 +1103,102 @@ a[href^="season.html?id="]:hover,
 .milestone-row td {
   background: #f1d08a !important;
 }
+
+
+/* === Option 3 Header Test: Programme Cover Style === */
+/* Header-only styling test: no page layout/content changes */
+
+.header-bar.site-header-image {
+  background-image:
+    linear-gradient(
+      135deg,
+      rgba(7, 25, 58, 0.92),
+      rgba(18, 59, 122, 0.82)
+    ),
+    url("../images/header.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-bottom: 4px solid #111111;
+}
+
+.site-header-overlay {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.10), transparent 28%),
+    linear-gradient(
+      to bottom,
+      rgba(7, 25, 58, 0.30),
+      rgba(7, 25, 58, 0.76)
+    );
+}
+
+/* Subtle programme-paper texture feel */
+.site-header-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.06) 0,
+      rgba(255,255,255,0.06) 1px,
+      transparent 1px,
+      transparent 5px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(0,0,0,0.05) 0,
+      rgba(0,0,0,0.05) 1px,
+      transparent 1px,
+      transparent 7px
+    );
+}
+
+.nav-links {
+  position: relative;
+  z-index: 2;
+}
+
+/* Menu buttons: programme-cover blue with heritage amber edge */
+.nav-links a {
+  background: rgba(8, 28, 66, 0.88) !important;
+  color: #fff7e6 !important;
+  border: 1px solid rgba(214, 154, 45, 0.75) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.16),
+    0 2px 7px rgba(0,0,0,0.36) !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+}
+
+.nav-links a:hover {
+  background: #d69a2d !important;
+  border-color: #9a6418 !important;
+  color: #111111 !important;
+  text-shadow: none !important;
+  text-decoration: none !important;
+}
+
+/* Thin archival colour band */
+.header-bar.site-header-image::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 4px;
+  background: linear-gradient(
+    to right,
+    #111111 0%,
+    #111111 18%,
+    #d69a2d 18%,
+    #d69a2d 34%,
+    #ffffff 34%,
+    #ffffff 46%,
+    #123b7a 46%,
+    #123b7a 100%
+  );
+}
+
+/* === End Option 3 Header Test === */
