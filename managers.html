@@ -8,7 +8,7 @@
 </head>
 <body>
 
-<div class="header-bar site-header-image">
+  <div class="header-bar site-header-image">
   <div class="site-header-overlay">
     <div class="nav-links">
       <a href="index.html">Home</a>
@@ -21,52 +21,49 @@
       <a href="honours.html">Honours</a>
       <a href="history.html">History</a>
       <a href="interactive.html">Interactive</a>
+
     </div>
   </div>
 </div>
 
-<div class="page-wrap">
-  <div class="content-box">
-    
 
-    <div class="filter-bar">
 
-      <label class="stats-toggle" for="managerEraFilter">
-        Manager Span
-      </label>
-      <select id="managerEraFilter" class="search-box">
-        <option value="all">All Managers</option>
-        <option value="1800s">1800s</option>
-        <option value="1900s">1900s</option>
-        <option value="1910s">1910s</option>
-        <option value="1920s">1920s</option>
-        <option value="1930s">1930s</option>
-        <option value="1940s">1940s</option>
-        <option value="1950s">1950s</option>
-        <option value="1960s">1960s</option>
-        <option value="1970s">1970s</option>
-        <option value="1980s">1980s</option>
-        <option value="1990s">1990s</option>
-        <option value="2000s">2000s</option>
-        <option value="2010s">2010s</option>
-        <option value="2020s">2020s</option>
-        <option value="unknown">Unknown Span</option>
-      </select>
+  <div class="page-wrap">
+    <div class="content-box">
+      <h2>Managers</h2>
 
-<label class="stats-toggle">
-        <input type="checkbox" id="includeFriendliesManagers">
-        Include Friendlies
-      </label>
+      <div class="filter-bar">
+        <label class="stats-toggle" for="managerEraFilter">
+          Manager Span
+        </label>
+        <select id="managerEraFilter" class="search-box">
+          <option value="all">All Managers</option>
+          <option value="1890s">1890s</option>
+          <option value="1900s">1900s</option>
+          <option value="1910s">1910s</option>
+          <option value="1920s">1920s</option>
+          <option value="1930s">1930s</option>
+          <option value="1940s">1940s</option>
+          <option value="1950s">1950s</option>
+          <option value="1960s">1960s</option>
+          <option value="1970s">1970s</option>
+          <option value="1980s">1980s</option>
+          <option value="1990s">1990s</option>
+          <option value="2000s">2000s</option>
+          <option value="2010s">2010s</option>
+          <option value="2020s">2020s</option>
+          <option value="unknown">Unknown Span</option>
+        </select>
+      </div>
+
+      <p class="player-count">
+        <span id="managerCount">0</span> managers listed
+      </p>
+
+      <div id="managerList"></div>
     </div>
-
-    <p class="player-count">
-      <span id="managerCount">0</span> managers listed
-    </p>
-
-    <div id="managerList"></div>
   </div>
-</div>
 
-<script src="js/managers.js"></script>
+  <script src="js/managers.js"></script>
 </body>
 </html>
