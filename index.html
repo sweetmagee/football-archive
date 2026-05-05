@@ -182,6 +182,23 @@
     }
   }
 
+
+
+/* V5 HOMEPAGE FIX: force On This Day to render as the same white archive box */
+.home-grid-equal > .on-this-day-section,
+.on-this-day-section,
+section.on-this-day-section,
+div.on-this-day-section {
+  border: 1px solid #b8c9ea !important;
+  background: #ffffff !important;
+  padding: 22px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.14) !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.home-grid-equal > .on-this-day-section h2 { margin-top: 0 !important; }
 </style>
 
 
@@ -274,7 +291,7 @@
 
     <div class="home-grid home-grid-equal">
 
-      <div id="onThisDayCard" class="content-box on-this-day-section">
+      <div class="content-box on-this-day-section" data-fix-version="v5">
         <h2>On This Day</h2>
         <div id="on-this-day">Loading...</div>
       </div>
