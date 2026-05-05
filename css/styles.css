@@ -1223,3 +1223,35 @@ button:hover,
     0 4px 10px rgba(0,0,0,0.35) !important;
 }
 
+.on-this-day-section {
+  margin-top: 1.5rem;
+}
+
+.on-this-day-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.on-this-day-list li {
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(90, 58, 32, 0.25);
+  line-height: 1.45;
+}
+
+.on-this-day-list li:last-child {
+  border-bottom: none;
+}
+
+.otd-detail {
+  font-size: 0.9em;
+  opacity: 0.85;
+  margin-left: 0.25rem;
+}
+
+.otd-years {
+  display: inline-block;
+  margin-left: 0.4rem;
+  font-size: 0.85em;
+  opacity: 0.75;
+}
