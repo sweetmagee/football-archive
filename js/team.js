@@ -28,6 +28,28 @@ Promise.all([
     return comp === "friendly" || comp === "friendlies" || comp === "fr" || comp.includes("friendly");
   }
 
+  function competitionValue(match) {
+    return normalise(match.competition) || "Unknown";
+  }
+
+  function populateTeamCompetitionFilter() {
+    const competitionFilter = document.getElementById("teamCompetitionFilter");
+    if (!competitionFilter) return;
+
+    const currentValue = competitionFilter.value || "all";
+    const competitions = Array.from(new Set(getAllTeamMatches().map(competitionValue)))
+      .sort((a, b) => a.localeCompare(b));
+
+    competitionFilter.innerHTML = `
+      <option value="all">All Competitions</option>
+      ${competitions.map(comp => `<option value="${String(comp).replace(/"/g, "&quot;")}">${comp}</option>`).join("")}
+    `;
+
+    if (currentValue === "all" || competitions.includes(currentValue)) {
+      competitionFilter.value = currentValue;
+    }
+  }
+
   function isT1Home(match) {
     return normalise(match.home_team) === "t1";
   }
@@ -551,6 +573,11 @@ Promise.all([
       shownMatches = shownMatches.filter(m => isFriendly(m));
     }
 
+    const competitionFilter = document.getElementById("teamCompetitionFilter");
+    if (competitionFilter && competitionFilter.value !== "all") {
+      shownMatches = shownMatches.filter(m => competitionValue(m) === competitionFilter.value);
+    }
+
     if (excludeUnknown && excludeUnknown.checked) {
       shownMatches = shownMatches.filter(m => !hasUnknownResult(m));
     }
@@ -605,6 +632,7 @@ Promise.all([
   }
 
   function refreshPageData() {
+    populateTeamCompetitionFilter();
     renderHeaderRecord();
     renderSeasonSummary();
     renderMatches();
@@ -748,7 +776,12 @@ Promise.all([
     </div>
 
     <div class="content-box section-block team-matches-section">
-      <h3>Matches</h3>
+      <div class="team-matches-heading">
+        <h3>Matches</h3>
+        <select id="teamCompetitionFilter">
+          <option value="all">All Competitions</option>
+        </select>
+      </div>
 
       <div id="matchFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
         <label class="stats-toggle">
@@ -855,6 +888,11 @@ Promise.all([
 
   setupGameTickboxes(recordAllGames, recordHomeGamesOnly, recordAwayGamesOnly, renderHeaderRecord);
   setupGameTickboxes(allGames, homeGamesOnly, awayGamesOnly, renderMatches);
+
+  const teamCompetitionFilter = document.getElementById("teamCompetitionFilter");
+  if (teamCompetitionFilter) {
+    teamCompetitionFilter.addEventListener("change", renderMatches);
+  }
 
   const competitiveOnly = document.getElementById("competitiveOnlyMatches");
   const friendlyOnly = document.getElementById("friendlyOnlyMatches");
