@@ -91,6 +91,22 @@ Promise.all([
       display: inline-flex;
       align-items: center;
       min-height: 24px;
+
+    .match-team-line.margate-win {
+      background: #f1f8ef !important;
+      border-left: 4px solid #8fbc8f !important;
+    }
+
+    .match-team-line.margate-loss {
+      background: #fbefef !important;
+      border-left: 4px solid #d99a9a !important;
+    }
+
+    .match-team-line.margate-draw {
+      background: #faf4df !important;
+      border-left: 4px solid #d6b35f !important;
+    }
+
     }  `;
   document.head.appendChild(matchStyle);
 
@@ -324,6 +340,52 @@ Promise.all([
       awayResultClass = "match-team-winner";
     }
   }
+
+
+  function margateResultClass(matchRecord) {
+    if (
+      String(matchRecord.home_score).trim() === "?" ||
+      String(matchRecord.away_score).trim() === "?" ||
+      String(matchRecord.abandoned || "").trim().toUpperCase() === "Y" ||
+      Number.isNaN(Number(matchRecord.home_score)) ||
+      Number.isNaN(Number(matchRecord.away_score))
+    ) {
+      return "";
+    }
+
+    const home = Number(matchRecord.home_score);
+    const away = Number(matchRecord.away_score);
+    const isHomeMargate = String(matchRecord.home_team).trim() === "t1";
+    const isAwayMargate = String(matchRecord.away_team).trim() === "t1";
+
+    if (!isHomeMargate && !isAwayMargate) return "";
+
+    const margateScore = isHomeMargate ? home : away;
+    const opponentScore = isHomeMargate ? away : home;
+
+    if (margateScore > opponentScore) return "margate-win";
+    if (margateScore < opponentScore) return "margate-loss";
+    return "margate-draw";
+  }
+
+  function oppositeMargateResultClass(resultClass) {
+    if (resultClass === "margate-win") return "margate-loss";
+    if (resultClass === "margate-loss") return "margate-win";
+    if (resultClass === "margate-draw") return "margate-draw";
+    return "";
+  }
+
+  const margateClass = margateResultClass(match);
+
+  const homeColourClass =
+    String(match.home_team).trim() === "t1"
+      ? margateClass
+      : oppositeMargateResultClass(margateClass);
+
+  const awayColourClass =
+    String(match.away_team).trim() === "t1"
+      ? margateClass
+      : oppositeMargateResultClass(margateClass);
 
   const matchApps = apps.filter(a => String(a.match_id).trim() === String(match.id).trim());
   const homeApps = matchApps.filter(a => String(a.team).trim() === String(match.home_team).trim());
@@ -721,12 +783,12 @@ Promise.all([
         ${competitionBadgeHtml(match.competition)}
         <div class="match-header-main">
           <div class="match-score-header">
-            <div class="match-team-line ${homeResultClass}">
+            <div class="match-team-line ${homeResultClass} ${homeColourClass}">
               ${teamBadgeHtml(match.home_team, "team-badge-medium")}
               <span class="match-line-text">${homeLine}</span>
             </div>
 
-            <div class="match-team-line ${awayResultClass}">
+            <div class="match-team-line ${awayResultClass} ${awayColourClass}">
               ${teamBadgeHtml(match.away_team, "team-badge-medium")}
               <span class="match-line-text">${awayLine}</span>
             </div>
