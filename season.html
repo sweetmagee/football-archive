@@ -27,6 +27,8 @@
 
 <div class="page-wrap">
 
+  <div id="seasonTopNav"></div>
+
   <h1 id="seasonTitle">Season</h1>
 
   <div class="content-box">
@@ -113,7 +115,12 @@
   </div>
 
   <div class="content-box season-matches-wide">
-    <h2>Matches</h2>
+    <div class="season-matches-heading">
+      <h2>Matches</h2>
+      <select id="seasonCompetitionFilter">
+        <option value="all">All Competitions</option>
+      </select>
+    </div>
 
     <div id="matchFilters" style="display:flex; gap:18px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
       <label class="stats-toggle">
@@ -155,7 +162,7 @@
     <div id="matches" class="match-list"></div>
   </div>
 
-  <div class="content-box">
+  <div class="content-box" id="leagueTableSection">
     <h2>League Table</h2>
     <table class="archive-table">
       <thead>
@@ -175,6 +182,8 @@
       <tbody id="tableBody"></tbody>
     </table>
   </div>
+
+  <div id="seasonBottomNav"></div>
 
 </div>
 
