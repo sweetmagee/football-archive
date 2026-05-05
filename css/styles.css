@@ -1055,67 +1055,22 @@ button:hover {
   align-items: center;
   min-height: 24px;
 }
-
-/* === Colour-only button refinements === */
-/* Seasons.html season links: match the header menu button colours without changing size/layout */
-a[href^="season.html?id="],
-.season-links a,
-.seasons-list a,
-.season-list a,
-#seasonButtons a,
-#seasonList a,
-#seasons a {
-  background: rgba(18, 59, 122, 0.88) !important;
-  color: #f5ead4 !important;
-  border-color: rgba(255, 255, 255, 0.55) !important;
-  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.28) !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
-}
-
-/* Universal softened heritage amber hover with black text */
-.nav-links a:hover,
+/* Universal amber hover (matches player.html behaviour) */
 .archive-button:hover,
 button:hover,
 .stats-button:hover,
-.match-nav a:hover,
-a[href^="season.html?id="]:hover,
-.season-links a:hover,
-.seasons-list a:hover,
-.season-list a:hover,
-#seasonButtons a:hover,
-#seasonList a:hover,
-#seasons a:hover {
-  background: #d69a2d !important;
-  border-color: #9a6418 !important;
-  color: #111111 !important;
-  text-shadow: none !important;
-  text-decoration: none !important;
-}
-
-/* Soften amber accents only */
-.gold-star {
-  color: #d69a2d !important;
-  text-shadow: 0 0 3px #f6ddb0, 0 0 7px rgba(214,154,45,0.65) !important;
-}
-
-.archive-table tbody tr.top-row td,
-.milestone-row,
-.milestone-row td {
-  background: #f1d08a !important;
+.nav-links a:hover {
+  background: #f59e0b !important;   /* amber */
+  border-color: #b45309 !important;
+  color: #ffffff !important;
 }
 
 
-/* === Header Test: Programme Matchday Blend === */
-/* Header-only styling: blends Option 3 programme texture with Option 4 modern matchday clarity */
+/* === Header Test: Clear Programme Matchday Blend === */
+/* Header-only styling: clearer image/text with amber heritage accents */
 
 .header-bar.site-header-image {
-  background-image:
-    linear-gradient(
-      135deg,
-      rgba(7, 25, 58, 0.54),
-      rgba(18, 59, 122, 0.42)
-    ),
-    url("../images/header.png");
+  background-image: url("../images/header.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -1123,57 +1078,48 @@ a[href^="season.html?id="]:hover,
   position: relative;
 }
 
-/* Clearer image, stronger lower blue fade behind navigation */
+/* Much lighter overlay so the banner image and any text remain visible */
 .site-header-overlay {
   background:
-    radial-gradient(circle at 18% 18%, rgba(255,255,255,0.12), transparent 30%),
     linear-gradient(
       to bottom,
-      rgba(7, 25, 58, 0.08),
-      rgba(7, 25, 58, 0.68)
+      rgba(7, 25, 58, 0.00) 0%,
+      rgba(7, 25, 58, 0.08) 48%,
+      rgba(7, 25, 58, 0.42) 100%
     );
 }
 
-/* Very subtle programme-cover paper grain */
+/* Very light vintage texture only */
 .site-header-overlay::before {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.055;
+  opacity: 0.025;
   background-image:
     repeating-linear-gradient(
       0deg,
       rgba(255,255,255,0.08) 0,
       rgba(255,255,255,0.08) 1px,
       transparent 1px,
-      transparent 5px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      rgba(0,0,0,0.08) 0,
-      rgba(0,0,0,0.08) 1px,
-      transparent 1px,
-      transparent 7px
+      transparent 6px
     );
 }
 
-/* Amber presence without overpowering the image */
+/* Subtle amber accent line above nav */
 .site-header-overlay::after {
   content: "";
   position: absolute;
-  left: 6%;
-  right: 6%;
-  bottom: 70px;
+  left: 7%;
+  right: 7%;
+  bottom: 68px;
   height: 2px;
   background: linear-gradient(
     to right,
     transparent,
-    rgba(214, 154, 45, 0.95),
-    rgba(214, 154, 45, 0.95),
+    rgba(214, 154, 45, 0.88),
     transparent
   );
-  box-shadow: 0 0 8px rgba(214,154,45,0.45);
   pointer-events: none;
 }
 
@@ -1182,21 +1128,20 @@ a[href^="season.html?id="]:hover,
   z-index: 2;
 }
 
-/* Menu buttons: modern matchday shape, programme-style blue and stronger amber edge */
+/* Clearer menu buttons */
 .nav-links a {
   background:
     linear-gradient(
       to bottom,
-      rgba(24, 77, 150, 0.92),
-      rgba(8, 28, 66, 0.94)
+      rgba(23, 70, 140, 0.96),
+      rgba(7, 25, 58, 0.96)
     ) !important;
   color: #ffffff !important;
-  border: 1px solid rgba(214, 154, 45, 0.88) !important;
+  border: 1px solid rgba(214, 154, 45, 0.92) !important;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.18),
-    0 2px 7px rgba(0,0,0,0.36),
-    0 0 0 1px rgba(255,255,255,0.10) !important;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    inset 0 1px 0 rgba(255,255,255,0.22),
+    0 2px 8px rgba(0,0,0,0.40) !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
 }
 
 .nav-links a:hover {
@@ -1207,7 +1152,7 @@ a[href^="season.html?id="]:hover,
   text-decoration: none !important;
 }
 
-/* Heritage colour band: more amber, still mostly blue/white */
+/* Stronger but thin heritage colour band */
 .header-bar.site-header-image::after {
   content: "";
   position: absolute;
@@ -1218,14 +1163,14 @@ a[href^="season.html?id="]:hover,
   background: linear-gradient(
     to right,
     #123b7a 0%,
-    #123b7a 46%,
-    #d69a2d 46%,
-    #d69a2d 70%,
-    #111111 70%,
-    #111111 82%,
-    #ffffff 82%,
+    #123b7a 50%,
+    #d69a2d 50%,
+    #d69a2d 76%,
+    #111111 76%,
+    #111111 88%,
+    #ffffff 88%,
     #ffffff 100%
   );
 }
 
-/* === End Header Test: Programme Matchday Blend === */
+/* === End Header Test: Clear Programme Matchday Blend === */
