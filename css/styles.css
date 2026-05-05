@@ -1255,3 +1255,10 @@ button:hover,
   font-size: 0.85em;
   opacity: 0.75;
 }
+.otd-hidden {
+  display: none;
+}
+
+#otd-show-more {
+  margin-top: 0.75rem;
+}
