@@ -4,7 +4,7 @@ Promise.all([
   fetch("data/teams.json").then(r => r.json())
 ]).then(([managers, matches, teams]) => {
   const el = document.getElementById("managerList");
-  const searchBox = document.getElementById("managerSearch");
+  const eraFilter = document.getElementById("managerEraFilter");
   const includeFriendlies = document.getElementById("includeFriendliesManagers");
   const countEl = document.getElementById("managerCount");
 
@@ -38,6 +38,33 @@ Promise.all([
   function dateSortValue(value) {
     const d = parseDate(value);
     return d ? d.getTime() : Number.MAX_SAFE_INTEGER;
+  }
+
+  function managerEra(row) {
+    if (!row || row.firstMatchSort === Number.MAX_SAFE_INTEGER) return "unknown";
+
+    const first = parseDate(row.firstMatchDate);
+    const last = parseDate(row.lastMatchDate) || first;
+
+    if (!first) return "unknown";
+
+    const firstYear = first.getFullYear();
+    const lastYear = last.getFullYear();
+
+    return { firstYear, lastYear };
+  }
+
+  function rowOverlapsEra(row, eraValue) {
+    if (!eraValue || eraValue === "all") return true;
+
+    const era = managerEra(row);
+    if (eraValue === "unknown") return era === "unknown";
+    if (era === "unknown") return false;
+
+    const startYear = Number(eraValue.replace("s", ""));
+    const endYear = startYear + 9;
+
+    return era.firstYear <= endYear && era.lastYear >= startYear;
   }
 
   function isFriendly(match) {
@@ -173,10 +200,12 @@ Promise.all([
   }
 
   function buildRows() {
-    const query = searchBox.value.trim().toLowerCase();
+    const eraValue = eraFilter ? eraFilter.value : "all";
     const includeFr = includeFriendlies.checked;
 
-    let rows = baseRows.map(row => {
+    let rows = baseRows
+      .filter(row => rowOverlapsEra(row, eraValue))
+      .map(row => {
       const validMatches = row.allMatches.filter(m =>
         isCountableMatch(m) &&
         (includeFr || !isFriendly(m))
@@ -205,12 +234,6 @@ Promise.all([
         winPct
       };
     });
-
-    if (query) {
-      rows = rows.filter(row =>
-        normalise(row.name).toLowerCase().includes(query)
-      );
-    }
 
     rows.sort((a, b) => compareValues(a, b, currentSort.key));
 
@@ -278,7 +301,7 @@ Promise.all([
     });
   }
 
-  searchBox.addEventListener("input", render);
+  if (eraFilter) eraFilter.addEventListener("change", render);
   includeFriendlies.addEventListener("change", render);
 
   render();
