@@ -91,23 +91,32 @@ Promise.all([
       display: inline-flex;
       align-items: center;
       min-height: 24px;
-
-    .match-team-line.margate-win {
-      background: #f1f8ef !important;
-      border-left: 4px solid #8fbc8f !important;
     }
 
-    .match-team-line.margate-loss {
-      background: #fbefef !important;
-      border-left: 4px solid #d99a9a !important;
+    .match-team-line.season-result-win {
+      background: #e7f4e4 !important;
     }
 
-    .match-team-line.margate-draw {
-      background: #faf4df !important;
-      border-left: 4px solid #d6b35f !important;
+    .match-team-line.season-result-defeat {
+      background: #f8e3e3 !important;
     }
 
-    }  `;
+    .match-team-line.season-result-draw {
+      background: #f6edd2 !important;
+    }
+
+    .match-team-line.season-result-win:hover {
+      background: #d9ecd5 !important;
+    }
+
+    .match-team-line.season-result-defeat:hover {
+      background: #f1d4d4 !important;
+    }
+
+    .match-team-line.season-result-draw:hover {
+      background: #efe0b9 !important;
+    }
+  `;
   document.head.appendChild(matchStyle);
 
   document.addEventListener("click", event => {
@@ -328,50 +337,51 @@ Promise.all([
   const homeScoreNum = Number(match.home_score || 0);
   const awayScoreNum = Number(match.away_score || 0);
 
-  let homeResultClass = "match-team-draw";
-  let awayResultClass = "match-team-draw";
+  let homeResultClass = "";
+  let awayResultClass = "";
 
-  if (!Number.isNaN(homeScoreNum) && !Number.isNaN(awayScoreNum)) {
+  if (
+    String(match.home_score).trim() !== "?" &&
+    String(match.away_score).trim() !== "?" &&
+    !Number.isNaN(homeScoreNum) &&
+    !Number.isNaN(awayScoreNum) &&
+    String(match.abandoned || "").trim().toUpperCase() !== "Y"
+  ) {
     if (homeScoreNum > awayScoreNum) {
       homeResultClass = "match-team-winner";
       awayResultClass = "match-team-loser";
     } else if (awayScoreNum > homeScoreNum) {
       homeResultClass = "match-team-loser";
       awayResultClass = "match-team-winner";
+    } else {
+      homeResultClass = "match-team-draw";
+      awayResultClass = "match-team-draw";
     }
   }
 
 
   function margateResultClass(matchRecord) {
-    if (
-      String(matchRecord.home_score).trim() === "?" ||
-      String(matchRecord.away_score).trim() === "?" ||
-      String(matchRecord.abandoned || "").trim().toUpperCase() === "Y" ||
-      Number.isNaN(Number(matchRecord.home_score)) ||
-      Number.isNaN(Number(matchRecord.away_score))
-    ) {
-      return "";
-    }
+    if (!isKnownScore(matchRecord)) return "";
 
-    const home = Number(matchRecord.home_score);
-    const away = Number(matchRecord.away_score);
-    const isHomeMargate = String(matchRecord.home_team).trim() === "t1";
-    const isAwayMargate = String(matchRecord.away_team).trim() === "t1";
+    const homeScore = Number(matchRecord.home_score);
+    const awayScore = Number(matchRecord.away_score);
+    const margateHome = String(matchRecord.home_team).trim() === "t1";
+    const margateAway = String(matchRecord.away_team).trim() === "t1";
 
-    if (!isHomeMargate && !isAwayMargate) return "";
+    if (!margateHome && !margateAway) return "";
 
-    const margateScore = isHomeMargate ? home : away;
-    const opponentScore = isHomeMargate ? away : home;
+    const margateScore = margateHome ? homeScore : awayScore;
+    const opponentScore = margateHome ? awayScore : homeScore;
 
-    if (margateScore > opponentScore) return "margate-win";
-    if (margateScore < opponentScore) return "margate-loss";
-    return "margate-draw";
+    if (margateScore > opponentScore) return "season-result-win";
+    if (margateScore < opponentScore) return "season-result-defeat";
+    return "season-result-draw";
   }
 
   function oppositeMargateResultClass(resultClass) {
-    if (resultClass === "margate-win") return "margate-loss";
-    if (resultClass === "margate-loss") return "margate-win";
-    if (resultClass === "margate-draw") return "margate-draw";
+    if (resultClass === "season-result-win") return "season-result-defeat";
+    if (resultClass === "season-result-defeat") return "season-result-win";
+    if (resultClass === "season-result-draw") return "season-result-draw";
     return "";
   }
 
